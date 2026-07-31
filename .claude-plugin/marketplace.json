@@ -9,6 +9,7 @@
     {
       "name": "pr-review-kit",
       "source": "./",
+      "version": "0.1.0",
       "description": "Context-first pull-request review: blast-radius briefing, draft-by-default review submission, and a printable PDF dossier for judging each comment before it is published.",
       "category": "engineering",
       "keywords": [

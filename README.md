@@ -40,11 +40,15 @@ with `claude plugin list`, or by typing `/pr-review-draft` and seeing it resolve
 
 ```
 /plugin marketplace update jgong5
-/plugin update pr-review-kit
+/plugin update pr-review-kit@jgong5
 ```
 
 Same commands work as `claude plugin ...` from the shell. Updates apply on
 restart.
+
+Qualify the plugin with `@jgong5` on update. The bare name resolves for
+`install` and `details`, but `update` reports `Plugin "pr-review-kit" not found`
+without it.
 
 ## Uninstall
 
@@ -104,7 +108,9 @@ manifest -- never by moving files, which would break the relative links between
 a `SKILL.md` and its companion files.
 
 There is deliberately no `plugin.json`. A marketplace entry with
-`"source": "./"` and its own `skills` list is a complete plugin definition.
+`"source": "./"` and its own `skills` list is a complete plugin definition, and
+it carries `version` too -- without one, Claude Code falls back to reporting the
+commit SHA as the installed version.
 
 ## Adding to this repo
 
