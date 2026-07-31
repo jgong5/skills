@@ -1,0 +1,23 @@
+{
+  "name": "jgong5",
+  "owner": {
+    "name": "jgong5",
+    "url": "https://github.com/jgong5"
+  },
+  "description": "jgong5's Claude Code skills.",
+  "plugins": [
+    {
+      "name": "pr-review-kit",
+      "source": "./",
+      "description": "Context-first pull-request review: blast-radius briefing, draft-by-default review submission, and a printable PDF dossier for judging each comment before it is published.",
+      "category": "engineering",
+      "keywords": [
+        "pull-request",
+        "code-review",
+        "github",
+        "diagrams",
+        "pdf"
+      ]
+    }
+  ]
+}

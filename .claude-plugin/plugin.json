@@ -1,0 +1,24 @@
+{
+  "name": "pr-review-kit",
+  "version": "0.1.0",
+  "description": "A context-first pull-request review workflow: brief yourself on a PR's blast radius, draft a review that stays private until you say otherwise, and study every comment in a printable PDF dossier before publishing.",
+  "author": {
+    "name": "jgong5",
+    "url": "https://github.com/jgong5"
+  },
+  "homepage": "https://github.com/jgong5/skills",
+  "repository": "https://github.com/jgong5/skills",
+  "license": "MIT",
+  "keywords": [
+    "pull-request",
+    "code-review",
+    "github",
+    "diagrams",
+    "pdf"
+  ],
+  "skills": [
+    "./skills/pr-explain",
+    "./skills/pr-review-draft",
+    "./skills/pr-review-dossier"
+  ]
+}

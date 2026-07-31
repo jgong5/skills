@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>PR #190559 -- Review Dossier</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font: 10.5pt/1.45 "Segoe UI", Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 20pt; margin: 0 0 3pt; color: #0b3d5c; }
+  h2 { font-size: 14pt; color: #0b5394; border-bottom: 1.5px solid #0b5394;
+       padding-bottom: 3pt; margin: 18pt 0 6pt; break-after: avoid; }
+  h3 { font-size: 11pt; color: #21618c; margin: 11pt 0 4pt; break-after: avoid; }
+  pre { font: 8.5pt/1.32 Consolas, monospace; background: #f7f9fb;
+        border: 1px solid #d5dde5; border-left: 3px solid #0b5394; padding: 6pt 8pt;
+        white-space: pre; overflow-x: hidden; break-inside: avoid; }
+  code { font: 9pt Consolas, monospace; background: #f2f4f7; padding: 0 3pt;
+         border-radius: 2px; color: #7b241c; }
+  table { border-collapse: collapse; width: 100%; font-size: 9pt; margin: 6pt 0; }
+  th, td { border: 1px solid #c9d3dc; padding: 4pt 6pt; text-align: left;
+           vertical-align: top; }
+  th { background: #0b5394; color: #fff; }
+  td.c { text-align: center; width: 22pt; }
+  figure { margin: 8pt 0; text-align: center; break-inside: avoid; }
+  figcaption { font-size: 8.5pt; color: #666; margin-top: 3pt; }
+  .card { break-before: page; }
+  .comment { background: #fffbe6; border: 1px solid #e0d28a; padding: 6pt 9pt;
+             margin: 6pt 0; }
+  .ai-note { font-size: 7.5pt; color: #806b00; letter-spacing: .6pt; }
+  .hit { background: #ffe0e0; display: block; }
+  .verdict { font-size: 8.5pt; font-weight: 600; padding: 1pt 6pt; border-radius: 3pt; }
+  .confirmed { background: #d8f0d8; } .speculative { background: #fdf0d0; }
+  .refuted { background: #f5d5d5; }
+  .decide { border: 1.5px solid #333; padding: 7pt 10pt; margin-top: 10pt;
+            break-inside: avoid; }
+  .box { display: inline-block; width: 11pt; height: 11pt; border: 1px solid #333;
+         background: #fff; text-decoration: none; vertical-align: -2pt; margin: 0 4pt 0 12pt; }
+  td.c .box { margin: 0; }
+  .note-label { font-size: 8pt; color: #555; margin: 6pt 0 2pt; }
+  .note { display: block; height: 42pt; border: 1px solid #888; background: #fff;
+          text-decoration: none; }
+  .meta { color: #666; font-size: 9pt; }
+</style></head><body>
+
+<h1>PR #190559 -- Review Dossier</h1>
+<p class="meta"><b>[Dynamo] Make compiled autograd trace tests rerun-safe</b><br>
+author &middot; https://github.com/pytorch/pytorch/pull/190559 &middot; 2 comments: 1 confirmed, 1 speculative</p>
+
+<h2>Briefing</h2>
+<p>The PR resets a module-global counter between compiled-autograd trace tests so
+a rerun does not inherit state from the previous run.</p>
+
+<figure>
+<svg width="440" height="150" viewBox="0 0 440 150" xmlns="http://www.w3.org/2000/svg"
+     font-family="Segoe UI, Arial, sans-serif" font-size="10">
+  <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+    <path d="M0,0 L8,3 L0,6 z" fill="#44546a"/></marker></defs>
+  <rect x="8" y="10" width="120" height="34" rx="4" fill="#fdecea" stroke="#c0392b" stroke-width="1.4"/>
+  <text x="68" y="27" text-anchor="middle" font-weight="600">test harness *</text>
+  <text x="68" y="39" text-anchor="middle" font-size="8.5" fill="#666">test_compiled_autograd</text>
+  <rect x="170" y="10" width="120" height="34" rx="4" fill="#eaf4fb" stroke="#0b5394"/>
+  <text x="230" y="31" text-anchor="middle">compiled_autograd</text>
+  <rect x="320" y="10" width="112" height="34" rx="4" fill="#eaf4fb" stroke="#0b5394"/>
+  <text x="376" y="31" text-anchor="middle">dynamo guards</text>
+  <rect x="170" y="98" width="120" height="34" rx="4" fill="#fdecea" stroke="#c0392b" stroke-width="1.4"/>
+  <text x="230" y="115" text-anchor="middle" font-weight="600">_trace_count *</text>
+  <text x="230" y="127" text-anchor="middle" font-size="8.5" fill="#666">module global</text>
+  <line x1="130" y1="27" x2="166" y2="27" stroke="#44546a" marker-end="url(#ar)"/>
+  <line x1="292" y1="27" x2="316" y2="27" stroke="#44546a" marker-end="url(#ar)"/>
+  <line x1="230" y1="46" x2="230" y2="94" stroke="#44546a" marker-end="url(#ar)"/>
+  <path d="M8 44 C 8 120, 90 115, 166 115" fill="none" stroke="#c0392b"
+        stroke-dasharray="4 3" marker-end="url(#ar)"/>
+  <text x="70" y="88" font-size="8.5" fill="#c0392b">reset (new)</text>
+</svg>
+<figcaption>Architecture -- red = touched by this PR</figcaption>
+</figure>
+
+<h2>Comment index</h2>
+<p class="meta">P = publish &middot; R = reword &middot; D = drop. Ticking a box here ticks the
+matching box on the comment's page. Tick R and write how to reword it in the note
+box on that page.</p>
+<table>
+<tr><th>ID</th><th>Location</th><th>Category</th><th>Verdict</th><th>Summary</th>
+    <th class="c">P</th><th class="c">R</th><th class="c">D</th></tr>
+<tr><td>C1</td><td><code>torch/_dynamo/compiled_autograd.py:412</code></td><td>Thread safety</td>
+    <td><span class="verdict confirmed">Confirmed</span></td><td>Counter reset outside the lock</td>
+    <td class="c"><a class="box" href="chkbox:C1.publish"></a></td>
+    <td class="c"><a class="box" href="chkbox:C1.reword"></a></td>
+    <td class="c"><a class="box" href="chkbox:C1.drop"></a></td></tr>
+<tr><td>C2</td><td><code>test/dynamo/test_compiled_autograd.py:88</code></td><td>Testing</td>
+    <td><span class="verdict speculative">Speculative</span></td><td>No test asserts the reset happened</td>
+    <td class="c"><a class="box" href="chkbox:C2.publish"></a></td>
+    <td class="c"><a class="box" href="chkbox:C2.reword"></a></td>
+    <td class="c"><a class="box" href="chkbox:C2.drop"></a></td></tr>
+</table>
+
+<div class="card">
+<h2>C1 &mdash; compiled_autograd.py:412 <span class="verdict confirmed">Confirmed</span></h2>
+
+<div class="comment"><div class="ai-note">DRAFTED COMMENT (AI-GENERATED)</div>
+<p>This resets <code>_trace_count</code> without holding <code>_compile_lock</code>, unlike
+every other mutation of it in this module. Two tests running in parallel can
+interleave the reset with a live trace.</p></div>
+
+<h3>The code it points at</h3>
+<pre> 405  def reset_trace_state():
+ 406      """Clear per-run tracing state so a rerun starts clean."""
+ 407      global _trace_count
+ 408
+ 409      if not torch._dynamo.config.compiled_autograd:
+ 410          return
+ 411
+<span class="hit"> 412      _trace_count = 0        &lt;-- flagged: no lock held</span>
+ 413      _trace_cache.clear()
+ 414      return _trace_count</pre>
+
+<h3>Why -- the precedent</h3>
+<p>Every other write to <code>_trace_count</code> in this module takes
+<code>_compile_lock</code> first:</p>
+<pre>torch/_dynamo/compiled_autograd.py:288
+  with _compile_lock:
+      _trace_count += 1
+      _trace_cache[key] = graph</pre>
+
+<h3>Failure scenario</h3>
+<p>Two test workers share the process under <code>pytest-xdist</code>. Worker A enters
+<code>reset_trace_state()</code> between worker B's <code>_trace_count += 1</code> and its
+cache write, so B's graph lands in a cache the counter says is empty --
+a stale-graph hit on the next compile, seen as a flaky test.</p>
+
+<h3>Fix</h3>
+<p>Wrap lines 412-413 in <code>with _compile_lock:</code>, matching line 288.</p>
+
+<h3>Verdict evidence</h3>
+<p><b>Confirmed.</b> Read all 6 writers of <code>_trace_count</code>; the other 5 hold the
+lock. Attempted refutation: no caller serializes externally, and the
+<code>config.compiled_autograd</code> early-return at 409 does not exclude concurrency.</p>
+
+<h3>Blast radius</h3>
+<p>The dashed reset edge on the architecture diagram -- the only unguarded write
+into <code>_trace_count</code>.</p>
+
+<div class="decide"><b>Decision:</b>
+<a class="box" href="chkbox:C1.publish"></a>Publish
+<a class="box" href="chkbox:C1.reword"></a>Reword
+<a class="box" href="chkbox:C1.drop"></a>Drop
+<div class="note-label">If reworded &mdash; how (this text is read back and applied):</div>
+<a class="note" href="note:C1"></a></div>
+</div>
+
+<div class="card">
+<h2>C2 &mdash; test_compiled_autograd.py:88 <span class="verdict speculative">Speculative</span></h2>
+
+<div class="comment"><div class="ai-note">DRAFTED COMMENT (AI-GENERATED)</div>
+<p>The new <code>setUp</code> calls <code>reset_trace_state()</code> but no test asserts the
+reset actually took effect, so a regression that silently stops resetting would
+not fail anything.</p></div>
+
+<h3>The code it points at</h3>
+<pre>  85  class TestCompiledAutograd(TestCase):
+  86      def setUp(self):
+  87          super().setUp()
+<span class="hit">  88          reset_trace_state()     &lt;-- flagged: effect never asserted</span>
+  89
+  90      @parametrize("backend", ["eager", "inductor"])
+  91      def test_trace_reruns(self, backend):</pre>
+
+<h3>Why -- the precedent</h3>
+<p>Sibling harnesses assert their reset rather than trusting it:</p>
+<pre>test/dynamo/test_misc.py:1204
+  def setUp(self):
+      super().setUp()
+      torch._dynamo.reset()
+      self.assertEqual(counters["frames"]["total"], 0)</pre>
+
+<h3>Failure scenario</h3>
+<p>If <code>reset_trace_state()</code> returns early at line 409 because
+<code>config.compiled_autograd</code> is off in some configuration, the suite passes
+while resetting nothing -- the exact rerun flakiness this PR set out to fix.</p>
+
+<h3>Fix</h3>
+<p>Assert <code>_trace_count == 0</code> after the reset in <code>setUp</code>.</p>
+
+<h3>Verdict evidence</h3>
+<p><b>Speculative.</b> Whether the early return can trigger under CI config was not
+verifiable from the code alone -- it depends on the runner's config matrix,
+which lives outside this repo.</p>
+
+<h3>Blast radius</h3>
+<p>Test harness node; no production path.</p>
+
+<div class="decide"><b>Decision:</b>
+<a class="box" href="chkbox:C2.publish"></a>Publish
+<a class="box" href="chkbox:C2.reword"></a>Reword
+<a class="box" href="chkbox:C2.drop"></a>Drop
+<div class="note-label">If reworded &mdash; how (this text is read back and applied):</div>
+<a class="note" href="note:C2"></a></div>
+</div>
+
+</body></html>
