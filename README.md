@@ -90,13 +90,47 @@ These skills are built so that nothing reaches a PR author by accident.
 
 ```
 .claude-plugin/
-  marketplace.json      # marketplace entry, so the repo installs by name
-  plugin.json           # plugin manifest listing the three skills
+  marketplace.json      # the only manifest: defines every bundle in this repo
 skills/
   pr-explain/           # SKILL.md + diagrams.md (ASCII diagram recipes)
   pr-review-draft/      # SKILL.md
   pr-review-dossier/    # SKILL.md + render.md, pdf_forms.py, example.html
 ```
+
+Skills live flat under `skills/`; nothing on disk records which bundle a skill
+belongs to. Grouping is done entirely by the `skills` array of a `plugins[]`
+entry in `marketplace.json`, so a skill can be re-bundled by editing the
+manifest -- never by moving files, which would break the relative links between
+a `SKILL.md` and its companion files.
+
+There is deliberately no `plugin.json`. A marketplace entry with
+`"source": "./"` and its own `skills` list is a complete plugin definition.
+
+## Adding to this repo
+
+**A new skill in an existing bundle:** create `skills/<name>/SKILL.md`, then add
+`"./skills/<name>"` to that bundle's `skills` array.
+
+**A new bundle:** append another entry to `plugins[]`. It shares `"source": "./"`
+with the others and simply names a different subset of `skills/`. A bundle
+holding a single skill is perfectly normal. Bundles are the unit of
+installation, so split by what someone would want *without* the rest -- every
+installed skill's description occupies context in every session, whether or not
+it fires.
+
+Bundle names prefix their skills (`<bundle>:<skill>`), so keep them short.
+
+**Before pushing**, confirm the manifest matches reality:
+
+```bash
+claude plugin validate .
+claude plugin details <bundle>    # skill count must match the manifest
+```
+
+Run both. `validate` checks the schema only -- it accepts a `skills` entry
+pointing at a directory that does not exist, and such a skill is then dropped
+*silently* at install time, with no error and no warning. The inventory printed
+by `details` is the only thing that catches a typo there.
 
 ## License
 
