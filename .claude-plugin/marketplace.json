@@ -24,6 +24,24 @@
         "./skills/pr-review-draft",
         "./skills/pr-review-dossier"
       ]
+    },
+    {
+      "name": "amd-gpu",
+      "source": "./",
+      "version": "0.1.0",
+      "description": "Turn AMD CDNA GPU assembly into a verified PDF tutorial.",
+      "category": "engineering",
+      "keywords": [
+        "gpu",
+        "assembly",
+        "amd",
+        "rocm",
+        "pdf",
+        "tutorial"
+      ],
+      "skills": [
+        "./skills/asm-tutorial"
+      ]
     }
   ]
 }
