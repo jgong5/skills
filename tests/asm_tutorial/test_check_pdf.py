@@ -46,6 +46,17 @@ def test_wrapped_lines_empty_when_everything_present():
     assert wrapped_lines(MD, pdf_text) == []
 
 
+def test_wrapped_lines_tolerates_pdftotext_column_repadding():
+    # pdftotext -layout reconstructs whitespace runs from glyph column
+    # positions, not the source's literal space count -- a right-aligned
+    # comment column (annotate_asm.py's COMMENT_COL padding) commonly comes
+    # back with a different number of internal spaces even though every word
+    # survived. This must NOT be reported as wrapped.
+    md = "```asm\n\tv_mov_b32 v0, v1      ; per-lane move\n```\n"
+    pdf_text = "  v_mov_b32 v0, v1           ; per-lane move\n"
+    assert wrapped_lines(md, pdf_text) == []
+
+
 def test_broken_xrefs_flags_missing_sections():
     broken = broken_xrefs(MD)
     joined = " ".join(broken)

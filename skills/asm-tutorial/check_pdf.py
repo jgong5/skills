@@ -66,11 +66,25 @@ def parse_pdffonts(text: str) -> list[str]:
     return unembedded
 
 
+def _normalize_ws(s: str) -> str:
+    return re.sub(r"\s+", " ", s.strip())
+
+
 def wrapped_lines(md_text: str, pdf_text: str) -> list[str]:
-    """Markdown code lines that do not appear verbatim in the PDF extraction."""
-    haystack = {ln.strip() for ln in pdf_text.splitlines()}
+    """Markdown code lines that do not appear (mod whitespace) in the PDF
+    extraction. `pdftotext -layout` reconstructs whitespace runs from glyph
+    column positions, not the source's literal space count, so a
+    right-aligned comment column (exactly what annotate_asm.py's COMMENT_COL
+    padding produces) can come back with a different number of internal
+    spaces even though every word survived intact and in order. Comparing on
+    collapsed whitespace, not the raw string, is what "verbatim (mod
+    whitespace)" in this module's docstring actually means -- comparing only
+    on `.strip()`'d ends is stricter than that and flags lines that never
+    wrapped at all.
+    """
+    haystack = {_normalize_ws(ln) for ln in pdf_text.splitlines()}
     return [ln for ln in code_lines(md_text)
-            if ln.strip() and ln.strip() not in haystack]
+            if ln.strip() and _normalize_ws(ln) not in haystack]
 
 
 def broken_xrefs(md_text: str) -> list[str]:
