@@ -8,8 +8,11 @@ description: Turn an annotated AMD CDNA GPU assembly listing (.s) into a verifie
 Turns one `.s` file into a verified PDF tutorial in four phases: analyze the
 listing against its source, write a tutorial with a fixed spine, render it to
 PDF, verify the render. Architectures: the CDNA family (gfx90a, gfx942,
-gfx950) -- wave64, MFMA-based. An unrecognized target still gets instruction
-comments, just no MFMA cost or occupancy claims.
+gfx950) -- wave64, MFMA-based. Only gfx942 currently has sourced MFMA-cost
+and occupancy constants (see `cdna-facts.md`); gfx90a and gfx950 take the
+same degraded path as any other unrecognized target today -- instruction
+comments only, no MFMA cost or occupancy claims -- until their own constants
+are sourced and added.
 
 ## Paths used below
 
@@ -64,7 +67,7 @@ are documented, with their sources, in `<skill-dir>/cdna-facts.md`.
 | --- | --- |
 | source file | assembly is explained; "why" claims marked `(inferred)` |
 | `.resources` sidecar | occupancy and register-budget sections omitted, not estimated |
-| unrecognized arch | generic instruction comments; no MFMA cost, no occupancy |
+| unrecognized arch, including gfx90a/gfx950 today | generic instruction comments; no MFMA cost, no occupancy |
 | Chrome | stop; point at the project's own Chrome-install script if it has one |
 | pandoc | stop; it is expected to already be present, so its absence means something else is wrong |
 

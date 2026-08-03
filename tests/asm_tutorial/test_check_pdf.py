@@ -74,3 +74,23 @@ def test_sample_pages_reports_title_and_last():
     assert samples["title"] == 1
     assert samples["last"] == 3
     assert samples["contents"] == 2
+
+
+def test_sample_pages_finds_widest_code_despite_repadding():
+    md = "## 1. X\n\n```asm\n\tv_mov_b32 v0, v1      ; per-lane move\n```\n"
+    page_texts = ["Title\n", "  v_mov_b32 v0, v1           ; per-lane move\n"]
+    samples = sample_pages(md, page_texts)
+    assert samples["widest_code"] == 2
+
+
+def test_sample_pages_finds_table_page_from_markdown_not_pdf_pipes():
+    md = ("## 1. X\n\n"
+          "| Constant | Value |\n"
+          "| --- | --- |\n"
+          "| wave | 64 |\n")
+    # Pandoc renders this as an HTML <table> -- no pipe character survives
+    # into pdftotext's output, so the table page can only be found by
+    # anchoring on a header cell's own words, not on markdown table syntax.
+    page_texts = ["Title\n", "Constant   Value\nwave       64\n"]
+    samples = sample_pages(md, page_texts)
+    assert samples["table"] == 2

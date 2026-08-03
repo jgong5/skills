@@ -92,8 +92,10 @@ cross-reference resolves) plus a sampled visual look at six representative
 pages.
 
 Architectures: the CDNA family -- gfx90a, gfx942, gfx950 -- which share a
-wave64 execution model and an MFMA lineage. An unrecognized target still gets
-instruction commentary, just no MFMA cost or occupancy claims; per-architecture
+wave64 execution model and an MFMA lineage. Only gfx942 currently has sourced
+MFMA-cost and occupancy constants; gfx90a and gfx950 take the same degraded
+path as any unrecognized target -- instruction commentary only, no MFMA cost
+or occupancy claims -- until their own constants are sourced. Per-architecture
 constants and their sources are in `skills/asm-tutorial/cdna-facts.md`.
 
 ### Install

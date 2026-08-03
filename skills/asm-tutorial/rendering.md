@@ -2,9 +2,12 @@
 
 Mechanical, once the markdown from Phase 2 exists:
 
-    ./shell.sh python3 /workspace/skills/skills/asm-tutorial/make_pdf.py <doc.md>
+    <skill-dir>/make_pdf.py <doc.md>
 
-This runs pandoc (markdown -> HTML, `tutorial.css` as the print stylesheet,
+(Run it the way `SKILL.md`'s "Paths used below" section says to -- e.g.
+through a project's mandated container wrapper; do not assume a bare
+`python3` on the machine running this skill.) This runs pandoc (markdown ->
+HTML, `tutorial.css` as the print stylesheet,
 `--shift-heading-level-by=-1` so the document's single `#` becomes a title
 page instead of the first Contents entry) and then headless Chrome's
 `Page.printToPDF` over the DevTools protocol. `<doc>.pdf` lands beside

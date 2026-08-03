@@ -1,6 +1,9 @@
 # Phase 4 -- Verify
 
-    ./shell.sh python3 /workspace/skills/skills/asm-tutorial/check_pdf.py <doc.pdf> <doc.md>
+    <skill-dir>/check_pdf.py <doc.pdf> <doc.md>
+
+(Run it the way `SKILL.md`'s "Paths used below" section says to -- e.g.
+through a project's mandated container wrapper.)
 
 ## Mechanical checks, over every page
 
@@ -8,18 +11,26 @@
   read `yes`. A font pulled from the system rather than embedded will not
   render the same on a machine that lacks it.
 - **No wrapped code.** Every non-blank line inside a fenced code block in the
-  markdown must appear verbatim (after stripping leading/trailing whitespace)
-  somewhere in `pdftotext -layout <doc.pdf> -`'s output. A line that wrapped
-  in the rendered PDF comes back as two separate lines and fails this check.
-  This is the mechanical form of the single defect class that cost the most
-  time on the first tutorial this skill was generalized from -- see
-  `rendering.md`'s note on the code-sizing arithmetic if this fires.
+  markdown must appear verbatim, modulo whitespace, somewhere in
+  `pdftotext -layout <doc.pdf> -`'s output -- comparing with internal
+  whitespace runs collapsed, not just the line's ends stripped, since
+  `pdftotext` reconstructs spacing from glyph column positions and commonly
+  reflows a right-aligned comment column to a different space count than the
+  source even when nothing actually wrapped. A line that genuinely did wrap
+  in the rendered PDF comes back as two separate lines and still fails this
+  check. This whitespace handling is the mechanical form of the single
+  defect class that cost the most time on the first tutorial this skill was
+  generalized from -- see `rendering.md`'s note on the code-sizing
+  arithmetic if this fires for real.
 - **Cross-references resolve.** Every "section N" / "sections N and M" in the
   markdown prose must name a `## N.` heading that actually exists.
 - **Page count.** `pdfinfo <doc.pdf>` must report a `Pages:` line.
 
-`check_pdf.py` exits 0 with nothing printed when all four pass, and exits 1
-with one `PROBLEM:` line per failure category on stderr.
+`check_pdf.py` exits 0 when all four pass, printing a one-line "clean: N
+pages, all fonts embedded" summary followed by the sample-page table below --
+that summary is success, not a problem to investigate. It exits 1 with one
+`PROBLEM:` line per failed category on stderr instead, and skips the
+sample-page table.
 
 ## Visual, sampled
 

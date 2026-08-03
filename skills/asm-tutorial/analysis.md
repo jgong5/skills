@@ -20,10 +20,12 @@ You are given one `.s` path. Everything else is discovered:
 - **Annotation.** If the `.s` has no end-of-line comments yet, annotate it
   first:
 
-      ./shell.sh python3 /workspace/skills/skills/asm-tutorial/annotate_asm.py <in.s>
+      <skill-dir>/annotate_asm.py <in.s>
 
-  This also reports the detected architecture and warns if it is not one
-  `annotate_asm.py`'s `ARCH` table knows (see `cdna-facts.md`).
+  (Run it the way `SKILL.md`'s "Paths used below" section says to -- e.g.
+  through a project's mandated container wrapper.) This also reports the
+  detected architecture and warns if it is not one `annotate_asm.py`'s
+  `ARCH` table knows (see `cdna-facts.md`).
 
 ## Build the fact ledger
 

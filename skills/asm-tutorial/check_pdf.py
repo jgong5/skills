@@ -92,7 +92,13 @@ def broken_xrefs(md_text: str) -> list[str]:
     headings = {int(m.group(1)) for m in
                 (HEADING_RE.match(ln) for ln in md_text.splitlines()) if m}
     broken = []
+    in_fence = False
     for ln in md_text.splitlines():
+        if FENCE_RE.match(ln.strip()):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
         for m in XREF_RE.finditer(ln):
             for g in m.groups():
                 if g is not None and int(g) not in headings:
@@ -108,6 +114,26 @@ def pages(pdf_text: str) -> list[str]:
     return parts[:-1] if parts and parts[-1] == "" else parts
 
 
+def _first_table_anchor(md_text: str) -> str | None:
+    """A short, distinctive string from the first markdown table's header
+    row. Pandoc renders a GFM table as an HTML <table>; no pipe character
+    survives into `pdftotext`'s output, so hunting the rendered page text for
+    markdown table syntax (as an earlier version of this function did) can
+    never find anything. A header cell's own words, on the other hand, are
+    rendered plainly and remain a reliable anchor to search page text for.
+    """
+    for ln in md_text.splitlines():
+        if not TABLE_ROW_RE.match(ln):
+            continue
+        cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+        if all(set(c) <= set("-: ") for c in cells if c):
+            continue  # the GFM header/body separator row ("| --- | --- |")
+        first_cell = next((c for c in cells if c), None)
+        if first_cell:
+            return first_cell
+    return None
+
+
 def sample_pages(md_text: str, page_texts: list[str]) -> dict[str, int]:
     """1-indexed page numbers worth a visual look."""
     n = len(page_texts)
@@ -118,14 +144,22 @@ def sample_pages(md_text: str, page_texts: list[str]) -> dict[str, int]:
             break
     widest = max(code_lines(md_text), key=len, default=None)
     if widest:
+        # Compare on collapsed whitespace, exactly like wrapped_lines: the
+        # widest code line is the one annotate_asm.py's COMMENT_COL padding
+        # makes most likely to have its internal spacing repadded by
+        # pdftotext's column-position heuristic, so a raw substring check
+        # here is the one place this bug bites hardest.
+        target = _normalize_ws(widest)
         for i, text in enumerate(page_texts, start=1):
-            if widest.strip() in text:
+            if any(_normalize_ws(ln) == target for ln in text.splitlines()):
                 result["widest_code"] = i
                 break
-    for i, text in enumerate(page_texts, start=1):
-        if any(TABLE_ROW_RE.match(ln) for ln in text.splitlines()):
-            result["table"] = i
-            break
+    anchor = _first_table_anchor(md_text)
+    if anchor:
+        for i, text in enumerate(page_texts, start=1):
+            if anchor in text:
+                result["table"] = i
+                break
     prose_candidates = [(i, len(text.split())) for i, text in enumerate(page_texts, start=1)
                         if i not in (result.get("title"), result.get("contents"))]
     if prose_candidates:

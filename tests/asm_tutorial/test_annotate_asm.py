@@ -36,3 +36,18 @@ def test_annotate_unknown_arch_warns_and_skips_cost(tmp_path, capsys):
     text = dest.read_text()
     assert "FLOP in ~" not in text
     assert "unrecognized target" in capsys.readouterr().err
+
+
+def test_annotate_gfx90a_degrades_like_any_unknown_arch(tmp_path, capsys):
+    # gfx90a is listed in SKILL.md/README as a supported CDNA architecture,
+    # but has no sourced MFMA-cost figure in ARCH yet (see cdna-facts.md) --
+    # it must degrade exactly like any other unrecognized target today, not
+    # silently produce wrong numbers.
+    src = FIXTURES / "fixture_kernel_gfx942.s"
+    text = src.read_text().replace("gfx942", "gfx90a")
+    gfx90a_src = tmp_path / "fixture_kernel_gfx90a.s"
+    gfx90a_src.write_text(text)
+    dest, n = annotate_asm.annotate(gfx90a_src, tmp_path)
+    out_text = dest.read_text()
+    assert "FLOP in ~" not in out_text
+    assert "unrecognized target 'gfx90a'" in capsys.readouterr().err
