@@ -122,6 +122,30 @@ a tutorial this dense in 100-column assembly needs pandoc's markdown handling
 and a real print stylesheet, which is worth the extra dependencies for this
 one skill. That is a property of `asm-tutorial`, not a rule for this repo.
 
+## Update
+
+```
+/plugin marketplace update jgong5
+/plugin update <bundle>@jgong5
+```
+
+where `<bundle>` is `pr-review-kit` or `amd-gpu`. Same commands work as
+`claude plugin ...` from the shell. Updates apply on restart.
+
+Qualify the plugin with `@jgong5` on update. The bare name resolves for
+`install` and `details`, but `update` reports `Plugin "<bundle>" not found`
+without it.
+
+## Uninstall
+
+```
+/plugin uninstall <bundle>@jgong5
+/plugin marketplace remove jgong5
+```
+
+`marketplace remove` drops both bundles at once, since one marketplace entry
+covers this whole repo -- only run it once you want neither installed.
+
 ## Layout
 
 ```
