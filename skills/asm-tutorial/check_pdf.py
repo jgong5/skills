@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify a tutorial PDF against the markdown it was rendered from.
 
-    ./shell.sh python3 /workspace/skills/skills/asm-tutorial/check_pdf.py <doc.pdf> <doc.md>
+    <skill-dir>/check_pdf.py <doc.pdf> <doc.md>
 
 Mechanical checks, over every page:
   * every font pdffonts reports is embedded
@@ -17,7 +17,8 @@ look: title, contents, the widest code block, a table, a dense prose page,
 the last page. It only reports page numbers -- rasterizing them is a
 separate, manual step (`pdftoppm -f N -l N -png <doc.pdf> page`).
 
-Exit 0 with nothing printed means clean. Exit 1 means read the report.
+Exit 0 means clean -- prints a one-line "clean: N pages..." summary plus the
+sample-page table. Exit 1 means read the PROBLEM: lines on stderr.
 """
 from __future__ import annotations
 
@@ -114,23 +115,29 @@ def pages(pdf_text: str) -> list[str]:
     return parts[:-1] if parts and parts[-1] == "" else parts
 
 
-def _first_table_anchor(md_text: str) -> str | None:
-    """A short, distinctive string from the first markdown table's header
-    row. Pandoc renders a GFM table as an HTML <table>; no pipe character
+def _table_header_cells(md_text: str) -> list[str] | None:
+    """The header row's cell texts for the first markdown table found
+    outside a fenced code block, e.g. ["Constant", "Value", "Source"].
+    Pandoc renders a GFM table as an HTML <table>; no pipe character
     survives into `pdftotext`'s output, so hunting the rendered page text for
-    markdown table syntax (as an earlier version of this function did) can
-    never find anything. A header cell's own words, on the other hand, are
-    rendered plainly and remain a reliable anchor to search page text for.
+    markdown table syntax can never find anything -- the header cells' own
+    words, rendered plainly, are the reliable anchor. Requiring every cell's
+    text to be present, not just one, keeps a single short/common header
+    word (e.g. "Value") from matching unrelated prose on the wrong page.
     """
+    in_fence = False
     for ln in md_text.splitlines():
-        if not TABLE_ROW_RE.match(ln):
+        if FENCE_RE.match(ln.strip()):
+            in_fence = not in_fence
+            continue
+        if in_fence or not TABLE_ROW_RE.match(ln):
             continue
         cells = [c.strip() for c in ln.strip().strip("|").split("|")]
         if all(set(c) <= set("-: ") for c in cells if c):
             continue  # the GFM header/body separator row ("| --- | --- |")
-        first_cell = next((c for c in cells if c), None)
-        if first_cell:
-            return first_cell
+        cells = [c for c in cells if c]
+        if cells:
+            return cells
     return None
 
 
@@ -154,10 +161,10 @@ def sample_pages(md_text: str, page_texts: list[str]) -> dict[str, int]:
             if any(_normalize_ws(ln) == target for ln in text.splitlines()):
                 result["widest_code"] = i
                 break
-    anchor = _first_table_anchor(md_text)
-    if anchor:
+    header_cells = _table_header_cells(md_text)
+    if header_cells:
         for i, text in enumerate(page_texts, start=1):
-            if anchor in text:
+            if all(c in text for c in header_cells):
                 result["table"] = i
                 break
     prose_candidates = [(i, len(text.split())) for i, text in enumerate(page_texts, start=1)

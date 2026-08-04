@@ -94,3 +94,18 @@ def test_sample_pages_finds_table_page_from_markdown_not_pdf_pipes():
     page_texts = ["Title\n", "Constant   Value\nwave       64\n"]
     samples = sample_pages(md, page_texts)
     assert samples["table"] == 2
+
+
+def test_sample_pages_table_detection_skips_fenced_code():
+    # An ASCII-art table-like diagram inside a code fence must not be
+    # mistaken for a real markdown table.
+    md = ("## 1. X\n\n"
+          "```text\n"
+          "| lane 0 | lane 1 |\n"
+          "```\n\n"
+          "| Constant | Value |\n"
+          "| --- | --- |\n"
+          "| wave | 64 |\n")
+    page_texts = ["Title\n", "lane 0   lane 1\n", "Constant   Value\nwave       64\n"]
+    samples = sample_pages(md, page_texts)
+    assert samples["table"] == 3

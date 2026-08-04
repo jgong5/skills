@@ -1,6 +1,6 @@
 ---
 name: asm-tutorial
-description: Turn an annotated AMD CDNA GPU assembly listing (.s) into a verified PDF tutorial that walks the listing against its source, with every register, LDS, and occupancy number traced to a source or citation. Use when asked to explain, document, or produce a tutorial/walkthrough/PDF for GCN assembly output -- especially rocWMMA or Composable Kernel kernels -- on gfx90a, gfx942, or gfx950. Degrades to generic instruction commentary on other targets.
+description: Turn an annotated AMD CDNA GPU assembly listing (.s) into a verified PDF tutorial that walks the listing against its source, with every register, LDS, and occupancy number traced to a source or citation. Use when asked to explain, document, or produce a tutorial/walkthrough/PDF for GCN assembly output -- especially rocWMMA or Composable Kernel kernels -- on gfx90a, gfx942, or gfx950 (gfx942 has sourced MFMA-cost constants today; gfx90a/gfx950 degrade like an unrecognized target until their own are sourced). Degrades to generic instruction commentary on other targets.
 ---
 
 # asm-tutorial

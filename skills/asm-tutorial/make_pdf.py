@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render a tutorial markdown file to PDF.
 
-    ./shell.sh python3 /workspace/skills/skills/asm-tutorial/make_pdf.py <doc.md> [doc2.md ...]
+    <skill-dir>/make_pdf.py <doc.md> [doc2.md ...]
 
 Markdown paths are required -- this script does not own a docs/ directory to
 glob, unlike the project-specific fork it was forked from. Output lands next
