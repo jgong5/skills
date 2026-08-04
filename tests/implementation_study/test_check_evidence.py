@@ -210,6 +210,123 @@ def test_extending_snapshot_adds_hashes_for_new_citations(tmp_path):
     assert check_snapshot_integrity(repo, out, snapshot) == []
 
 
+def _committed_repo(tmp_path, name="repo"):
+    """A git repository with one committed file and an empty output directory."""
+    repo = tmp_path / name
+    repo.mkdir(parents=True)
+    _git(repo, "init")
+    _git(repo, "config", "user.email", "test@example.com")
+    _git(repo, "config", "user.name", "Test")
+    (repo / "algo.py").write_text("one\n")
+    _git(repo, "add", "algo.py")
+    _git(repo, "commit", "-m", "base")
+    out = repo / "docs"
+    out.mkdir()
+    return repo, out
+
+
+def test_git_integrity_accepts_an_output_path_containing_an_arrow(tmp_path):
+    repo, out = _committed_repo(tmp_path)
+    (out / "a -> b.txt").write_text("study\n")
+    assert check_git_integrity(repo, out) == []
+
+
+def test_git_integrity_rejects_an_outside_path_containing_an_arrow(tmp_path):
+    repo, out = _committed_repo(tmp_path)
+    (repo / "evil -> docs").write_text("x\n")
+    assert "outside output directory" in " ".join(check_git_integrity(repo, out))
+
+
+def test_git_integrity_accepts_a_backslash_in_an_output_path(tmp_path):
+    repo, out = _committed_repo(tmp_path)
+    (out / "back\\slash.md").write_text("study\n")
+    assert check_git_integrity(repo, out) == []
+
+
+def test_git_integrity_reports_a_rename_exactly_once(tmp_path):
+    repo, out = _committed_repo(tmp_path)
+    _git(repo, "mv", "algo.py", "renamed.py")
+    problems = check_git_integrity(repo, out)
+    assert len(problems) == 1
+    assert "tracked change" in problems[0]
+
+
+def test_git_integrity_rejects_an_untracked_symlink_pointing_into_output(tmp_path):
+    repo, out = _committed_repo(tmp_path)
+    (repo / "sneak").symlink_to(out, target_is_directory=True)
+    assert "outside output directory" in " ".join(check_git_integrity(repo, out))
+
+
+def test_git_integrity_resolves_status_paths_against_the_git_toplevel(tmp_path):
+    repo, _ = _committed_repo(tmp_path)
+    sub = repo / "sub"
+    out = sub / "docs"
+    out.mkdir(parents=True)
+    (out / "algo_study.md").write_text("study\n")
+    assert check_git_integrity(sub, out) == []
+
+
+def test_git_integrity_rejects_an_output_directory_that_is_the_root(tmp_path):
+    repo, _ = _committed_repo(tmp_path)
+    assert "output directory" in " ".join(check_git_integrity(repo, repo))
+
+
+def test_continuation_lines_do_not_fold_across_a_blank_line():
+    entries = parse_ledger(
+        "- [C1] One. cite: a.py:1 `x`\n"
+        "\n"
+        "  loose indented prose\n"
+    )
+    assert entries["C1"].source == "a.py:1 `x`"
+
+
+def test_indented_continuation_still_joins_to_its_entry():
+    entries = parse_ledger("- [C1] One. cite: a.py:1\n  `x`\n")
+    assert entries["C1"].source == "a.py:1 `x`"
+
+
+def test_citation_cannot_escape_the_repository_through_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_text("classified\n")
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "link").symlink_to(outside, target_is_directory=True)
+    entries = parse_ledger("- [C1] Claim. cite: link/secret.txt:1 `classified`\n")
+    assert "escapes" in check_citations(entries, repo)[0]
+
+
+def test_parse_ledger_rejects_an_id_no_derivation_could_reference():
+    with pytest.raises(EvidenceFormatError, match="PERF"):
+        parse_ledger("- [PERF] One. cite: a.py:1 `x`\n")
+
+
+def test_snapshot_rejects_an_output_directory_that_is_the_root(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "algo.py").write_text("one\n")
+    snapshot = tmp_path / "x.integrity.json"
+    with pytest.raises(ValueError, match="output directory"):
+        write_integrity_snapshot(repo, repo, snapshot, [])
+    assert not snapshot.exists()
+    assert "output directory" in " ".join(
+        check_snapshot_integrity(repo, repo, snapshot)
+    )
+
+
+def test_url_citation_with_a_port_is_not_a_file_citation(tmp_path):
+    entries = parse_ledger(
+        "- [C1] Claim. cite: https://example.com:8080 `the spec`\n"
+    )
+    assert check_citations(entries, tmp_path) == []
+
+
+def test_prose_refs_stay_hidden_across_a_mixed_fence_marker():
+    entries = parse_ledger("- [C1] One. cite: a.py:1 `one`\n")
+    prose = "```text\n~~~\n[C9]\n```\nReal [C1].\n"
+    assert check_prose_coverage(prose, entries) == []
+
+
 def _study(tmp_path, anchor="queue = [source]"):
     """A minimal non-git study: one source file, one ledger entry, one PDF-less
     document that cites it."""

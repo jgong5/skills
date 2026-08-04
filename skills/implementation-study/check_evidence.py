@@ -93,12 +93,21 @@ def _blank(match: re.Match) -> str:
     return " " * len(match.group(0))
 
 
-def _resolve_under(base: Path, relative: str) -> Path:
-    """Join `relative` onto `base`, refusing absolute paths and `..` escapes.
+def _contains(directory: str, path: str) -> bool:
+    """Prefix containment for two already-realpath'd absolute paths."""
+    return path == directory or path.startswith(directory.rstrip(os.sep) + os.sep)
 
-    Deliberately lexical: `Path.resolve()` would also follow symlinks, so a
-    repository that legitimately lives behind one would look like an escape.
-    What matters here is that the ledger cannot name `../../etc/passwd`.
+
+def _resolve_under(base: Path, relative: str) -> Path:
+    """Join `relative` onto `base`, refusing anything that leaves `base`.
+
+    Two escapes have to be closed, and they are not the same escape. The
+    lexical one is `../../etc/passwd`, caught by normalizing the text. The
+    other is a symlink: `link/secret` names a path inside the repository and
+    reads a file outside it, so the resolved target has to be checked too.
+    Only the *roots* are resolved for that comparison, never `base` itself
+    being a symlink -- a repository that legitimately lives behind one still
+    works, because both sides of the comparison resolve the same way.
     """
     candidate = Path(relative)
     if candidate.is_absolute():
@@ -106,28 +115,50 @@ def _resolve_under(base: Path, relative: str) -> Path:
     normalized = os.path.normpath(str(candidate))
     if normalized == ".." or normalized.startswith(".." + os.sep):
         raise PathEscapeError(f"path escapes the root: {relative}")
-    return base / normalized
+    target = base / normalized
+    if not _contains(os.path.realpath(str(base)), os.path.realpath(str(target))):
+        raise PathEscapeError(
+            f"path escapes the root through a symlink: {relative}"
+        )
+    return target
 
 
 def _normalize_ws(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip())
 
 
+def _scrub_urls(source: str) -> str:
+    """Blank out URLs, preserving offsets.
+
+    A URL with a port (`https://host:8080 `the spec``) is `path:digits`
+    followed by a backticked phrase, which is exactly FILE_CITE_RE's shape.
+    Removing URLs before that regex ever sees the source is what keeps an
+    external citation from being reported as a broken file citation.
+    """
+    return URL_RE.sub(_blank, source)
+
+
 def _join_continuations(text: str) -> list[tuple[int, str]]:
     """Fold indented continuation lines into the entry they belong to.
 
     A long claim wraps in the notes file; the wrapped remainder is indented.
+    A blank line ends that: indented text in the next paragraph is a nested
+    bullet or a code block, not the tail of an entry three lines up, and
+    folding it in would rewrite the entry's source out from under the author.
     Returns (line number of the entry's first line, joined text) pairs.
     """
     joined: list[tuple[int, str]] = []
+    continuing = False
     for number, raw in enumerate(text.splitlines(), start=1):
         if not raw.strip():
+            continuing = False
             continue
-        if raw[:1] in (" ", "\t") and joined:
+        if continuing and raw[:1] in (" ", "\t"):
             start, previous = joined[-1]
             joined[-1] = (start, previous + " " + raw.strip())
         else:
             joined.append((number, raw.rstrip()))
+            continuing = True
     return joined
 
 
@@ -139,9 +170,8 @@ def _check_anchored(entry_id: str, source: str, number: int) -> None:
     commit SHAs, and paper references are external citations with no line to
     anchor to, so they are scrubbed before the check rather than demanded of.
     """
-    scrubbed = FILE_CITE_RE.sub(_blank, source)
+    scrubbed = FILE_CITE_RE.sub(_blank, _scrub_urls(source))
     scrubbed = INLINE_CODE_RE.sub(_blank, scrubbed)
-    scrubbed = URL_RE.sub(_blank, scrubbed)
     bare = BARE_FILE_CITE_RE.search(scrubbed)
     if bare:
         raise EvidenceFormatError(
@@ -167,6 +197,16 @@ def parse_ledger(text: str) -> dict[str, LedgerEntry]:
                 f"'- [ID] <claim>. <cite|derive|measure>: <source>': {line}"
             )
         entry_id, claim, kind, source = match.groups()
+        if not REFERENCE_RE.fullmatch(entry_id):
+            # ENTRY_RE is the looser of the two: it would accept `PERF`, but
+            # REFERENCE_RE is what finds IDs inside a `derive:` source, so a
+            # `PERF` entry could never be cited by a derivation and could
+            # never appear in a cycle. Rejecting it here is the only way that
+            # gap surfaces as an error instead of as silence.
+            raise EvidenceFormatError(
+                f"line {number}: ledger id {entry_id} must end in a digit "
+                f"(e.g. {entry_id}1) or no derivation can reference it"
+            )
         if entry_id in entries:
             raise EvidenceFormatError(
                 f"line {number}: duplicate {entry_id} (first seen on line "
@@ -192,7 +232,7 @@ def check_citations(entries: dict[str, LedgerEntry], repo_root: Path) -> list[st
     for entry in entries.values():
         if entry.kind != "cite":
             continue
-        for match in FILE_CITE_RE.finditer(entry.source):
+        for match in FILE_CITE_RE.finditer(_scrub_urls(entry.source)):
             problems.extend(_check_one_citation(entry, match, repo_root))
     return problems
 
@@ -358,12 +398,20 @@ def check_prose_coverage(prose: str, entries: dict[str, LedgerEntry]) -> list[st
     """
     unknown: list[str] = []
     seen: set[str] = set()
-    in_fence = False
+    # Remember which marker opened the fence. A bare toggle lets a `~~~` line
+    # inside a ``` block close it, and everything after that leaks back into
+    # the scan -- exactly the case where a documented `[C9]` example would be
+    # reported as a broken reference.
+    fence: str | None = None
     for line in prose.splitlines():
-        if FENCE_RE.match(line.strip()):
-            in_fence = not in_fence
+        marker = FENCE_RE.match(line.strip())
+        if marker:
+            if fence is None:
+                fence = marker.group(1)
+            elif marker.group(1) == fence:
+                fence = None
             continue
-        if in_fence:
+        if fence is not None:
             continue
         for match in PROSE_REF_RE.finditer(line):
             reference = match.group(1)
@@ -386,20 +434,48 @@ def is_git_work_tree(repo_root: Path) -> bool:
     return result.returncode == 0 and result.stdout.strip() == "true"
 
 
-def _unquote_git_path(path: str) -> str:
-    """Undo `git status`'s C-style quoting of paths with unusual bytes."""
-    if not path.startswith('"'):
-        return path
-    try:
-        return json.loads(path)
-    except ValueError:
-        return path.strip('"')
-
-
 def _is_under(path: Path, directory: Path) -> bool:
-    resolved = os.path.realpath(str(path))
-    base = os.path.realpath(str(directory))
-    return resolved == base or resolved.startswith(base.rstrip(os.sep) + os.sep)
+    """Containment for two real on-disk directories, symlinks resolved.
+
+    Only safe when `path` is a directory the walk itself produced. For a path
+    *reported* by git, use the lexical comparison in `check_git_integrity`
+    instead: resolving there would let an untracked symlink that points into
+    the output directory pass as though it lived there.
+    """
+    return _contains(os.path.realpath(str(directory)), os.path.realpath(str(path)))
+
+
+def _output_dir_problem(repo_root: Path, output_dir: Path) -> str | None:
+    """Reject an output directory that is not strictly inside the root.
+
+    `output_dir == repo_root` would otherwise disable every check at once:
+    the git pass would accept any untracked file anywhere and the snapshot
+    walk would record an empty tree that verifies clean forever.
+    """
+    root = os.path.realpath(str(repo_root))
+    output = os.path.realpath(str(output_dir))
+    if root == output:
+        return (
+            f"output directory {output_dir} is the repository root; it must "
+            "be a subdirectory, or nothing outside it can be checked"
+        )
+    if not _contains(root, output):
+        return (
+            f"output directory {output_dir} is not inside the repository "
+            f"root {repo_root}"
+        )
+    return None
+
+
+def _git_output(repo_root: Path, *args: str) -> tuple[int, str, str]:
+    result = subprocess.run(
+        ["git", "-C", str(repo_root), *args], capture_output=True, check=False
+    )
+    return (
+        result.returncode,
+        result.stdout.decode("utf-8", "replace"),
+        result.stderr.decode("utf-8", "replace"),
+    )
 
 
 def check_git_integrity(repo_root: Path, output_dir: Path) -> list[str]:
@@ -415,26 +491,51 @@ def check_git_integrity(repo_root: Path, output_dir: Path) -> list[str]:
     output_dir = Path(output_dir)
     if not is_git_work_tree(repo_root):
         return [f"{repo_root} is not a git work tree"]
-    result = subprocess.run(
-        ["git", "-C", str(repo_root), "status", "--porcelain=v1",
-         "--untracked-files=all"],
-        capture_output=True, text=True, check=False,
+    problem = _output_dir_problem(repo_root, output_dir)
+    if problem:
+        return [problem]
+    code, toplevel_out, error = _git_output(repo_root, "rev-parse", "--show-toplevel")
+    if code != 0 or not toplevel_out.strip():
+        return [f"git rev-parse --show-toplevel failed: {error.strip()}"]
+    # Porcelain paths are relative to the repository top level, not to
+    # --repo-root, which may be any subdirectory of it.
+    toplevel = os.path.realpath(toplevel_out.strip())
+    output = os.path.realpath(str(output_dir))
+
+    # -z instead of the default: porcelain v1 C-quotes any path with a space,
+    # a quote, or a backslash, and writes a rename as "old -> new" in the same
+    # field. Unpicking that by hand means guessing where the quoting ends and
+    # the arrow begins, and a file literally named "a -> b" makes the guess
+    # wrong. -z emits raw bytes with NUL terminators and puts a rename's two
+    # paths in two records, so there is nothing left to guess.
+    code, status_out, error = _git_output(
+        repo_root, "status", "--porcelain=v1", "-z", "--untracked-files=all"
     )
-    if result.returncode != 0:
-        return [f"git status failed: {result.stderr.strip()}"]
+    if code != 0:
+        return [f"git status failed: {error.strip()}"]
+
     problems: list[str] = []
-    for line in result.stdout.splitlines():
-        if len(line) < 4:
+    records = status_out.split("\0")
+    index = 0
+    while index < len(records):
+        record = records[index]
+        index += 1
+        if not record:
             continue
-        status, rest = line[:2], line[3:]
-        # A rename reads "R  old -> new"; the new path is the one on disk.
-        if " -> " in rest:
-            rest = rest.split(" -> ")[-1]
-        rel = _unquote_git_path(rest)
+        if len(record) < 4 or record[2] != " ":
+            problems.append(f"unparseable git status record: {record!r}")
+            continue
+        status, rel = record[:2], record[3:]
+        if "R" in status or "C" in status:
+            index += 1  # a rename/copy's original path is its own record
         if status != "??":
             problems.append(f"tracked change: {status.strip() or status} {rel}")
             continue
-        if not _is_under(repo_root / rel, output_dir):
+        # Lexical join, not realpath: an untracked symlink at the top level
+        # pointing into the output directory is still a new file at the top
+        # level, and resolving it would hide exactly that.
+        candidate = os.path.normpath(os.path.join(toplevel, rel))
+        if not _contains(output, candidate):
             problems.append(f"untracked file outside output directory: {rel}")
     return problems
 
@@ -527,6 +628,9 @@ def write_integrity_snapshot(
     """
     repo_root = Path(repo_root)
     output_dir = Path(output_dir)
+    problem = _output_dir_problem(repo_root, output_dir)
+    if problem:
+        raise ValueError(problem)
     data = {
         "version": SNAPSHOT_VERSION,
         "root": ".",
@@ -551,6 +655,9 @@ def check_snapshot_integrity(
     repo_root = Path(repo_root)
     output_dir = Path(output_dir)
     snapshot_path = Path(snapshot_path)
+    problem = _output_dir_problem(repo_root, output_dir)
+    if problem:
+        return [problem]
     if not snapshot_path.is_file():
         return [f"integrity snapshot {snapshot_path} does not exist"]
     try:
