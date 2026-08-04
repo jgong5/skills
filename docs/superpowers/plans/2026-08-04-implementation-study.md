@@ -12,7 +12,7 @@
 
 - The skill is named `implementation-study`, ships in its own marketplace bundle at version `0.1.0`, and has `disable-model-invocation: true`.
 - The input is exactly `path/to/file:symbol` or `path/to/file`; `<stem>` is the symbol when present and otherwise the file stem.
-- Resolve output to the nearest ancestor containing `docs/`, walking upward from the entry-point file; if none exists, use the entry-point file's directory.
+- Resolve output to the nearest ancestor containing `docs/`, walking upward from the entry-point file but never past the repository root (an ancestor `docs/` outside the repository is not a candidate); if none exists inside the repository, use the entry-point file's directory with the user's explicit approval, strictly inside the repository root, or stop and ask when that directory is the root itself.
 - Create only new files under that one output directory; never modify or delete an existing file in the repository under study.
 - Evidence is cite, derive, measure, or omit. There is no inference class.
 - Experiments require an approved `PLAN.md` entry before execution, run through the project's command wrapper, and put scripts, copied inputs, output, and `ENV.md` only in `<stem>_study_experiments/`.
@@ -1185,7 +1185,7 @@ Under Input, accept exactly `path/to/file:symbol` or `path/to/file`; stop and as
 
 Under skill-directory resolution, first use `${CLAUDE_PLUGIN_ROOT}/skills/implementation-study`; otherwise use the directory from which `SKILL.md` was read. Bind it as `<skill-dir>`. If the project wrapper cannot reach it, copy only the invoked helper into the output directory rather than running a bare host interpreter.
 
-Under output resolution, walk from the entry-point file upward to the nearest ancestor containing `docs/`; use that `docs/`, otherwise the file's directory. List all five output forms. Before work starts, check none exists. State that output files are new and confined there.
+Under output resolution, walk from the entry-point file upward to the nearest ancestor containing `docs/`, stopping the walk at the repository root (an ancestor `docs/` outside the repository is never a candidate); use that `docs/`, otherwise the entry-point file's own directory with the user's explicit approval, provided it is strictly inside the repository root -- stop and ask for a subdirectory name when it is the root itself. List all five output forms. Before work starts, check none exists. State that output files are new and confined there.
 
 Under Pipeline, make each phase read its doc only when reached:
 

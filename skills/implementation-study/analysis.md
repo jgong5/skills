@@ -31,15 +31,22 @@ anything.
 
 The output directory must be strictly inside the repository root, never the
 repository root itself. `SKILL.md` resolves it by walking up to the nearest
-ancestor `docs/`, falling back to the entry-point file's own directory; that
-fallback is only usable when the entry point lives in a subdirectory. An
-entry point sitting at the repository root with no ancestor `docs/` has no
-valid fallback, and the answer is to stop and ask the user which
-subdirectory to write into -- not to create `docs/` on their behalf, and not
-to write to the root. `check_evidence.py` rejects `--output-dir` equal to
-`--repo-root` in both `snapshot` and `verify`, and it is right to: if the
-output directory were the root, every file in the repository would count as
-"inside the output directory" and Phase 5's no-modification check would
+ancestor `docs/`, but the walk never crosses the repository root: an ancestor
+`docs/` that sits outside the repository is not a candidate, no matter how
+close it is to the entry point, because the repository boundary governs the
+search, not proximity. Falling back to the entry-point file's own directory
+is only usable when the entry point lives in a subdirectory, and that
+fallback is never adopted silently -- it is named to the user and requires
+explicit approval before Phase 1 does any work, because it is a guess about
+where output belongs rather than a resolved convention like an existing
+`docs/`. An entry point sitting at the repository root with no ancestor
+`docs/` inside the repository has no valid fallback, and the answer is to
+stop and ask the user which subdirectory to write into -- not to create
+`docs/` on their behalf, and not to write to the root. `check_evidence.py`
+rejects `--output-dir` equal to `--repo-root` in both `snapshot` and `verify`,
+and it is right to: if the output directory were the root, every file in the
+repository would count as "inside the output directory" and Phase 5's
+no-modification check would
 report clean no matter what changed.
 
 Fail if any target output file already exists. This skill may create files

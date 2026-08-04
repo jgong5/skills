@@ -151,8 +151,11 @@ Five phases run in order, each reading only its own reference doc:
 | Render | Turns the markdown into a PDF through pandoc and headless Chrome, classifying any overlong code line before touching the stylesheet. |
 | Verify | The gate: mechanical PDF checks, a mechanical evidence check, and a manual read-through, with every finding routed back to the phase that caused it. |
 
-Outputs land next to the code, in the nearest ancestor `docs/` directory (or
-the entry point's own directory if there is none, provided that directory is
+Outputs land next to the code, in the nearest ancestor `docs/` directory found
+without crossing the repository boundary -- an ancestor `docs/` outside the
+repository is never a candidate, no matter how close it sits -- or, with the
+user's explicit approval, the entry point's own directory if no `docs/`
+exists inside the repository, provided that directory is
 not the repository root itself -- an entry point at the root with no `docs/`
 above it makes the skill stop and ask for an output subdirectory rather than
 write to the root): the study document

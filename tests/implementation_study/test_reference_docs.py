@@ -351,6 +351,44 @@ def test_output_directory_is_never_the_repository_root():
     assert "not to write to the root" in analysis
 
 
+def test_output_search_never_crosses_the_repository_root():
+    # R1 regression: the ancestor `docs/` search had no stated boundary, so a
+    # repository with no `docs/` of its own but an ancestor `docs/` outside
+    # it (a parent project, a home directory) could be walked into and
+    # resolved as the output directory -- a location `check_evidence.py`
+    # would eventually reject, but only after Phase 1-4 had already done the
+    # work in the wrong place. The repository boundary must govern the walk
+    # itself, not just the final `check_evidence.py` gate, and the fallback
+    # away from an in-repo `docs/` must be explicit, not silent.
+    skill = _normalize((SKILL_DIR / "SKILL.md").read_text())
+    assert "never past the repository root" in skill
+    assert (
+        "an ancestor `docs/` that lies outside the repository is not a "
+        "candidate no matter how close it sits to the entry point"
+    ) in skill
+    assert (
+        "never adopted silently: name it to the user and get explicit "
+        "approval before Phase 1 does any work"
+    ) in skill
+
+    analysis = _normalize((SKILL_DIR / "analysis.md").read_text())
+    assert (
+        "the walk never crosses the repository root: an ancestor `docs/` "
+        "that sits outside the repository is not a candidate"
+    ) in analysis
+    assert (
+        "that fallback is never adopted silently -- it is named to the "
+        "user and requires explicit approval before Phase 1 does any work"
+    ) in analysis
+
+    readme = _normalize(README.read_text())
+    assert (
+        "found without crossing the repository boundary -- an ancestor "
+        "`docs/` outside the repository is never a candidate"
+    ) in readme
+    assert "with the user's explicit approval" in readme
+
+
 def test_rendering_classifies_a_page_tall_block_as_its_own_class():
     # Regression: the render phase knew only about width. A code block taller
     # than the page is a different defect with a different fix -- excerpt or

@@ -41,18 +41,30 @@ the project's own toolchain.
 
 ## Resolve output paths
 
-Starting at the entry-point file, walk upward to the nearest ancestor
-directory containing `docs/`; use that `docs/` as the output directory. If no
-ancestor has one, fall back to the entry-point file's own directory -- but
-only when that directory is strictly inside the repository root. The
-repository root itself is never a valid output directory: `check_evidence.py`
-rejects it outright, because an output directory equal to the root would make
-every path in the repository count as "inside the output directory" and the
-Phase 5 no-modification check would pass no matter what changed. So when the
-entry point sits at the repository root and no ancestor `docs/` exists, stop
-and ask the user to name an output subdirectory inside the repository; do not
-create one, and do not guess a name. Every study produces exactly five output
-forms in the resolved directory, all named from `<stem>`:
+The repository boundary governs this whole section: the repository root is
+the same boundary `check_evidence.py` takes as `--repo-root`, and nothing
+below ever proposes an output location outside it. Starting at the
+entry-point file, walk upward to the nearest ancestor directory containing
+`docs/`, but never past the repository root -- an ancestor `docs/` that lies
+outside the repository is not a candidate no matter how close it sits to the
+entry point, because the repository boundary governs the search, not
+proximity. When such a `docs/` exists inside the repository, use it as the
+output directory.
+
+If no ancestor `docs/` exists inside the repository, the entry-point file's
+own directory is the only remaining candidate -- but only when that directory
+is strictly inside the repository root, and never adopted silently: name it
+to the user and get explicit approval before Phase 1 does any work, because
+it is a guess about where output belongs, not a resolved convention like an
+existing `docs/`. The repository root itself is never a valid output
+directory: `check_evidence.py` rejects it outright, because an output
+directory equal to the root would make every path in the repository count as
+"inside the output directory" and the Phase 5 no-modification check would
+pass no matter what changed. So when the entry point sits at the repository
+root and no ancestor `docs/` exists, stop and ask the user to name an output
+subdirectory inside the repository; do not create one, and do not guess a
+name. Every study produces exactly five output forms in the resolved
+directory, all named from `<stem>`:
 
 - `<stem>_study.md` -- the study document.
 - `<stem>_study.notes.md` -- the comprehension ledger.

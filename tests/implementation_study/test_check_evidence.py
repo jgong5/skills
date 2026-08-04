@@ -272,6 +272,22 @@ def test_git_integrity_rejects_an_output_directory_that_is_the_root(tmp_path):
     assert "output directory" in " ".join(check_git_integrity(repo, repo))
 
 
+def test_git_integrity_rejects_an_output_directory_outside_the_repository_root(tmp_path):
+    # R1 regression: an ancestor `docs/` found by walking up from the entry
+    # point must never resolve to something outside the repository under
+    # study -- e.g. a `docs/` belonging to a parent project or the user's
+    # home directory. This is the mechanical backstop for that rule: even if
+    # a phase somehow proposed such a path, check_evidence.py must refuse it
+    # the same way it refuses the repository root itself, not merely "some
+    # other" problem.
+    repo, _ = _committed_repo(tmp_path)
+    outside = tmp_path / "outside_docs"
+    outside.mkdir()
+    problems = check_git_integrity(repo, outside)
+    assert problems
+    assert "not inside the repository root" in " ".join(problems)
+
+
 def test_continuation_lines_do_not_fold_across_a_blank_line():
     entries = parse_ledger(
         "- [C1] One. cite: a.py:1 `x`\n"
@@ -312,6 +328,25 @@ def test_snapshot_rejects_an_output_directory_that_is_the_root(tmp_path):
     assert not snapshot.exists()
     assert "output directory" in " ".join(
         check_snapshot_integrity(repo, repo, snapshot)
+    )
+
+
+def test_snapshot_rejects_an_output_directory_outside_the_repository_root(tmp_path):
+    # R1 regression, non-git side: same guarantee as
+    # test_git_integrity_rejects_an_output_directory_outside_the_repository_root
+    # for a repository under study that is not a git work tree, where
+    # `write_integrity_snapshot`/`check_snapshot_integrity` are the only gate.
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "algo.py").write_text("one\n")
+    outside = tmp_path / "outside_docs"
+    outside.mkdir()
+    snapshot = tmp_path / "x.integrity.json"
+    with pytest.raises(ValueError, match="not inside the repository root"):
+        write_integrity_snapshot(repo, outside, snapshot, [])
+    assert not snapshot.exists()
+    assert "not inside the repository root" in " ".join(
+        check_snapshot_integrity(repo, outside, snapshot)
     )
 
 
