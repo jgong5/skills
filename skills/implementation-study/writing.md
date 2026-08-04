@@ -74,6 +74,33 @@ unknown ledger id" failure at Phase 5. Spell an acronym out in prose ("the
 CPU scheduler") or put it inside a fenced code block; reserve bracketed
 all-uppercase text for ledger IDs.
 
+The bullet's exact shape matters as much as the ID's shape. A line is
+recognized as a ledger entry only when it starts, with no leading
+whitespace, exactly `- [` -- one hyphen, one space, one opening bracket --
+followed by an ID beginning with an uppercase letter (`ENTRY_PREFIX_RE`:
+`^- \[[A-Z][A-Z0-9_-]*\]`). A near-miss does not raise an error and does
+not appear in any PROBLEM: line. It simply is not a ledger entry as far as
+the parser is concerned, so it vanishes from the ledger without a trace:
+
+- a different bullet marker (`* [C1] ...`, `+ [C1] ...`);
+- wrong spacing (`-  [C1] ...` with two spaces, or `-[C1] ...` with none);
+- an ID that does not start with an uppercase letter (`- [c1] ...`,
+  `- [1a] ...`).
+
+Any of these reads as ordinary prose, not a malformed entry, so
+`check_evidence.py` has nothing to reject. The failure this produces is
+indirect and can be confusing: a claim that cites `[C1]` in the study
+document now points at an ID the ledger silently never defined, and Phase
+5 reports "prose references unknown ledger id C1" -- a missing-reference
+error, not a malformed-entry error, even though the entry is sitting right
+there in the notes file with a one-character typo. There is no looser regex
+that could safely catch every near-miss without also rejecting legitimate
+prose that happens to start a line with a hyphen, so this is a rule for the
+author, not the checker: write the bullet in the exact grammar above,
+character for character, and check for it explicitly during the Phase 3
+read-through -- the parser will not tell you when a bullet was almost
+right.
+
 ## Fixed spine
 
 The document opens with these five sections, in this order, every time:
@@ -181,15 +208,23 @@ Three chapters close every study document, always in this order:
 ## Code excerpts, headings, and cross-references
 
 Number every top-level section heading `## N. Title`, starting from 1, with
-no gaps and no repeats -- this is `check_pdf.py`'s `HEADING_RE`
-(`^##\s+(\d+)\.\s`), and a heading it cannot parse this way does not exist
-as far as cross-reference checking is concerned. Phrase a cross-reference
-in prose as `section N` or `sections N and M` -- this is `XREF_RE`
-(`\bsections?\s+(\d+)(?:\s+and\s+(\d+))?`), which resolves each number
-against the set of headings `HEADING_RE` found and reports a reference to a
-section number that does not exist. "See the section above" or "as
-discussed earlier" is invisible to this check and is not a substitute for
-`section N` when precision matters.
+no gaps and no repeats. That sequencing is a writing convention for the
+reader, not something either checker verifies: `check_pdf.py`'s
+`HEADING_RE` (`^##\s+(\d+)\.\s`) only extracts each heading's number into a
+set, and a set has no memory of gaps or duplicates -- two sections both
+numbered `## 3.` collapse into one entry `{3}` and neither the second
+heading nor a gap at, say, `4` is ever reported. What `HEADING_RE` and
+`XREF_RE` mechanically enforce is narrower and different: that every
+cross-reference in the prose resolves to some heading number that exists.
+Phrase a cross-reference as `section N` or `sections N and M` -- this is
+`XREF_RE` (`\b[Ss]ections?\s+(\d+)(?:\s+and\s+(\d+))?`), which looks up
+each number it finds against the set `HEADING_RE` built and reports only a
+reference to a number missing from that set. "See the section above" or
+"as discussed earlier" is invisible to this check and is not a substitute
+for `section N` when precision matters. Keep the numbering itself
+sequential and unique by discipline, the same way the ledger's IDs are --
+the checker will catch a broken forward reference, but it will not catch a
+skipped or repeated section number, and a reader will notice both.
 
 Every non-blank line inside a fenced code block is checked, mod
 whitespace, against the rendered PDF's extracted text (`wrapped_lines` in
@@ -217,13 +252,20 @@ Do not move to Phase 4 until all of the following are true:
 - every substantive claim carries one or more `[ID]` references, checked
   by one full read-through of the document, not only by
   `check_evidence.py`'s mechanical pass;
+- every ledger entry in the notes file is written in the exact bullet
+  grammar (`- [ID] ...`, one hyphen, one space, uppercase-first ID),
+  checked by eye -- a near-miss bullet parses as prose, not as a malformed
+  entry, so nothing mechanical will flag it;
 - no bracketed all-uppercase text appears in prose except genuine ledger
   IDs;
 - Improvements, Boundary note, and Sources all exist, in that order, with
   every improvement entry falsifiable;
-- every section heading is `## N. Title` with no gaps, and every
-  cross-reference reads `section N` or `sections N and M` against a
-  heading that actually exists.
+- every section heading is `## N. Title`, numbered sequentially with no
+  gaps or repeats by discipline (checked by eye -- the checker only builds
+  a set of numbers seen and does not notice a gap or a duplicate), and
+  every cross-reference reads `section N` or `sections N and M` against a
+  heading number that actually exists in that set (this part the checker
+  does enforce).
 
 A document that reads well but fails any of these is not ready for Phase
 4 -- `check_pdf.py` and `check_evidence.py` exist because a document that

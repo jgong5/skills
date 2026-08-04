@@ -60,3 +60,31 @@ def test_writing_contains_spine_and_back_matter():
         assert title in text
     assert "one to three realistic" in text
     assert "falsifiable" in text
+
+
+def test_writing_quotes_the_live_checker_regexes():
+    # Ties the prose's quoted regexes to the actual compiled patterns, so a
+    # future edit to either check_pdf.py or check_evidence.py that changes
+    # HEADING_RE, XREF_RE, or ENTRY_PREFIX_RE without updating writing.md
+    # fails here instead of only being caught by a human reviewer.
+    import check_evidence
+    import check_pdf
+
+    text = (SKILL_DIR / "writing.md").read_text()
+    assert check_pdf.HEADING_RE.pattern in text
+    assert check_pdf.XREF_RE.pattern in text
+    assert check_evidence.ENTRY_PREFIX_RE.pattern in text
+
+
+def test_writing_documents_near_miss_ledger_bullets_are_silently_ignored():
+    text = (SKILL_DIR / "writing.md").read_text()
+    assert "near-miss" in text
+    assert "vanishes from the ledger without a trace" in text
+    for example in ("* [C1] ...", "-  [C1] ...", "- [c1] ..."):
+        assert example in text
+
+
+def test_writing_separates_numbering_convention_from_enforcement():
+    text = (SKILL_DIR / "writing.md").read_text()
+    assert "not something either checker verifies" in text
+    assert "a set has no memory of gaps or duplicates" in text
