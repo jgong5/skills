@@ -139,14 +139,27 @@ into a structure the code does not have.
 
 ## Decision blocks
 
-A decision block is exactly three lines, in this order, with the labels
-written verbatim:
+A decision block is exactly three parts, in this order, with the labels
+written verbatim, each starting its own line and separated by a blank line:
 
 ```markdown
 **Decision.** <what the code does>
+
 **Alternatives.** <one to three realistic other choices>
+
 **Why this one.** <cited or derived trade-off with [C1] references>
 ```
+
+The blank line between the parts is a rendering rule, not a parser rule, and
+it is the one part of this shape Phase 5 cannot catch. Markdown folds
+adjacent lines into a single paragraph, so a block written as three adjacent
+lines passes `check_pdf.py` -- which reads the markdown, never the rendered
+page -- and then renders in the PDF as one run-on paragraph with three bold
+labels buried mid-sentence, which is exactly the structure the block exists
+to make visible. Separating the parts with blank lines changes nothing
+mechanically: a blank line never closes a block, so all three markers still
+belong to the same block, and only the next `**Decision.**` or the next
+`## ` heading closes it.
 
 The literal markers, their exact wording, and their order are a
 machine-readable contract with `check_pdf.py` (`DECISION_MARKERS`): the
@@ -248,7 +261,9 @@ Do not move to Phase 4 until all of the following are true:
 - the derived middle reflects the implementation's own structure, not a
   generic template;
 - every decision block uses the exact three markers, in order, at column
-  zero, closed by the next `**Decision.**` or the next `## ` heading;
+  zero, separated by blank lines so the parts render as three lines rather
+  than one paragraph, closed by the next `**Decision.**` or the next `## `
+  heading;
 - every substantive claim carries one or more `[ID]` references, checked
   by one full read-through of the document, not only by
   `check_evidence.py`'s mechanical pass;

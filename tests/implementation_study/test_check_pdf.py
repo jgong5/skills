@@ -122,6 +122,26 @@ def test_complete_decision_block_passes():
     assert incomplete_decision_blocks(md) == []
 
 
+def test_blank_lines_between_parts_keep_one_complete_block():
+    # writing.md tells the author to put a blank line between the three
+    # markers so the block does not render as one run-on paragraph. That
+    # advice is only safe while a blank line neither closes the open block
+    # nor splits it into three incomplete ones, so pin the behavior here:
+    # only a `## ` heading or the next `**Decision.**` closes a block.
+    md = """\
+## 6. Main loop
+
+**Decision.** Keep the frontier in a deque.
+
+**Alternatives.** A list with front deletion; two explicit stacks.
+
+**Why this one.** Both end operations are constant time [C8].
+
+## 7. Improvements
+"""
+    assert incomplete_decision_blocks(md) == []
+
+
 def test_decision_block_missing_alternatives_is_reported():
     md = """\
 ## 6. Main loop

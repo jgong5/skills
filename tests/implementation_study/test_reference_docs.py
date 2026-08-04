@@ -124,6 +124,29 @@ def test_writing_pins_machine_readable_contracts():
     assert "section N" in text
 
 
+def test_writing_documents_how_a_decision_block_renders():
+    # Regression: writing.md described a decision block as "exactly three
+    # lines" and showed the three markers on adjacent lines. Markdown folds
+    # adjacent lines into one paragraph, so a block written that way renders
+    # in the PDF as a single run-on paragraph with the three bold labels
+    # buried inside it -- mechanically clean (check_pdf.py reads the
+    # markdown, never the rendered page) and visually structureless. End-to-
+    # end rendering surfaced it; neither checker can. The doc must tell the
+    # author to separate the parts with blank lines and say why that is
+    # still one block to the checker.
+    text = (SKILL_DIR / "writing.md").read_text()
+    normalized = _normalize(text)
+    assert "blank line between" in normalized
+    assert "run-on paragraph" in normalized
+    assert "a blank line never closes a block" in normalized
+    # The copyable example must itself show the separated form, since that is
+    # what an author will paste.
+    block = text.split("```markdown\n", 1)[1].split("```", 1)[0]
+    assert block.startswith("**Decision.**")
+    assert "\n\n**Alternatives.**" in block
+    assert "\n\n**Why this one.**" in block
+
+
 def test_writing_contains_spine_and_back_matter():
     text = (SKILL_DIR / "writing.md").read_text()
     for title in (
