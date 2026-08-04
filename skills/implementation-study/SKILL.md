@@ -50,7 +50,8 @@ Every study produces exactly five output forms there, all named from
 - `<stem>_study.md` -- the study document.
 - `<stem>_study.notes.md` -- the comprehension ledger.
 - `<stem>_study_experiments/` -- approved experiment scripts, captured
-  output, and `ENV.md` files.
+  output, and `ENV.md` files. `<skill-dir>/experiments.md` refers to this
+  path as `<experiments-dir>`.
 - `<stem>_study.integrity.json` -- the non-git snapshot baseline (only when
   the repository under study is not a git work tree).
 - `<stem>_study.pdf` -- the rendered, verified deliverable.
@@ -124,6 +125,7 @@ past one of these produces a study that reads as confident and is not.
 | an honest trace would make the boundary too large to read closely | Declare a narrower boundary, and preserve every excluded component for the Boundary note, so a reader can tell what was deliberately excluded from what was simply missed. |
 | Chrome/Chromium is missing at Render preflight | Stop and point the user at the project's Chrome-install help (e.g. `gpu_docker/install-chrome.sh`) by name; do not install a substitute browser. |
 | `pandoc` is missing at Render preflight | Stop and report the gap; a missing `pandoc` is an environment problem, not a document problem, and downgrading the render to work around it is not an option. |
+| a `poppler-utils` tool (`pdftotext`, `pdffonts`, `pdfinfo`, `pdftoppm`) is missing at Verify preflight | Stop and name the specific missing tool and the `poppler-utils` package that provides it; do not skip Pass 1 or report it clean without having actually run it. |
 
 ## Requirements
 

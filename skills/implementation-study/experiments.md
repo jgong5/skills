@@ -6,12 +6,16 @@ code the skill did not write, against a repository it does not own, is a
 privileged act -- everything below exists to keep that act honest, approved,
 and reproducible.
 
-This executes code from the repository under study and adds no sandbox beyond not writing to it.
-There is no container, no restricted interpreter,
+This executes code from the repository under study and adds no sandbox
+beyond not writing to it. There is no container, no restricted interpreter,
 no network isolation layered on top -- the only guarantee this pipeline adds
 is that nothing it runs writes outside the experiment directory. Treat every
 proposed experiment with the same care you would give to running someone
 else's script directly, because that is exactly what it is.
+
+`<experiments-dir>` below is `<stem>_study_experiments/`, the experiments
+output path `SKILL.md` resolves once, in Phase 1, alongside the study's
+other four output paths -- not a location this doc invents on its own.
 
 ## Plan format
 
@@ -60,12 +64,13 @@ Every experiment directory must contain, alongside the script:
 - copied inputs and copied alternative implementations under the experiment
   directory -- never a path reaching back out to a scratch location the
   study does not own;
-- the reproducible script itself. Run through the project's command wrapper, never a bare interpreter.
-  Use the same wrapper the project's own tests or benchmarks use
-  (`make bench`, `tox`, a documented `scripts/run.sh`, whatever this
-  specific repository actually uses); a bare `python foo.py` may silently
-  pick up the wrong interpreter, the wrong virtualenv, or the wrong flags,
-  and the measurement would then say something true about the wrong thing;
+- the reproducible script itself. Run through the project's command
+  wrapper, never a bare interpreter. Use the same wrapper the project's own
+  tests or benchmarks use (`make bench`, `tox`, a documented
+  `scripts/run.sh`, whatever this specific repository actually uses); a
+  bare `python foo.py` may silently pick up the wrong interpreter, the
+  wrong virtualenv, or the wrong flags, and the measurement would then say
+  something true about the wrong thing;
 - the captured `.out` file for every run, referenced by the ledger's
   `measure: <script> -> <output>` entry;
 - one `ENV.md` per experiment directory, covering every run in it, recording:
@@ -102,8 +107,8 @@ Only once equivalence is established does timing methodology matter:
 
 An experiment that errors, times out, or produces a result contradicting the
 expected trade-off is not a failure to hide or quietly re-run until it looks
-right. A failed experiment is a result: capture the `.out` file (or the error
-output) exactly as produced, record what happened in the ledger as a
+right. A failed experiment is a result. Capture the `.out` file (or the
+error output) exactly as produced, record what happened in the ledger as a
 `measure:` entry pointing at that captured output, and let Phase 3 write
 honestly about what was found, including "the two implementations perform
 within noise of each other" or "the experiment could not be made to run

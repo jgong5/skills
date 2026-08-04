@@ -7,6 +7,17 @@ different failure class, and none of the three substitutes for another --
 cannot tell a well-laid-out page from a wrapped one, and neither script can
 read the document the way a skeptical human does.
 
+## Preflight
+
+Pass 1 needs `poppler-utils` already installed -- `pdftotext`, `pdffonts`,
+and `pdfinfo`, plus `pdftoppm` for the sample-page rasterization step below.
+Unlike `make_pdf.py`'s Chrome/pandoc/websockets checks in Phase 4,
+`check_pdf.py` does not probe for these itself; a missing one surfaces only
+as a raw, uncaught error naming the binary it tried to run. Treat that the
+same as a `make_pdf.py` preflight failure: stop and name the specific
+missing tool and the `poppler-utils` package that provides it, rather than
+working around it or reporting Pass 1 clean without having actually run it.
+
 ## Pass 1: Mechanical PDF checks
 
 Run `check_pdf.py` through the project's command wrapper, never a bare

@@ -4,8 +4,8 @@ Phase 3 turns the Phase 1 ledger and the Phase 2 decision inventory into
 `<stem>_study.md`. Nothing new is discovered here -- if a sentence needs
 evidence that Phase 1 or Phase 2 did not produce, that is a sign to go back,
 not to write around it. Two later phases read this document mechanically,
-not just a human: `check_pdf.py` in Phase 4 and `check_evidence.py` in Phase
-5. Both are described here beside the rule they enforce, because a contract
+not just a human: `check_pdf.py` and `check_evidence.py`, both in Phase 5.
+Both are described here beside the rule they enforce, because a contract
 that lives only in a script's regex is a contract nobody writing prose can
 see.
 
@@ -176,7 +176,7 @@ reworded, or reordered. Concretely, that means:
 - Do not reword the labels ("**The decision:**", "**Alternative
   choices.**") even when the reworded version reads more naturally --
   a label the regex does not match makes the whole block invisible to
-  Phase 4, not just cosmetically different.
+  Phase 5, not just cosmetically different.
 
 Use a decision block only when a competent engineer could plausibly have
 chosen differently and the choice matters -- the same bar Phase 2 used to

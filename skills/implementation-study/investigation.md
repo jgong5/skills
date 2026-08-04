@@ -4,8 +4,10 @@ Phase 2 turns the comprehension ledger from Phase 1 into a decision
 inventory: the places where the implementation chose one thing over another,
 what those alternatives were, and what the trade-off actually is. This is
 where "how it works" becomes "why it works this way" -- and where the study
-either grounds that "why" in evidence, or names it as a question for Phase 2
-to answer by running code.
+either grounds that "why" in evidence, or, when derivation cannot settle it,
+names it as a question answered later in this phase, by escalating to
+`<skill-dir>/experiments.md` (see "Escalate unresolved questions to
+experiments" below) rather than by guessing.
 
 ## Build the decision inventory
 
