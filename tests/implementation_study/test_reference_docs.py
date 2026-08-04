@@ -36,3 +36,27 @@ def test_experiments_state_execution_and_reproducibility_rules():
     assert "adds no sandbox" in text
     assert "never a bare interpreter" in text
     assert "A failed experiment is a result" in text
+
+
+def test_writing_pins_machine_readable_contracts():
+    text = (SKILL_DIR / "writing.md").read_text()
+    for marker in ("**Decision.**", "**Alternatives.**", "**Why this one.**"):
+        assert marker in text
+    assert "- [ID] <claim>. <class>: <source>" in text
+    assert "[C1]" in text
+    assert "## N. Title" in text
+    assert "section N" in text
+
+
+def test_writing_contains_spine_and_back_matter():
+    text = (SKILL_DIR / "writing.md").read_text()
+    for title in (
+        "What it computes", "Where it sits",
+        "Background and the canonical algorithm",
+        "How this implementation departs from the canonical form",
+        "Data structures and invariants", "Improvements", "Boundary note",
+        "Sources",
+    ):
+        assert title in text
+    assert "one to three realistic" in text
+    assert "falsifiable" in text
