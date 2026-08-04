@@ -4,7 +4,7 @@ Phase 2 turns the comprehension ledger from Phase 1 into a decision
 inventory: the places where the implementation chose one thing over another,
 what those alternatives were, and what the trade-off actually is. This is
 where "how it works" becomes "why it works this way" -- and where the study
-either grounds that "why" in evidence, or names it as a question for Phase 4
+either grounds that "why" in evidence, or names it as a question for Phase 2
 to answer by running code.
 
 ## Build the decision inventory

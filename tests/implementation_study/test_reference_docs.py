@@ -30,12 +30,42 @@ def test_investigation_keeps_experiments_behind_approval():
     assert "Approval is per-plan" in text
 
 
+def test_investigation_escalates_to_phase_two_not_phase_four():
+    # Regression: investigation.md once said an unresolved trade-off became
+    # "a question for Phase 4 to answer by running code", but experiments
+    # run inside Phase 2 (escalating to experiments.md is a Phase 2 step,
+    # per "Escalate unresolved questions to experiments" in this same doc
+    # and experiments.md's own "Experiments are how Phase 2 answers..."
+    # opening line). Phase 4 is Render and never runs experiments.
+    text = (SKILL_DIR / "investigation.md").read_text()
+    assert "Phase 4" not in text
+    assert "a question for Phase 2" in text
+    assert "to answer by running code" in text
+
+
 def test_experiments_state_execution_and_reproducibility_rules():
     text = (SKILL_DIR / "experiments.md").read_text()
     assert "executes code from the repository under study" in text
     assert "adds no sandbox" in text
     assert "never a bare interpreter" in text
     assert "A failed experiment is a result" in text
+
+
+def test_experiments_states_are_verbatim_standalone_sentences():
+    # Regression: these two rule sentences used to preserve only the tested
+    # substrings above -- one was split across a line wrap, the other was
+    # lower-cased and buried mid-sentence inside a longer bullet -- so a
+    # stricter, whitespace-sensitive check on the exact brief wording would
+    # have failed even though the looser substring checks above passed.
+    text = (SKILL_DIR / "experiments.md").read_text()
+    assert (
+        "This executes code from the repository under study and adds no "
+        "sandbox beyond not writing to it."
+    ) in text
+    assert (
+        "Run through the project's command wrapper, never a bare "
+        "interpreter."
+    ) in text
 
 
 def test_writing_pins_machine_readable_contracts():

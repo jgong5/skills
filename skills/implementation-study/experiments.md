@@ -6,8 +6,8 @@ code the skill did not write, against a repository it does not own, is a
 privileged act -- everything below exists to keep that act honest, approved,
 and reproducible.
 
-This executes code from the repository under study and adds no sandbox
-beyond not writing to it. There is no container, no restricted interpreter,
+This executes code from the repository under study and adds no sandbox beyond not writing to it.
+There is no container, no restricted interpreter,
 no network isolation layered on top -- the only guarantee this pipeline adds
 is that nothing it runs writes outside the experiment directory. Treat every
 proposed experiment with the same care you would give to running someone
@@ -60,13 +60,12 @@ Every experiment directory must contain, alongside the script:
 - copied inputs and copied alternative implementations under the experiment
   directory -- never a path reaching back out to a scratch location the
   study does not own;
-- the reproducible script itself, run through the project's command
-  wrapper, never a bare interpreter -- the same wrapper the project's own
-  tests or benchmarks use (`make bench`, `tox`, a documented `scripts/run.sh`,
-  whatever this specific repository actually uses), because a bare
-  `python foo.py` may silently pick up the wrong interpreter, the wrong
-  virtualenv, or the wrong flags, and the measurement would then say
-  something true about the wrong thing;
+- the reproducible script itself. Run through the project's command wrapper, never a bare interpreter.
+  Use the same wrapper the project's own tests or benchmarks use
+  (`make bench`, `tox`, a documented `scripts/run.sh`, whatever this
+  specific repository actually uses); a bare `python foo.py` may silently
+  pick up the wrong interpreter, the wrong virtualenv, or the wrong flags,
+  and the measurement would then say something true about the wrong thing;
 - the captured `.out` file for every run, referenced by the ledger's
   `measure: <script> -> <output>` entry;
 - one `ENV.md` per experiment directory, covering every run in it, recording:
