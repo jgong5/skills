@@ -29,6 +29,19 @@ of -- and every output path (`<stem>_study.md`, `<stem>_study.notes.md`,
 `<stem>_study.integrity.json`, the experiments directory) before creating
 anything.
 
+The output directory must be strictly inside the repository root, never the
+repository root itself. `SKILL.md` resolves it by walking up to the nearest
+ancestor `docs/`, falling back to the entry-point file's own directory; that
+fallback is only usable when the entry point lives in a subdirectory. An
+entry point sitting at the repository root with no ancestor `docs/` has no
+valid fallback, and the answer is to stop and ask the user which
+subdirectory to write into -- not to create `docs/` on their behalf, and not
+to write to the root. `check_evidence.py` rejects `--output-dir` equal to
+`--repo-root` in both `snapshot` and `verify`, and it is right to: if the
+output directory were the root, every file in the repository would count as
+"inside the output directory" and Phase 5's no-modification check would
+report clean no matter what changed.
+
 Fail if any target output file already exists. This skill may create files
 but never overwrite them: an existing file with one of these names means
 either a prior run that should be resumed or reviewed by a human, or a name
@@ -123,7 +136,7 @@ Boundary note, not typed into the prose as an assertion.
 
 ## Establish repository integrity
 
-The study is a read-only act. Phase 5 proves that mechanically, but the
+The study is a read-only act. Phase 5 checks that mechanically, but the
 baseline for that proof is established here, before any output exists.
 
 For a git work tree: require a clean baseline before producing any skill
@@ -140,6 +153,25 @@ too. That is the safe direction to err in -- the study may well have caused
 it -- but it can be noisy outside the directory actually under study; check
 whether the flagged path is related before assuming the pipeline broke
 something.
+
+What the git check cannot see: `git status` does not report paths excluded by
+`.gitignore`, and `check_evidence.py` does not ask it to. A write into an
+ignored path inside the repository under study -- a `__pycache__/` directory
+beside an imported module, a build or coverage directory, a tool's cache --
+passes the git integrity check in silence. Do not patch around that with an
+ad-hoc scan of ignored files: Phase 1 records no baseline of which ignored
+paths already existed, so such a scan cannot tell a file this run created
+from one that was there all along, and it would produce noise rather than
+evidence. Two things follow. First, the honest mitigation is upstream --
+`<skill-dir>/experiments.md` requires every experiment to run with its
+language's cache and artifact writes suppressed, so those writes never happen
+in the first place. Second, state the boundary of the guarantee accurately
+when reporting: the git pass proves that nothing git tracks changed and that
+nothing untracked-and-unignored appeared outside the output directory, which
+is not the same claim as the repository being byte-for-byte identical.
+(Snapshot mode has the opposite shape: its walk consults no ignore file and
+so does cover ignored paths, which is also why it cannot be pointed at a git
+work tree -- ordinary `.git` churn would fail it.)
 
 For a repository with no version control at all: run
 `check_evidence.py snapshot` before producing any outputs. Snapshot mode is

@@ -129,8 +129,13 @@ pre {
   border-radius: 0 2px 2px 0;
   padding: 6px 9px;
   margin: 0.85em 0;
-  /* No block in this document is longer than 18 lines, so none of them can be
-   * taller than a page -- keeping each one whole costs nothing. */
+  /* Keep a code block on one page: split across a page break, an excerpt
+   * loses the alignment and the surrounding context that make it readable.
+   * Chrome can only honor this for a block that fits on a page -- a taller
+   * one is pushed to the next page and broken there anyway, leaving a gap
+   * behind it. That is a content problem, not a sizing one: rendering.md
+   * classifies a page-tall block as its own class, fixed by a shorter
+   * excerpt or a deliberate split, never by shrinking the code font. */
   break-inside: avoid;
   page-break-inside: avoid;
   white-space: pre;
@@ -144,8 +149,8 @@ pre code {
 }
 /* Only blocks with a language tag get pandoc's syntax highlighting, and only
  * those go through its `@media print` rules -- which switch to pre-wrap and add
- * a 5em hanging indent, so under Chrome the one ```bash block in this document
- * would print indented and soft-wrapped while the 73 assembly blocks did not.
+ * a 5em hanging indent, so under Chrome a language-tagged block would print
+ * indented and soft-wrapped while an untagged block on the same page did not.
  * These selectors have to name .sourceCode to outrank the ones they undo. */
 pre > code.sourceCode {
   white-space: pre;

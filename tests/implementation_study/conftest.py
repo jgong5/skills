@@ -15,16 +15,28 @@ sys.path.insert(0, str(SKILL_DIR))
 # first.
 #
 # That covers the documented invocations: the whole `tests/` directory, or
-# either suite on its own. It does not cover passing both suite directories
-# explicitly with this one first (`pytest tests/implementation_study
-# tests/asm_tutorial`), which fails at collection -- pytest loads every
-# initial argument's conftest before importing any test module, so in that
-# order asm-tutorial's sys.path insertion lands on top of this one and its
-# check_pdf.py shadows this file's at import time, with nothing yet in the
-# module cache for the eviction below to catch. Fixing that needs both
-# conftests to evict and to assert path precedence at module-import time, so
-# it is not something this file can do one-sidedly: run the whole `tests/`
-# directory, or one suite at a time.
+# either suite on its own. Passing both suite directories explicitly on one
+# command line is unsupported in BOTH orders, and the two orders fail
+# differently. pytest loads every initial argument's conftest before importing
+# any test module, so the conftest loaded last owns sys.path[0] and nothing is
+# in the module cache yet for the eviction below to catch:
+#
+#   pytest tests/implementation_study tests/asm_tutorial
+#     Loud. asm-tutorial's insertion lands on top, so this suite's modules
+#     import asm-tutorial's check_pdf.py, which lacks the names only this
+#     skill's copy defines -- collection stops with an ImportError.
+#
+#   pytest tests/asm_tutorial tests/implementation_study
+#     Silent, and the dangerous one. This conftest's insertion lands on top,
+#     so asm-tutorial's OWN test modules import this skill's check_pdf.py and
+#     make_pdf.py; the two copies share most of their public names, so that
+#     run can report all green while testing the wrong files.
+#
+# This file cannot close the second case: the eviction below and the
+# provenance assertions in this suite's test_check_pdf.py and test_make_pdf.py
+# only guarantee which copy THIS suite imports. The symmetric guarantee for
+# asm-tutorial's suite has to live in tests/asm_tutorial/conftest.py. Until
+# then: run the whole `tests/` directory, or one suite at a time.
 for script in SKILL_DIR.glob("*.py"):
     cached = sys.modules.get(script.stem)
     if cached is not None and Path(getattr(cached, "__file__", "")).resolve() != script.resolve():

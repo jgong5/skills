@@ -60,6 +60,16 @@ block rendered without visible overflow past the margin, a table with
 readable columns, a dense prose page with normal line breaks, and a last
 page that actually looks like an ending (Sources, not a mid-sentence cutoff).
 
+The table's `widest_code` entry is about width only, and width says nothing
+about height: the page carrying the longest code *line* is usually not the
+page carrying the tallest code *block*, so sampling `widest_code` does not
+cover a block too tall for the page. Look deliberately for that as well --
+rasterize the pages around every long code block and check for a block
+broken across a page boundary, or pushed whole to the next page leaving an
+obvious gap behind. That is a Phase 4 classification finding, the page-tall
+class in `rendering.md`, and the fix is a shorter excerpt or a deliberate
+split in the markdown, never a smaller code font.
+
 ## Pass 2: Evidence and integrity checks
 
 Run `check_evidence.py verify` with the repository root and the output
@@ -76,10 +86,12 @@ cited line; every `derive:` names ledger IDs that exist, shows its reasoning
 after `--`, and takes part in no cycle; every `measure:` points at a script
 and captured output that both exist beside an `ENV.md` and an approved
 `PLAN.md` line; every `[ID]` the prose cites exists in the ledger; and the
-repository under study came out exactly as it went in.
+repository under study came out as it went in, as far as the mechanism it
+has can see.
 
 That last check has two different mechanisms depending on how the
-repository is tracked, and the two are not interchangeable:
+repository is tracked, they are not interchangeable, and they do not see the
+same set of files:
 
 - **A git work tree.** `check_evidence.py` runs `git status` itself and
   requires every entry to be untracked (`??`) and inside the output
@@ -90,7 +102,19 @@ repository is tracked, and the two are not interchangeable:
   untracked file elsewhere in the same monorepo is reported here too. That
   is the safe direction to err in, but before assuming the study itself
   broke something, check whether the flagged path is actually related to
-  the subdirectory under study.
+  the subdirectory under study. The limit of this check is what `git status`
+  itself reports: paths excluded by `.gitignore` are invisible to it, so a
+  write into an ignored path -- `__pycache__/`, a build directory, a tool
+  cache -- inside the repository under study passes without a word. The
+  checker deliberately does not compensate with a scan of ignored files,
+  because Phase 1 recorded no baseline of which ignored paths existed
+  beforehand and an unbaselined scan cannot tell a file this run created
+  from one that was already there. Prevention is where that gap is closed:
+  `experiments.md` requires every experiment to run with its language's
+  cache and artifact writes suppressed. When reporting Pass 2 clean, report
+  what was actually proved -- no tracked change, and no untracked,
+  unignored file outside the output directory -- rather than describing the
+  repository as byte-for-byte unchanged.
 - **A repository with no version control.** There is no `git status` to
   ask, so `--snapshot` compares the tree against the `<stem>_study.integrity.json`
   baseline Phase 1 wrote with `check_evidence.py snapshot`. Pass `--snapshot`

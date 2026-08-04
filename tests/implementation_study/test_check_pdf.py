@@ -1,5 +1,10 @@
+from pathlib import Path
+
+import check_pdf
 from check_pdf import (code_lines, parse_pdffonts, wrapped_lines, broken_xrefs,
                        pages, sample_pages, incomplete_decision_blocks)
+
+SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "implementation-study"
 
 MD = """\
 ## 1. Overview
@@ -22,6 +27,14 @@ name                                 type              encoding         emb sub 
 AAAAAA+LiberationSans-Bold           CID TrueType      Identity-H       yes yes yes      4  0
 BBBBBB+DejaVuSansMono                CID TrueType      Identity-H       no  yes yes      5  0
 """
+
+
+def test_imported_check_pdf_is_this_skills_copy():
+    # skills/asm-tutorial/ ships a check_pdf.py with most of the same public
+    # names. If sys.path or the module cache hands this suite that file, the
+    # tests below would silently exercise the wrong skill's code -- see the
+    # ordering note in conftest.py for the two orders where that can happen.
+    assert Path(check_pdf.__file__).resolve() == SKILL_DIR / "check_pdf.py"
 
 
 def test_code_lines_extracts_fenced_block_only():

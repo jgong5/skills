@@ -486,6 +486,14 @@ def check_git_integrity(repo_root: Path, output_dir: Path) -> list[str]:
     every `git status` entry must be untracked (`??`) and must live inside the
     output directory. A tracked modification means the skill (or something it
     ran) edited the subject; an untracked file elsewhere means it littered.
+
+    The limit of that rule is what `git status` itself reports: a path
+    `.gitignore` excludes is invisible here, so a write into `__pycache__/`
+    or a build directory passes. Scanning ignored paths is not the fix --
+    with no baseline of which ones existed before the study, such a scan
+    cannot tell a new file from a pre-existing one. The pipeline closes that
+    gap upstream instead, by requiring experiments to run with their
+    language's cache and artifact writes suppressed (see experiments.md).
     """
     repo_root = Path(repo_root)
     output_dir = Path(output_dir)

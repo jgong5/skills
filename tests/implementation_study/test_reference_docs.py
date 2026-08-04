@@ -1,6 +1,8 @@
 from pathlib import Path
 
-SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "implementation-study"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SKILL_DIR = REPO_ROOT / "skills" / "implementation-study"
+README = REPO_ROOT / "README.md"
 DOCS = (
     "analysis.md", "investigation.md", "experiments.md", "writing.md",
     "rendering.md", "verification.md",
@@ -249,3 +251,154 @@ def test_verification_states_three_passes_and_failure_routing():
     assert "Phase 1 or Phase 2" in text
     assert "Phase 3 or tutorial.css" in text
     assert "missing citations" in text
+
+
+def test_docs_state_the_gitignore_blind_spot_without_promising_a_scan():
+    # Regression: both docs described the git integrity pass as proof the
+    # repository "came out exactly as it went in". `git status` does not
+    # report paths .gitignore excludes and check_evidence.py does not ask it
+    # to, so a write into __pycache__/ or a build directory passes in
+    # silence. The docs must say so, must not promise an unbaselined scan of
+    # ignored files as the answer (it cannot distinguish a file this run
+    # created from one that was already there), and must point at the
+    # prevention rule in experiments.md instead.
+    for name in ("analysis.md", "verification.md"):
+        normalized = _normalize((SKILL_DIR / name).read_text())
+        assert ".gitignore" in normalized
+        assert "__pycache__" in normalized
+        assert "unbaselined" in normalized or "no baseline" in normalized \
+            or "recorded no baseline" in normalized
+        assert "experiments.md" in normalized
+
+    analysis = _normalize((SKILL_DIR / "analysis.md").read_text())
+    assert (
+        "cannot tell a file this run created from one that was there all "
+        "along"
+    ) in analysis
+    verification = _normalize((SKILL_DIR / "verification.md").read_text())
+    assert (
+        "rather than describing the repository as byte-for-byte unchanged"
+    ) in verification
+
+    # SKILL.md's safety invariant made the same absolute claim.
+    skill = _normalize((SKILL_DIR / "SKILL.md").read_text())
+    assert "proves, mechanically, that the repository came out exactly" not in skill
+    assert "which excludes paths `.gitignore` matches" in skill
+
+    # And so did the checker's own docstring, where the next reader of the
+    # code will look first.
+    import check_evidence
+    docstring = _normalize(check_evidence.check_git_integrity.__doc__)
+    assert ".gitignore" in docstring
+    assert "__pycache__" in docstring
+    assert "Scanning ignored paths is not the fix" in docstring
+
+
+def test_experiments_requires_suppressing_generated_cache_writes():
+    # Regression: nothing told an experiment to stop Python (or any other
+    # toolchain) from writing __pycache__/ into the repository under study.
+    # Those writes are gitignored, so Phase 5's git pass reports clean --
+    # prevention in the wrapper command is the only thing that keeps the
+    # read-only promise.
+    normalized = _normalize((SKILL_DIR / "experiments.md").read_text())
+    assert "PYTHONDONTWRITEBYTECODE=1" in normalized
+    assert "__pycache__" in normalized
+    assert "part of the wrapper command and environment" in normalized
+    assert "`ENV.md`" in normalized
+    # Other languages are not optional either.
+    assert "Every other language and build system" in normalized
+
+
+def test_readme_states_the_git_check_boundary_and_the_root_output_rule():
+    normalized = _normalize(README.read_text())
+    # The old wording claimed the final phase "proves it mechanically",
+    # which overpromises for a check that cannot see ignored paths.
+    assert "the final phase proves it mechanically" not in normalized
+    assert "The git check covers what `git status` covers" in normalized
+    assert "does not extend to paths `.gitignore` excludes" in normalized
+    assert "PYTHONDONTWRITEBYTECODE=1" in normalized
+    # Safety emphasis must survive the qualification.
+    assert "**The repository under study is read-only.**" in normalized
+    assert (
+        "an entry point at the root with no `docs/` above it makes the skill "
+        "stop and ask for an output subdirectory rather than write to the root"
+    ) in normalized
+
+
+def test_output_directory_is_never_the_repository_root():
+    # Regression: SKILL.md's fallback ("use the entry-point file's own
+    # directory") resolved to the repository root for an entry point sitting
+    # at the root -- a directory check_evidence.py rejects outright, so the
+    # study would run to Phase 5 and fail there. The fallback has to be
+    # strictly inside the root, and the degenerate case is a stop-and-ask,
+    # not a directory the skill invents.
+    skill = _normalize((SKILL_DIR / "SKILL.md").read_text())
+    assert "only when that directory is strictly inside the repository root" in skill
+    assert (
+        "stop and ask the user to name an output subdirectory inside the "
+        "repository; do not create one, and do not guess a name"
+    ) in skill
+    assert (
+        "| the entry point sits at the repository root and no ancestor "
+        "`docs/` exists |"
+    ) in skill
+
+    analysis = _normalize((SKILL_DIR / "analysis.md").read_text())
+    assert (
+        "The output directory must be strictly inside the repository root, "
+        "never the repository root itself."
+    ) in analysis
+    assert "not to write to the root" in analysis
+
+
+def test_rendering_classifies_a_page_tall_block_as_its_own_class():
+    # Regression: the render phase knew only about width. A code block taller
+    # than the page is a different defect with a different fix -- excerpt or
+    # split, never a smaller font -- and tutorial.css's break-inside rule
+    # cannot save it.
+    normalized = _normalize((SKILL_DIR / "rendering.md").read_text())
+    assert "There are four kinds" in normalized
+    assert "**A page-tall block.**" in normalized
+    assert "The problem here is height, not width." in normalized
+    assert "Shrinking the code font is not the fix" in normalized
+    assert (
+        "Width and height are independent, and finding one tells you nothing "
+        "about the other"
+    ) in normalized
+    assert (
+        "every code block taller than a page has been excerpted or split in "
+        "the markdown, never resized"
+    ) in normalized
+
+
+def test_verification_does_not_assume_the_widest_page_is_the_tallest():
+    # check_pdf.py's sample-page table reports the page with the longest code
+    # line and has no notion of block height, so the manual pass must look
+    # for a page-tall block separately.
+    normalized = _normalize((SKILL_DIR / "verification.md").read_text())
+    assert (
+        "The table's `widest_code` entry is about width only, and width says "
+        "nothing about height"
+    ) in normalized
+    assert "page-tall class in `rendering.md`" in normalized
+    assert "never a smaller code font" in normalized
+
+
+def test_tutorial_css_break_inside_comment_is_general_purpose():
+    # Regression: the comment on `break-inside: avoid` was inherited verbatim
+    # from asm-tutorial and asserted "No block in this document is longer
+    # than 18 lines" -- a claim about a different document entirely, and
+    # false for any study whose excerpts run long. Same for the sibling
+    # comment's "73 assembly blocks".
+    text = (SKILL_DIR / "tutorial.css").read_text()
+    text.encode("ascii")
+    # Drop the block comments' leading `*` gutter before normalizing, so a
+    # sentence can be pinned without pinning where it wraps.
+    normalized = _normalize(
+        "\n".join(line.strip().lstrip("*") for line in text.splitlines())
+    )
+    assert "18 lines" not in normalized
+    assert "assembly blocks" not in normalized
+    assert "73" not in normalized
+    assert "Keep a code block on one page" in normalized
+    assert "rendering.md classifies a page-tall block as its own class" in normalized

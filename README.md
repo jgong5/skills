@@ -152,7 +152,10 @@ Five phases run in order, each reading only its own reference doc:
 | Verify | The gate: mechanical PDF checks, a mechanical evidence check, and a manual read-through, with every finding routed back to the phase that caused it. |
 
 Outputs land next to the code, in the nearest ancestor `docs/` directory (or
-the entry point's own directory if there is none): the study document
+the entry point's own directory if there is none, provided that directory is
+not the repository root itself -- an entry point at the root with no `docs/`
+above it makes the skill stop and ask for an output subdirectory rather than
+write to the root): the study document
 `<stem>_study.md`, the comprehension ledger `<stem>_study.notes.md`, any
 approved experiment scripts and their captured output under
 `<stem>_study_experiments/`, and the rendered `<stem>_study.pdf`. Every one
@@ -171,11 +174,17 @@ check the stated condition and find it false.
 ### Safety model
 
 - **The repository under study is read-only.** The skill writes only inside
-  the output paths above, and the final phase proves it mechanically: a clean
-  `git status` against the baseline the first phase recorded, or a file
+  the output paths above, and the final phase checks that mechanically: a
+  clean `git status` against the baseline the first phase recorded, or a file
   snapshot comparison when the repository is not a git work tree. A phase
   that wants to reformat or "just quickly fix" something in the code under
-  study has left the skill's scope.
+  study has left the skill's scope. The git check covers what `git status`
+  covers -- no tracked file changed, and nothing untracked appeared outside
+  the output directory -- which does not extend to paths `.gitignore`
+  excludes. That gap is closed by prevention rather than by a claim: an
+  experiment must run with its language's cache and artifact writes
+  suppressed (`PYTHONDONTWRITEBYTECODE=1` and the per-language equivalents),
+  as part of the wrapper command, so those writes never happen.
 - **Experiments run only with explicit approval.** Each one is proposed as a
   single plan line naming the claim it supports, the script, what it
   measures, and its bounds; nothing is written or run until you approve that

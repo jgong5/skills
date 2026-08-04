@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -371,3 +372,181 @@ def test_main_verify_without_git_or_snapshot_is_a_problem(tmp_path, capsys):
     assert main(["verify", str(study), str(notes), "--repo-root", str(repo),
                  "--output-dir", str(out)]) == 1
     assert "no --snapshot" in capsys.readouterr().err
+
+
+# --- the non-git metadata walk ------------------------------------------------
+#
+# The snapshot has two independent halves: sha256 hashes for the handful of
+# files the ledger cites, and size/mtime metadata for every other file outside
+# the output directory. Only the hashes were pinned before, so deleting the
+# metadata walk entirely -- the half that catches an addition, a deletion, or
+# an edit to a file nobody cited -- broke nothing. These four tests fail if it
+# goes away.
+
+def _snapshot_repo(tmp_path):
+    """A non-git repo with one cited file, one uncited file, and an output dir."""
+    repo = tmp_path / "repo"
+    out = repo / "docs"
+    out.mkdir(parents=True)
+    (repo / "algo.py").write_text("one\n")
+    (repo / "README").write_text("read\n")
+    snapshot = out / "algo_study.integrity.json"
+    write_integrity_snapshot(repo, out, snapshot, [Path("algo.py")])
+    return repo, out, snapshot
+
+
+def test_snapshot_records_metadata_for_files_the_ledger_never_cites(tmp_path):
+    repo, out, snapshot = _snapshot_repo(tmp_path)
+    data = json.loads(snapshot.read_text())
+    assert sorted(data["hashes"]) == ["algo.py"]
+    # README is not cited, so it is not hashed -- but it must still be tracked
+    # by size and mtime, or nothing would notice it changing.
+    assert sorted(data["files"]) == ["README", "algo.py"]
+    assert set(data["files"]["README"]) == {"size", "mtime_ns"}
+    assert data["files"]["README"]["size"] == len("read\n")
+
+
+def test_snapshot_detects_a_file_added_outside_the_output_directory(tmp_path):
+    repo, out, snapshot = _snapshot_repo(tmp_path)
+    (repo / "scratch.txt").write_text("new\n")
+    problems = check_snapshot_integrity(repo, out, snapshot)
+    assert problems == ["added file outside output directory: scratch.txt"]
+
+
+def test_snapshot_detects_a_deleted_file(tmp_path):
+    repo, out, snapshot = _snapshot_repo(tmp_path)
+    (repo / "README").unlink()
+    assert check_snapshot_integrity(repo, out, snapshot) == ["deleted file: README"]
+
+
+def test_snapshot_detects_a_size_change_in_an_uncited_file(tmp_path):
+    repo, out, snapshot = _snapshot_repo(tmp_path)
+    (repo / "README").write_text("read some more\n")
+    problems = check_snapshot_integrity(repo, out, snapshot)
+    assert len(problems) == 1
+    assert problems[0].startswith("README: size changed")
+
+
+def test_snapshot_detects_an_mtime_change_with_identical_bytes(tmp_path):
+    # A formatter that rewrites a file byte-for-byte, or a build step that
+    # re-links without regenerating, changes neither size nor content. mtime
+    # is the only signal left, and analysis.md/verification.md both promise
+    # this is reported rather than tolerated.
+    repo, out, snapshot = _snapshot_repo(tmp_path)
+    stat = (repo / "README").stat()
+    os.utime(repo / "README",
+             ns=(stat.st_atime_ns, stat.st_mtime_ns + 5_000_000_000))
+    assert check_snapshot_integrity(repo, out, snapshot) == ["README: mtime changed"]
+
+
+# --- derivations must show their work -----------------------------------------
+
+@pytest.mark.parametrize("source", [
+    "C1",           # no separator at all
+    "C1 --",        # separator, nothing after it
+    "C1 --   ",     # separator and whitespace only
+])
+def test_derivation_without_reasoning_is_rejected(source):
+    entries = parse_ledger(
+        "- [C1] One. cite: a.py:1 `x`\n"
+        f"- [C2] Two. derive: {source}\n"
+    )
+    problems = check_derivations(entries)
+    assert problems == ["C2: derivation has no reasoning after '--'"]
+
+
+def test_derivation_with_reasoning_is_accepted():
+    entries = parse_ledger(
+        "- [C1] One. cite: a.py:1 `x`\n"
+        "- [C2] Two. derive: C1 -- one implies two because the queue is FIFO\n"
+    )
+    assert check_derivations(entries) == []
+
+
+# --- measurement artifacts ----------------------------------------------------
+
+def _measured(tmp_path, *, omit=()):
+    """An experiments directory with every required artifact except `omit`."""
+    exp = tmp_path / "bfs_study_experiments"
+    exp.mkdir()
+    files = {
+        "bench.py": "print('ok')\n",
+        "bench.out": "ok\n",
+        "ENV.md": "OS: test\n",
+        "PLAN.md": "- [x] [C3] bench.py -- compare deque and list; under 10s\n",
+    }
+    for name, text in files.items():
+        if name not in omit:
+            (exp / name).write_text(text)
+    entries = parse_ledger(
+        "- [C3] Deque wins. measure: "
+        "bfs_study_experiments/bench.py -> bfs_study_experiments/bench.out\n"
+    )
+    return entries
+
+
+def test_measurement_without_env_md_is_rejected(tmp_path):
+    entries = _measured(tmp_path, omit=("ENV.md",))
+    problems = check_measurements(entries, tmp_path)
+    assert problems == ["C3: bfs_study_experiments/ has no ENV.md"]
+
+
+def test_measurement_without_plan_md_is_rejected(tmp_path):
+    entries = _measured(tmp_path, omit=("PLAN.md",))
+    problems = check_measurements(entries, tmp_path)
+    assert problems == ["C3: bfs_study_experiments/ has no PLAN.md"]
+
+
+# --- path escapes -------------------------------------------------------------
+#
+# _resolve_under closes three escapes; the symlink one is covered above, and
+# these cover the two lexical ones, on both sides (citations resolve under the
+# repository root, measurements under the output directory).
+
+@pytest.mark.parametrize("path", ["../secret.txt", "/etc/passwd"])
+def test_citation_cannot_escape_the_repository_lexically(tmp_path, path):
+    entries = parse_ledger(f"- [C1] Claim. cite: {path}:1 `classified`\n")
+    problems = check_citations(entries, tmp_path)
+    assert len(problems) == 1
+    assert "escapes the root" in problems[0] or "absolute path" in problems[0]
+
+
+@pytest.mark.parametrize("path", ["../bench.py", "/tmp/bench.py"])
+def test_measurement_cannot_escape_the_output_directory_lexically(tmp_path, path):
+    entries = parse_ledger(
+        f"- [C3] Deque wins. measure: {path} -> bfs_study_experiments/bench.out\n"
+    )
+    problems = check_measurements(entries, tmp_path)
+    assert len(problems) == 1
+    assert "escapes the root" in problems[0] or "absolute path" in problems[0]
+
+
+# --- verify's git path, end to end --------------------------------------------
+
+def _git_study(tmp_path):
+    """A committed git repo whose docs/ holds a study, its notes, and nothing else."""
+    repo, out = _committed_repo(tmp_path)
+    (repo / "algo.py").write_text("queue = [source]\n")
+    _git(repo, "commit", "-am", "source")
+    (out / "algo_study.md").write_text("The queue begins with the source [C1].\n")
+    (out / "algo_study.notes.md").write_text(
+        "## Ledger\n\n- [C1] The queue begins with the source. "
+        "cite: algo.py:1 `queue = [source]`\n"
+    )
+    return repo, out, out / "algo_study.md", out / "algo_study.notes.md"
+
+
+def test_main_verify_in_a_git_repo_is_clean_without_a_snapshot(tmp_path, capsys):
+    repo, out, study, notes = _git_study(tmp_path)
+    assert main(["verify", str(study), str(notes), "--repo-root", str(repo),
+                 "--output-dir", str(out)]) == 0
+    assert "clean: 1 ledger entries verified" in capsys.readouterr().out
+
+
+def test_main_verify_in_a_git_repo_reports_a_littered_file(tmp_path, capsys):
+    repo, out, study, notes = _git_study(tmp_path)
+    (repo / "scratch.txt").write_text("littered\n")
+    assert main(["verify", str(study), str(notes), "--repo-root", str(repo),
+                 "--output-dir", str(out)]) == 1
+    errors = capsys.readouterr().err
+    assert "PROBLEM: untracked file outside output directory: scratch.txt" in errors

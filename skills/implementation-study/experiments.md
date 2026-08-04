@@ -85,6 +85,39 @@ as in the example above -- still inside the directory this pipeline owns,
 never touching the ambient environment or a location outside the study's
 output.
 
+## Suppress generated cache and artifact writes
+
+Running the repository's own code makes the language write into the
+repository unless it is told not to. Python drops a `__pycache__/` directory
+beside every module it imports; other toolchains have their own equivalents
+-- a test runner's cache directory, a coverage data file, a compiler's object
+or build directory, a package manager's local cache. Those writes land inside
+the repository this study promised not to touch, and they land on exactly the
+paths a `.gitignore` already covers, which means Phase 5's git integrity
+check does not see them and reports clean anyway. The suppression below is
+what actually keeps the promise; the checker cannot.
+
+Suppress the writes in the experiment's own command and environment, before
+the first run -- never by deleting artifacts afterward, which is another
+write into a repository the study does not own:
+
+- Python: set `PYTHONDONTWRITEBYTECODE=1` in the wrapper invocation, and
+  redirect any cache a tool insists on writing to a path under
+  `<experiments-dir>` (for example `PYTEST_ADDOPTS=-p no:cacheprovider`, or
+  an explicit `--cache-dir` under the experiment directory).
+- Every other language and build system: find its equivalent before the
+  first run -- the flag that disables writing compiled output, or the
+  environment variable that moves a cache or build directory -- and point it
+  at a path under `<experiments-dir>`.
+
+This is part of the wrapper command and environment, not a separate cleanup
+step, and it is recorded verbatim in `ENV.md` alongside the rest of the
+invocation so a later reader can see the measurement ran with the suppression
+in place. An experiment that cannot be made to run without writing into the
+repository under study is a declined experiment, not an exception to the
+safety invariant: record the decline in `PLAN.md` and in the ledger, then
+derive the claim from what is already known or omit it.
+
 ## Semantic equivalence before timing
 
 Before timing anything, establish that the implementations being compared

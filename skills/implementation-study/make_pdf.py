@@ -5,6 +5,18 @@
 
 Markdown paths are required. Output lands next to each input as .pdf.
 --keep-html leaves the intermediate HTML there too for layout diagnosis.
+
+The route is markdown -> HTML -> Chrome's print-to-PDF. pandoc does the first
+leg (tutorial.css is the print stylesheet, next to this file); Chrome does the
+second through the DevTools protocol's Page.printToPDF, driven over a
+WebSocket, rather than the --print-to-pdf command-line flag. That is
+deliberate and load-bearing: the CLI flag offers no independent control over
+the running header and footer, so it either stamps every page with the
+file:// URL or, with --print-to-pdf-no-header, suppresses the URL and the page
+numbers together. Page.printToPDF takes headerTemplate and footerTemplate as
+separate parameters, which is the only way to get page numbers with no URL
+header -- see HEADER_HTML and FOOTER_HTML below. Simplifying this back to the
+CLI flag reintroduces that defect.
 """
 import asyncio
 import base64

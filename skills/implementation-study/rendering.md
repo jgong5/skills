@@ -26,11 +26,12 @@ skipping fonts): stop and report the specific gap instead.
 - `websockets`, imported by `make_pdf.py` to drive Chrome over the DevTools
   protocol; install it the project's usual way if it is absent.
 
-## Classify wide code before changing styles
+## Classify oversized code before changing styles
 
 Before touching `tutorial.css`, find every code line in `<stem>_study.md`
-that is a candidate for wrapping in the rendered PDF and classify each one.
-There are three kinds, and only one of them is a styling problem:
+that is a candidate for wrapping in the rendered PDF, and every code block
+tall enough to threaten a page break, and classify each one. There are four
+kinds, and only one of them is a styling problem:
 
 - **A reducible excerpt.** The line is long because it was pasted in full
   when a shorter, still-honest excerpt would carry the same evidence --
@@ -47,10 +48,23 @@ There are three kinds, and only one of them is a styling problem:
   of a stray non-breaking space or an un-wrapped sentence. Fix the markdown
   (rewrap the prose, narrow the table, shorten the URL) rather than touching
   code sizing for a page that has no code problem.
+- **A page-tall block.** The problem here is height, not width. `tutorial.css`
+  sets `break-inside: avoid` on `pre` so a code block stays on one page, but
+  that can only be honored for a block that fits on a page: a taller one gets
+  pushed to the top of the next page and broken there anyway, leaving a gap
+  on the page before it and a split block after. Shrinking the code font is
+  not the fix even when it happens to make the block fit -- the font size is
+  set by the width arithmetic below, and re-solving it for height would
+  shrink every other code block in the document to rescue one. Fix it in the
+  markdown: a shorter excerpt, or a deliberate split into two blocks with a
+  sentence between them saying what the split skips.
 
-A render finding is not yet a prose or CSS fix: classify it first, and only
-change `tutorial.css` for the second class. Shrinking the font because it is
-the fastest fix, without doing this classification, is exactly how a
+Width and height are independent, and finding one tells you nothing about the
+other -- the block holding the longest line is usually not the tallest block
+in the document, so scan for both rather than assuming the widest is the
+worst. A render finding is not yet a prose or CSS fix: classify it first, and
+only change `tutorial.css` for the second class. Shrinking the font because
+it is the fastest fix, without doing this classification, is exactly how a
 document accumulates a code size no line on the page actually needed.
 
 Once a line is confirmed to belong to the second class, the code font size
@@ -115,6 +129,8 @@ Do not move to Phase 5 until all of the following are true:
   semantic line that must remain whole, or accidental prose/table width, and
   handled accordingly -- excerpted, sized, or rewrapped, in that order of
   preference;
+- every code block taller than a page has been excerpted or split in the
+  markdown, never resized;
 - any `tutorial.css` font-size change is backed by the
   `N * 0.602 * code_pt <= 612 - 2 * (MARGIN_X * 72)` arithmetic, recomputed
   for this document's actual `N`, with the header comment updated to match;
