@@ -11,8 +11,20 @@ sys.path.insert(0, str(SKILL_DIR))
 # and a whole-suite run imports asm-tutorial's copy first (it collects first,
 # alphabetically), caching it under the bare name. Evict any such module from
 # the cache before this skill's own tests run, so `from check_pdf import ...`
-# here always resolves to this directory's file, not whichever one Python
-# cached first.
+# here resolves to this directory's file, not whichever one Python cached
+# first.
+#
+# That covers the documented invocations: the whole `tests/` directory, or
+# either suite on its own. It does not cover passing both suite directories
+# explicitly with this one first (`pytest tests/implementation_study
+# tests/asm_tutorial`), which fails at collection -- pytest loads every
+# initial argument's conftest before importing any test module, so in that
+# order asm-tutorial's sys.path insertion lands on top of this one and its
+# check_pdf.py shadows this file's at import time, with nothing yet in the
+# module cache for the eviction below to catch. Fixing that needs both
+# conftests to evict and to assert path precedence at module-import time, so
+# it is not something this file can do one-sidedly: run the whole `tests/`
+# directory, or one suite at a time.
 for script in SKILL_DIR.glob("*.py"):
     cached = sys.modules.get(script.stem)
     if cached is not None and Path(getattr(cached, "__file__", "")).resolve() != script.resolve():
