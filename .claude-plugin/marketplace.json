@@ -42,6 +42,23 @@
       "skills": [
         "./skills/asm-tutorial"
       ]
+    },
+    {
+      "name": "implementation-study",
+      "source": "./",
+      "version": "0.1.0",
+      "description": "Turn one algorithm implementation into a verified PDF study: what it computes, how it is used, why each choice was made rather than the alternatives, and how it could be improved -- every claim cited, derived, or measured.",
+      "category": "engineering",
+      "keywords": [
+        "algorithm",
+        "documentation",
+        "tutorial",
+        "pdf",
+        "code-explanation"
+      ],
+      "skills": [
+        "./skills/implementation-study"
+      ]
     }
   ]
 }
