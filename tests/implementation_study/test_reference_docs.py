@@ -1,0 +1,38 @@
+from pathlib import Path
+
+SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "implementation-study"
+DOCS = (
+    "analysis.md", "investigation.md", "experiments.md", "writing.md",
+    "rendering.md", "verification.md",
+)
+
+
+def test_reference_docs_are_ascii_and_substantive():
+    for name in DOCS:
+        path = SKILL_DIR / name
+        assert path.exists(), f"missing {name}"
+        text = path.read_text()
+        text.encode("ascii")
+        assert len(text) > 500
+
+
+def test_analysis_states_integrity_and_omission_rules():
+    text = (SKILL_DIR / "analysis.md").read_text()
+    assert "Cite, derive, measure, or omit" in text
+    assert "modifies or deletes nothing" in text
+    assert "check_evidence.py snapshot" in text
+
+
+def test_investigation_keeps_experiments_behind_approval():
+    text = (SKILL_DIR / "investigation.md").read_text()
+    assert "read `<skill-dir>/experiments.md`" in text
+    assert "approved PLAN.md" in text
+    assert "Approval is per-plan" in text
+
+
+def test_experiments_state_execution_and_reproducibility_rules():
+    text = (SKILL_DIR / "experiments.md").read_text()
+    assert "executes code from the repository under study" in text
+    assert "adds no sandbox" in text
+    assert "never a bare interpreter" in text
+    assert "A failed experiment is a result" in text
