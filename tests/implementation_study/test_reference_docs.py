@@ -88,3 +88,19 @@ def test_writing_separates_numbering_convention_from_enforcement():
     text = (SKILL_DIR / "writing.md").read_text()
     assert "not something either checker verifies" in text
     assert "a set has no memory of gaps or duplicates" in text
+
+
+def test_rendering_keeps_margin_css_arithmetic_coupled():
+    text = (SKILL_DIR / "rendering.md").read_text()
+    assert "N * 0.602 * code_pt <= 612 - 2 * (MARGIN_X * 72)" in text
+    assert "tutorial.css" in text and "MARGIN_X" in text
+    assert "project's command wrapper" in text
+
+
+def test_verification_states_three_passes_and_failure_routing():
+    text = (SKILL_DIR / "verification.md").read_text()
+    for item in ("check_pdf.py", "check_evidence.py", "manual read-through"):
+        assert item in text
+    assert "Phase 1 or Phase 2" in text
+    assert "Phase 3 or tutorial.css" in text
+    assert "missing citations" in text
