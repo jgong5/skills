@@ -1,0 +1,215 @@
+/* Keep this arithmetic synchronized with make_pdf.py's MARGIN_X and with
+ * rendering.md. For a document whose longest indivisible code line is N
+ * characters, choose code_pt so:
+ *
+ *   N * 0.602 * code_pt <= 612 - 2 * (MARGIN_X * 72)
+ *
+ * The shipped value is a readable default, not permission to shrink arbitrary
+ * source until it fits; rendering.md classifies overlong lines first.
+ */
+
+/* --- overrides for the style block pandoc's own template injects ---------- */
+html {
+  font-size: 11pt;
+}
+body {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  font-family: "Liberation Serif", serif;
+  line-height: 1.42;
+  color: #191919;
+  /* Ragged right, not justified: headless Chrome here has no hyphenation
+   * dictionary, so `hyphens: auto` is a no-op and justifying a measure this
+   * wide opens rivers of white space around the long monospace identifiers
+   * that run through every paragraph. */
+  text-align: left;
+}
+p {
+  margin: 0.7em 0;
+  orphans: 3;
+  widows: 3;
+}
+a {
+  color: #1a4f8a;
+  text-decoration: none;
+}
+
+/* --- title page ---------------------------------------------------------- */
+header#title-block-header {
+  text-align: center;
+  margin: 0.5em 0 2em;
+}
+h1.title {
+  font-size: 1.95rem;
+  border: none;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+/* --- headings ------------------------------------------------------------ */
+/* make_pdf.py shifts headings up one level, so the markdown's `##` sections
+ * arrive here as h1 and its `###` subsections as h2. */
+h1, h2, h3, h4 {
+  font-family: "Liberation Sans", sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+h1 {
+  font-size: 1.42rem;
+  margin: 1.7em 0 0.55em;
+  padding-bottom: 0.18em;
+  border-bottom: 1px solid #d5d8dd;
+}
+h2 {
+  font-size: 1.1rem;
+  margin: 1.5em 0 0.45em;
+}
+h3 {
+  font-size: 1rem;
+  margin: 1.3em 0 0.4em;
+}
+
+/* --- contents ------------------------------------------------------------ */
+#toc-title {
+  font-size: 1.42rem;
+  margin: 0 0 0.7em;
+  border: none;
+}
+nav#TOC {
+  font-family: "Liberation Sans", sans-serif;
+  font-size: 0.9rem;
+  break-after: page;
+  page-break-after: always;
+}
+nav#TOC ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+nav#TOC ul ul {
+  padding-left: 1.4em;
+  font-size: 0.93em;
+  font-weight: 400;
+  color: #4a4a4a;
+}
+nav#TOC > ul > li {
+  font-weight: 700;
+  margin-top: 0.4em;
+}
+nav#TOC li {
+  margin: 0.1em 0;
+  text-align: left;
+}
+nav#TOC a {
+  color: inherit;
+}
+
+/* --- code ---------------------------------------------------------------- */
+code {
+  font-family: "DejaVu Sans Mono", monospace;
+  /* DejaVu Sans Mono is a large face on the body: 0.8em of Liberation Serif is
+   * where an inline identifier stops out-sizing the prose around it. */
+  font-size: 0.8em;
+  /* DejaVu's line box is taller than Liberation's, so without this every line
+   * of prose that happens to mention a register grows a little leading and the
+   * paragraph comes out visibly unevenly spaced. */
+  line-height: 1;
+}
+pre {
+  font-family: "DejaVu Sans Mono", monospace;
+  font-size: 7.7pt;
+  line-height: 1.33;
+  background: #f6f7f8;
+  border: none;
+  border-left: 2px solid #c8ccd3;
+  border-radius: 0 2px 2px 0;
+  padding: 6px 9px;
+  margin: 0.85em 0;
+  /* No block in this document is longer than 18 lines, so none of them can be
+   * taller than a page -- keeping each one whole costs nothing. */
+  break-inside: avoid;
+  page-break-inside: avoid;
+  white-space: pre;
+  overflow: visible;
+}
+pre code {
+  font-size: inherit;
+  background: none;
+  padding: 0;
+  white-space: pre;
+}
+/* Only blocks with a language tag get pandoc's syntax highlighting, and only
+ * those go through its `@media print` rules -- which switch to pre-wrap and add
+ * a 5em hanging indent, so under Chrome the one ```bash block in this document
+ * would print indented and soft-wrapped while the 73 assembly blocks did not.
+ * These selectors have to name .sourceCode to outrank the ones they undo. */
+pre > code.sourceCode {
+  white-space: pre;
+}
+pre > code.sourceCode > span {
+  text-indent: 0;
+  padding-left: 0;
+  line-height: inherit;
+}
+pre.sourceCode {
+  margin: 0;
+}
+div.sourceCode {
+  margin: 0.85em 0;
+}
+
+/* --- tables -------------------------------------------------------------- */
+table {
+  border-collapse: collapse;
+  width: auto;
+  margin: 1em 0;
+  font-size: 0.86rem;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+/* pandoc derives percentage widths from how wide the columns were drawn in the
+ * markdown source, which has nothing to do with how wide the text is. */
+table col {
+  width: auto !important;
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 3px 14px 3px 0;
+}
+th {
+  font-family: "Liberation Sans", sans-serif;
+  font-size: 0.93em;
+  border-bottom: 1px solid #333;
+  padding-bottom: 4px;
+}
+tbody tr:first-child td {
+  padding-top: 5px;
+}
+
+/* --- everything else ----------------------------------------------------- */
+ul, ol {
+  padding-left: 1.4em;
+  margin: 0.7em 0;
+}
+li {
+  margin: 0.2em 0;
+}
+hr {
+  border: none;
+  border-top: 1px solid #d5d8dd;
+  margin: 1.9em 22%;
+}
+blockquote {
+  margin: 0.9em 0 0.9em 1.5em;
+  padding-left: 0.9em;
+  border-left: 2px solid #d5d8dd;
+  color: #444;
+}
+img {
+  max-width: 100%;
+}
