@@ -99,3 +99,10 @@ wrong.
 Memory peak deserves the same treatment. Measure the streaming rate past the
 last-level cache, and note the cache size -- a benchmark whose working set fits
 in it is not measuring DRAM, and its GB/s figure is against the wrong roof.
+
+Do not expect to be told where that cache is. On MI308X, `rocminfo` and torch
+both report only a 4 MB L2, while a working-set sweep finds the 256 MB
+memory-attached level plainly: 4.8 TB/s at 256 MiB against 3.4 TB/s at 4 GiB.
+The rolloff is gradual rather than a cliff, because at twice the capacity half
+the traffic still hits. `bank_model.py`'s sibling `probe_roofline.py` runs all
+of this.

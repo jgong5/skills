@@ -41,6 +41,12 @@ Measure peak on this part rather than quoting the family's spec sheet -- clocks
 under sustained MFMA load are often far below boost, and the gap silently
 rescales every percentage you will report.
 
+`<skill-dir>/probe_roofline.py` measures all three ceilings: compute at the
+sampled clock, the streaming rate, and where the last-level cache sits. It
+cross-checks its own per-CU FLOP/clk constant against a library GEMM, because
+nothing may exceed the roofline -- over 100% means the constant is wrong, not
+that the kernel is fast.
+
 **Done when** you can state the kernel's percent of a peak you measured, and
 the clock that peak was measured at.
 
@@ -64,8 +70,10 @@ sum to the full kernel time.
 
 ### 4. Record resources with every number
 
-Read the compiler's own report (`-Rpass-analysis=kernel-resource-usage`) for
-registers, spill count, LDS bytes and occupancy. A configuration that measures
+Get registers, spill count, LDS bytes and occupancy from the toolchain rather
+than inferring them -- `-Rpass-analysis=kernel-resource-usage` from hipcc,
+`n_regs` and `n_spills` on Triton's compiled kernel handle. A configuration
+that measures
 far worse than its neighbours has usually **spilled**, and a spill reads
 exactly like an architectural limit until you look.
 

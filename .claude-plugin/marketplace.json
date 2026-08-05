@@ -29,16 +29,19 @@
       "name": "amd-gpu",
       "source": "./",
       "version": "0.1.0",
-      "description": "Working on AMD CDNA GPU kernels: find and remove a kernel's bottleneck by ablation, and turn its assembly into a verified PDF tutorial.",
+      "description": "Software development on AMD GPUs: the ROCm and HIP toolchain, CDNA kernel performance work, and assembly-level analysis. Each skill states the architectures it covers.",
       "category": "engineering",
       "keywords": [
         "gpu",
         "amd",
         "rocm",
+        "hip",
+        "cdna",
+        "kernel",
         "performance",
         "optimisation",
+        "profiling",
         "assembly",
-        "hip",
         "pdf"
       ],
       "skills": [

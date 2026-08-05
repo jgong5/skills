@@ -1,12 +1,18 @@
 # Building the ablation harness
 
-Two pieces: a way to compile the kernel with one path removed, and a way to
-time a kernel that computes the wrong answer.
+Two pieces: a way to build the kernel with one path removed, and a way to time
+a kernel that computes the wrong answer.
 
 ## Compiling a path away
 
-Guard each path with a macro and pass it on the command line, so one source
-serves every rung of the ladder and no edit is needed between measurements.
+The switch has to be **compile-time**, and it has to come from outside the
+source, so one source serves every rung and no edit is needed between
+measurements. A runtime flag is not an ablation: it leaves the branch, usually
+leaves the loads that feed it, and times a kernel you did not mean to measure.
+
+Every stack has the mechanism; only the spelling changes.
+
+HIP, C++, CUDA -- the preprocessor, driven by `-D`:
 
 ```c++
 #ifndef ABLATE_STAGE
@@ -15,19 +21,35 @@ serves every rung of the ladder and no edit is needed between measurements.
 #endif
 ```
 
-If the project's build script does not forward extra flags, a two-line wrapper
-around the compiler is usually the shortest path:
+Triton -- a `tl.constexpr` parameter. Each value is a separate specialisation,
+so the dead path is gone before codegen rather than predicated at runtime:
+
+```python
+@triton.jit
+def kernel(..., ABLATE_STAGE: tl.constexpr):
+    if not ABLATE_STAGE:
+        tl.store(...)
+```
+
+The same shape works in any DSL that specialises on a compile-time constant --
+a CK template parameter, a CuTe DSL `constexpr`, a Mojo parameter.
+
+Getting the switch in from outside can be the fiddly part. If the build script
+does not forward extra flags, a two-line wrapper around the compiler is usually
+the shortest path:
 
 ```bash
 #!/usr/bin/env bash
 exec /opt/rocm/bin/hipcc "$@" $EXTRA_FLAGS
 ```
 
-and then `EXTRA_FLAGS=-DABLATE_STAGE CXX=./wrapper ./build.sh`.
+and then `EXTRA_FLAGS=-DABLATE_STAGE CXX=./wrapper ./build.sh`. For a JIT'd
+kernel there is nothing to rebuild, so read the constant from the environment
+at the call site and select the rung the same way.
 
-Removing a path can leave variables unused and loops empty. Prefer `(void)i;`
-over deleting the loop, so the surrounding control flow keeps its shape and the
-comparison stays honest.
+Removing a path can leave variables unused and loops empty. Keep the
+surrounding control flow's shape -- `(void)i;` in C++, `pass` in Python --
+rather than deleting the loop, so the comparison stays honest.
 
 ## Timing without correctness
 
@@ -58,7 +80,8 @@ guards measures two changes at once. Take one thing out per rung.
 **Watch for the compiler removing more than you did.** With the loads gone, an
 accumulator may become provably constant and the whole loop may vanish. A
 result that is suspiciously fast is usually this. Check the instruction counts
-in the generated assembly before believing a rung.
+in the generated assembly before believing a rung -- `-S --offload-device-only`
+from hipcc, `kernel.asm["amdgcn"]` on Triton's compiled handle.
 
 **Ablation removes bandwidth *and* the instructions that requested it.** A rung
 that deletes the staging store also deletes the register round-trip and the
