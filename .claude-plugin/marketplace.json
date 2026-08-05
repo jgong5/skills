@@ -29,18 +29,24 @@
       "name": "amd-gpu",
       "source": "./",
       "version": "0.1.0",
-      "description": "Turn AMD CDNA GPU assembly into a verified PDF tutorial.",
+      "description": "Software development on AMD GPUs: the ROCm and HIP toolchain, CDNA kernel performance work, and assembly-level analysis. Each skill states the architectures it covers.",
       "category": "engineering",
       "keywords": [
         "gpu",
-        "assembly",
         "amd",
         "rocm",
-        "pdf",
-        "tutorial"
+        "hip",
+        "cdna",
+        "kernel",
+        "performance",
+        "optimisation",
+        "profiling",
+        "assembly",
+        "pdf"
       ],
       "skills": [
-        "./skills/asm-tutorial"
+        "./skills/asm-tutorial",
+        "./skills/kernel-perf"
       ]
     },
     {

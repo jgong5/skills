@@ -6,7 +6,7 @@ section for what it does and how to install it.
 | Bundle | Skills | What it's for |
 | --- | --- | --- |
 | [`pr-review-kit`](#pr-review-kit) | `pr-explain`, `pr-review-draft`, `pr-review-dossier` | Context-first pull-request review |
-| [`amd-gpu`](#amd-gpu) | `asm-tutorial` | Turn AMD CDNA GPU assembly into a verified PDF tutorial |
+| [`amd-gpu`](#amd-gpu) | `kernel-perf`, `asm-tutorial` | Find a CDNA kernel's bottleneck by ablation; turn its assembly into a verified PDF tutorial |
 | [`implementation-study`](#implementation-study) | `implementation-study` | Turn one algorithm implementation into an evidence-grounded, verified PDF study |
 
 ## pr-review-kit
@@ -81,6 +81,35 @@ These skills are built so that nothing reaches a PR author by accident.
   (`AI_POLICY.md`, `CONTRIBUTING.md`), the skill reads and complies with it too.
 
 ## amd-gpu
+
+### kernel-perf
+
+Optimises an AMD CDNA compute kernel by **ablation**: delete one path from the
+kernel, time what is left, and read the delta. Each deletion yields a *floor*
+-- the time with that path free -- which bounds what optimising it can ever
+win, so a floor above the target retires an idea before it is built.
+
+The discipline the skill exists to enforce is about *claiming* a ceiling. A
+floor measured with an axis **pinned** -- one value shared by every
+configuration measured -- is not a ceiling. In the work this came from, three
+"this is structural" conclusions were each overturned by moving one pinned
+axis, and the skill makes naming those axes a completion criterion.
+
+It also carries what is expensive to rediscover: an executable LDS
+bank-conflict model (`bank_model.py`, pinned by tests against profiler-measured
+conflict rates on a real gfx942 GEMM), a roofline probe (`probe_roofline.py`)
+that measures compute peak at the clock the part actually sustains rather than
+its boost figure and finds the last-level cache that `rocminfo` does not
+report, the occupancy and intensity arithmetic to run before writing a tile,
+and a table of failure signatures -- spills that
+read as architectural limits, tuning constants that are global when they should
+be per-config, measurements corrupted by another job on the GPU.
+
+Architectures: CDNA (gfx90a, gfx942, gfx950). The method is
+architecture-independent; the constants in `skills/kernel-perf/modelling.md`
+are gfx942's. No install requirements beyond a working build and a GPU;
+`probe_roofline.py` additionally uses torch, triton and amdsmi, all of which
+come with a ROCm PyTorch install.
 
 ### asm-tutorial
 
@@ -272,8 +301,11 @@ skills/
   implementation-study/  # SKILL.md + five phase docs, experiments.md,
                          # make_pdf.py, check_pdf.py, check_evidence.py,
                          # tutorial.css
+  kernel-perf/           # SKILL.md + ablation.md, modelling.md,
+                         # bank_model.py, probe_roofline.py
 tests/
   asm_tutorial/          # pytest suite for asm-tutorial's scripts
+  kernel_perf/           # pytest suite for the bank model and the probe
   implementation_study/  # pytest suite for implementation-study's scripts
                          # and reference docs
 ```
