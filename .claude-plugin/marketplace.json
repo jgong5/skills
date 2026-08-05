@@ -29,18 +29,21 @@
       "name": "amd-gpu",
       "source": "./",
       "version": "0.1.0",
-      "description": "Turn AMD CDNA GPU assembly into a verified PDF tutorial.",
+      "description": "Working on AMD CDNA GPU kernels: find and remove a kernel's bottleneck by ablation, and turn its assembly into a verified PDF tutorial.",
       "category": "engineering",
       "keywords": [
         "gpu",
-        "assembly",
         "amd",
         "rocm",
-        "pdf",
-        "tutorial"
+        "performance",
+        "optimisation",
+        "assembly",
+        "hip",
+        "pdf"
       ],
       "skills": [
-        "./skills/asm-tutorial"
+        "./skills/asm-tutorial",
+        "./skills/kernel-perf"
       ]
     },
     {
