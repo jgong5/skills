@@ -205,6 +205,22 @@ it refuses to extend, because extending an already-broken baseline would
 launder an earlier, unexplained change into the new one instead of surfacing
 it.
 
+## Build the visual inventory
+
+Drawing begins in Phase 3, but the relationships it draws are discovered here.
+Record the implementation boundary as nodes and labeled edges, the runtime
+stages from input to output, every meaningful state transition, and the values
+or ownership that cross important edges. Also record whether state-machine,
+data-layout, lifecycle, concurrency, or algorithm-stage views would explain a
+load-bearing relationship more directly than prose. Attach evidence IDs to the
+inventory entries; a figure assembled later from uncited recollection is a new
+claim disguised as layout.
+
+This inventory is not SVG and it is not a commitment to draw every helper.
+Preserve the same boundary discipline as the study: central state and adjacent
+collaborators belong; incidental utility calls do not. Its purpose is to make
+Phase 3 composition rather than discovery.
+
 ## Phase 1 exit criteria
 
 Do not move to Phase 2 until all of the following exist:
@@ -214,6 +230,9 @@ Do not move to Phase 2 until all of the following exist:
 - contract evidence: signature, docstring, and test behavior, cited;
 - a caller map covering every in-repo caller and the nearest public API path;
 - initial invariants and state notes;
+- a visual inventory covering the boundary nodes and edges, runtime stages,
+  state transitions, important data movement, and any supplemental view that
+  would make a load-bearing relationship visible rather than paragraph-long;
 - a comprehension ledger (`<stem>_study.notes.md`) in the exact grammar
   above, with at least the contract, caller, and invariant claims entered;
 - an integrity baseline -- a clean git status, or a written

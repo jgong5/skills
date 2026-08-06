@@ -50,3 +50,37 @@ def test_renders_a_tiny_markdown_to_pdf(tmp_path):
     pdf = make_pdf.convert(md, chrome)
     assert pdf.exists()
     assert pdf.read_bytes()[:5] == b"%PDF-"
+
+
+def test_inline_svg_survives_html_and_pdf_with_selectable_text(tmp_path):
+    import subprocess
+
+    md = tmp_path / "diagram.md"
+    md.write_text("""\
+# Diagram fixture
+
+<figure class="study-diagram" data-diagram="implementation-structure" id="figure-1">
+<svg viewBox="0 0 400 120" role="img" aria-labelledby="figure-1-title figure-1-desc">
+<title id="figure-1-title">Implementation structure</title>
+<desc id="figure-1-desc">The entry point calls the worker.</desc>
+<rect x="20" y="20" width="140" height="60" class="diagram-node"/>
+<text x="90" y="55" text-anchor="middle" class="diagram-label">entry point</text>
+<rect x="240" y="20" width="140" height="60" class="diagram-node diagram-state"/>
+<text x="310" y="55" text-anchor="middle" class="diagram-label">worker state</text>
+</svg>
+<figcaption>Figure 1. Implementation structure</figcaption>
+</figure>
+""")
+    pdf = make_pdf.convert(md, make_pdf.find_chrome(), keep_html=True)
+    html_text = md.with_suffix(".html").read_text()
+    assert '<figure class="study-diagram"' in html_text
+    assert '<svg viewbox="0 0 400 120"' in html_text.lower()
+
+    extracted = subprocess.run(
+        ["pdftotext", "-layout", str(pdf), "-"],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    assert "Implementation structure" in extracted
+    assert "entry point" in extracted
+    assert "worker state" in extracted
+    assert "Figure 1. Implementation structure" in extracted

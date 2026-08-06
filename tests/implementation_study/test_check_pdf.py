@@ -2,7 +2,8 @@ from pathlib import Path
 
 import check_pdf
 from check_pdf import (code_lines, parse_pdffonts, wrapped_lines, broken_xrefs,
-                       pages, sample_pages, incomplete_decision_blocks)
+                       pages, sample_pages, incomplete_decision_blocks,
+                       diagram_problems, diagram_render_problems)
 
 SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "implementation-study"
 
@@ -184,3 +185,95 @@ def test_markers_inside_code_fences_are_ignored():
 ```
 """
     assert incomplete_decision_blocks(md) == []
+
+
+DIAGRAM_MD = """\
+## 1. Overview
+
+<figure class="study-diagram" data-diagram="implementation-structure" id="figure-1">
+<svg viewBox="0 0 400 120" role="img" aria-labelledby="figure-1-title figure-1-desc">
+<title id="figure-1-title">Implementation structure</title>
+<desc id="figure-1-desc">The entry point calls the worker.</desc>
+<text x="20" y="40">entry point</text>
+<text x="220" y="40">worker</text>
+</svg>
+<figcaption>Figure 1. Implementation structure</figcaption>
+</figure>
+
+Figure 1 shows the call boundary [C1].
+
+<figure class="study-diagram" data-diagram="execution-flow" id="figure-2">
+<svg viewBox="0 0 400 120" role="img" aria-labelledby="figure-2-title figure-2-desc">
+<title id="figure-2-title">Execution and state flow</title>
+<desc id="figure-2-desc">Input becomes output through one state transition.</desc>
+<text x="20" y="40">input</text>
+<text x="220" y="40">output</text>
+</svg>
+<figcaption>Figure 2. Execution and state flow</figcaption>
+</figure>
+
+Figure 2 explains the transition [C2].
+
+<figure class="study-diagram" data-diagram="decision-landscape" id="figure-3">
+<svg viewBox="0 0 400 120" role="img" aria-labelledby="figure-3-title figure-3-desc">
+<title id="figure-3-title">Decision landscape</title>
+<desc id="figure-3-desc">The chosen queue is compared with an array.</desc>
+<text x="20" y="40">queue</text>
+<text x="220" y="40">array</text>
+</svg>
+<figcaption>Figure 3. Decision landscape</figcaption>
+</figure>
+
+Figure 3 connects the choice to its constraint [C3].
+"""
+
+
+def test_valid_diagram_contract_passes():
+    assert diagram_problems(DIAGRAM_MD) == []
+
+
+def test_diagram_markup_inside_fenced_example_is_ignored():
+    example = "```html\n" + DIAGRAM_MD + "\n```\n"
+    problems = " ".join(diagram_problems(example))
+    for role in check_pdf.REQUIRED_DIAGRAMS:
+        assert f"missing required diagram: {role}" in problems
+    assert "duplicate id" not in problems
+
+
+def test_missing_required_diagram_is_reported():
+    md = DIAGRAM_MD.replace(' data-diagram="decision-landscape"',
+                            ' data-diagram="lifecycle"')
+    problems = " ".join(diagram_problems(md))
+    assert "missing required diagram: decision-landscape" in problems
+
+
+def test_duplicate_ids_and_missing_accessibility_metadata_are_reported():
+    md = DIAGRAM_MD.replace('id="figure-2"', 'id="figure-1"', 1)
+    md = md.replace(' role="img"', '', 1)
+    problems = " ".join(diagram_problems(md))
+    assert "duplicate id: figure-1" in problems
+    assert "role=\"img\"" in problems
+
+
+def test_broken_figure_reference_is_reported():
+    problems = diagram_problems(DIAGRAM_MD + "\nSee Figure 9.\n")
+    assert any("Figure 9" in problem for problem in problems)
+
+
+def test_diagram_render_check_reports_missing_visible_svg_text():
+    pdf_text = DIAGRAM_MD.replace("worker", "")
+    problems = diagram_render_problems(DIAGRAM_MD, pdf_text)
+    assert any("worker" in problem for problem in problems)
+
+
+def test_sample_pages_reports_each_required_diagram():
+    page_texts = [
+        "Title\n",
+        "Implementation structure\nentry point worker\nFigure 1. Implementation structure\n",
+        "Execution and state flow\ninput output\nFigure 2. Execution and state flow\n",
+        "Decision landscape\nqueue array\nFigure 3. Decision landscape\n",
+    ]
+    samples = sample_pages(DIAGRAM_MD, page_texts)
+    assert samples["structure_diagram"] == 2
+    assert samples["flow_diagram"] == 3
+    assert samples["decisions_diagram"] == 4

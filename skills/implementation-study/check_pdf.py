@@ -12,11 +12,13 @@ Mechanical checks, over every page:
     resolves to a "## N." heading that exists
   * every decision block (`**Decision.**` / `**Alternatives.**` /
     `**Why this one.**`, in that order) is complete and in order
+  * all three required inline-SVG diagrams have canonical metadata, resolvable
+    figure references, and visible text that survived PDF extraction
   * pdfinfo reports a page count
 
-Then reports which page number carries each of six pages worth a visual
-look: title, contents, the widest code block, a table, a dense prose page,
-the last page. It only reports page numbers -- rasterizing them is a
+Then reports which page number carries the title, contents, all three required
+diagrams, the widest code block, a table, a dense prose page, and the last
+page. It only reports page numbers -- rasterizing them is a
 separate, manual step (`pdftoppm -f N -l N -png <doc.pdf> page`).
 
 Exit 0 means clean -- prints a one-line "clean: N pages..." summary plus the
@@ -27,6 +29,8 @@ from __future__ import annotations
 import re
 import subprocess
 import sys
+from collections import Counter
+from html.parser import HTMLParser
 from pathlib import Path
 
 FENCE_RE = re.compile(r"^(```|~~~)")
@@ -40,6 +44,161 @@ DECISION_MARKERS = (
     ("Alternatives", re.compile(r"^\*\*Alternatives\.\*\*")),
     ("Why this one", re.compile(r"^\*\*Why this one\.\*\*")),
 )
+
+# Machine-readable contract with diagrams.md and writing.md. The values are
+# deliberately semantic rather than presentation names: captions may become
+# more specific, while these roles remain stable across every study.
+REQUIRED_DIAGRAMS = (
+    "implementation-structure",
+    "execution-flow",
+    "decision-landscape",
+)
+KNOWN_DIAGRAMS = frozenset(REQUIRED_DIAGRAMS) | {
+    "state-machine", "data-layout", "lifecycle", "concurrency",
+    "algorithm-stages",
+}
+DIAGRAM_SAMPLE_NAMES = {
+    "implementation-structure": "structure_diagram",
+    "execution-flow": "flow_diagram",
+    "decision-landscape": "decisions_diagram",
+}
+FIGURE_REF_RE = re.compile(r"\bFigure\s+(\d+)\b")
+FIGURE_CAPTION_RE = re.compile(r"^Figure\s+(\d+)\.\s+(.+)$")
+
+
+class _DiagramParser(HTMLParser):
+    """Extract canonical inline-SVG study figures from Markdown raw HTML."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.figures = []
+        self.ids = []
+        self._figure = None
+        self._capture = None
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        element_id = attrs.get("id")
+        if element_id:
+            self.ids.append(element_id)
+        if tag == "figure" and "study-diagram" in attrs.get("class", "").split():
+            self._figure = {
+                "attrs": attrs, "svg": None, "title": "", "desc": "",
+                "texts": [], "caption": "",
+            }
+        elif self._figure is not None and tag == "svg":
+            self._figure["svg"] = attrs
+        elif self._figure is not None and tag in ("title", "desc", "text", "figcaption"):
+            self._capture = tag
+
+    def handle_endtag(self, tag):
+        if tag == "figure" and self._figure is not None:
+            self.figures.append(self._figure)
+            self._figure = None
+        if tag == self._capture:
+            self._capture = None
+
+    def handle_data(self, data):
+        if self._figure is None or self._capture is None:
+            return
+        text = data.strip()
+        if not text:
+            return
+        key = "texts" if self._capture == "text" else (
+            "caption" if self._capture == "figcaption" else self._capture
+        )
+        if key == "texts":
+            self._figure[key].append(text)
+        else:
+            self._figure[key] += (" " if self._figure[key] else "") + text
+
+
+def _outside_fences(md_text: str) -> str:
+    """Markdown with fenced examples removed, preserving raw renderable HTML."""
+    lines = []
+    in_fence = False
+    for line in md_text.splitlines():
+        if FENCE_RE.match(line.strip()):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _diagrams(md_text: str) -> tuple[list[dict], list[str]]:
+    parser = _DiagramParser()
+    parser.feed(_outside_fences(md_text))
+    return parser.figures, parser.ids
+
+
+def diagram_problems(md_text: str) -> list[str]:
+    """Return malformed, missing, duplicate, or unreferenced SVG figures."""
+    figures, ids = _diagrams(md_text)
+    problems = []
+    roles = [figure["attrs"].get("data-diagram", "") for figure in figures]
+    for role in REQUIRED_DIAGRAMS:
+        count = roles.count(role)
+        if count == 0:
+            problems.append(f"missing required diagram: {role}")
+        elif count > 1:
+            problems.append(f"duplicate required diagram: {role}")
+    for role in roles:
+        if role and role not in KNOWN_DIAGRAMS:
+            problems.append(f"unknown diagram role: {role}")
+    for element_id, count in sorted(Counter(ids).items()):
+        if count > 1:
+            problems.append(f"duplicate id: {element_id}")
+
+    caption_numbers = []
+    for index, figure in enumerate(figures, start=1):
+        where = figure["attrs"].get("id", f"diagram {index}")
+        svg = figure["svg"]
+        if svg is None:
+            problems.append(f"{where} missing inline svg")
+            continue
+        if not svg.get("viewbox"):
+            problems.append(f"{where} missing svg viewBox")
+        if svg.get("role") != "img":
+            problems.append(f'{where} missing svg role="img"')
+        labelled = svg.get("aria-labelledby", "").split()
+        if len(labelled) != 2 or any(label not in ids for label in labelled):
+            problems.append(f"{where} has invalid svg aria-labelledby")
+        if not figure["title"]:
+            problems.append(f"{where} missing svg title")
+        if not figure["desc"]:
+            problems.append(f"{where} missing svg desc")
+        if not figure["texts"]:
+            problems.append(f"{where} has no visible svg text")
+        match = FIGURE_CAPTION_RE.match(figure["caption"])
+        if not match:
+            problems.append(f"{where} has invalid figcaption")
+        else:
+            caption_numbers.append(int(match.group(1)))
+    if caption_numbers != list(range(1, len(caption_numbers) + 1)):
+        problems.append("figure captions are not numbered sequentially from 1")
+
+    known = set(caption_numbers)
+    # Captions themselves contain "Figure N"; references are valid when every
+    # number mentioned anywhere resolves to one of those canonical captions.
+    for number in {int(m.group(1)) for m in FIGURE_REF_RE.finditer(md_text)}:
+        if number not in known:
+            problems.append(f"Figure {number} has no matching figcaption")
+    return problems
+
+
+def diagram_render_problems(md_text: str, pdf_text: str) -> list[str]:
+    """Return visible figure text that did not survive PDF extraction."""
+    figures, _ = _diagrams(md_text)
+    haystack = {_normalize_ws(line) for line in pdf_text.splitlines()}
+    problems = []
+    for figure in figures:
+        labels = [figure["title"], figure["caption"], *figure["texts"]]
+        for label in labels:
+            target = _normalize_ws(label)
+            if target and not any(target in line for line in haystack):
+                problems.append(f"diagram text did not survive extraction: {label!r}")
+    return problems
 
 
 def code_lines(md_text: str) -> list[str]:
@@ -222,6 +381,18 @@ def sample_pages(md_text: str, page_texts: list[str]) -> dict[str, int]:
                         if i not in (result.get("title"), result.get("contents"))]
     if prose_candidates:
         result["prose"] = max(prose_candidates, key=lambda kv: kv[1])[0]
+    figures, _ = _diagrams(md_text)
+    normalized_pages = [_normalize_ws(text) for text in page_texts]
+    for figure in figures:
+        role = figure["attrs"].get("data-diagram")
+        sample_name = DIAGRAM_SAMPLE_NAMES.get(role)
+        if sample_name is None:
+            continue
+        anchors = [figure["title"], figure["caption"]]
+        for i, normalized_page in enumerate(normalized_pages, start=1):
+            if all(_normalize_ws(anchor) in normalized_page for anchor in anchors):
+                result[sample_name] = i
+                break
     return result
 
 
@@ -258,6 +429,14 @@ def main(argv: list[str]) -> int:
             f"{len(incomplete)} incomplete decision block(s): "
             + "; ".join(incomplete[:5])
         )
+    diagrams = diagram_problems(md_text)
+    if diagrams:
+        problems.append(f"{len(diagrams)} diagram contract problem(s): "
+                        + "; ".join(diagrams[:5]))
+    rendered_diagrams = diagram_render_problems(md_text, pdf_text)
+    if rendered_diagrams:
+        problems.append(f"{len(rendered_diagrams)} diagram render problem(s): "
+                        + "; ".join(rendered_diagrams[:5]))
     page_count_m = re.search(r"^Pages:\s*(\d+)", info_text, re.MULTILINE)
     if not page_count_m:
         problems.append("pdfinfo did not report a page count")
@@ -271,7 +450,8 @@ def main(argv: list[str]) -> int:
     samples = sample_pages(md_text, page_texts)
     print(f"clean: {len(page_texts)} pages, all fonts embedded")
     print("sample pages for a visual look:")
-    for name in ("title", "contents", "widest_code", "table", "prose", "last"):
+    for name in ("title", "contents", "structure_diagram", "flow_diagram",
+                 "decisions_diagram", "widest_code", "table", "prose", "last"):
         if name in samples:
             print(f"  {name:<12} page {samples[name]}")
         else:

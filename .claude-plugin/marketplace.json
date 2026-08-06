@@ -52,11 +52,12 @@
     {
       "name": "implementation-study",
       "source": "./",
-      "version": "0.1.0",
-      "description": "Turn one algorithm implementation into a verified PDF study: what it computes, how it is used, why each choice was made rather than the alternatives, and how it could be improved -- every claim cited, derived, or measured.",
+      "version": "0.2.0",
+      "description": "Turn one algorithm implementation into a diagram-first verified PDF study: inline-SVG structure, execution, and decision views backed by claims that are cited, derived, or measured.",
       "category": "engineering",
       "keywords": [
         "algorithm",
+        "diagrams",
         "documentation",
         "tutorial",
         "pdf",
