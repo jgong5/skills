@@ -3,7 +3,8 @@ from pathlib import Path
 import check_pdf
 from check_pdf import (code_lines, parse_pdffonts, wrapped_lines, broken_xrefs,
                        pages, sample_pages, incomplete_decision_blocks,
-                       diagram_problems, diagram_render_problems)
+                       diagram_problems, diagram_render_problems,
+                       evidence_render_problems)
 
 SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "implementation-study"
 
@@ -277,3 +278,37 @@ def test_sample_pages_reports_each_required_diagram():
     assert samples["structure_diagram"] == 2
     assert samples["flow_diagram"] == 3
     assert samples["decisions_diagram"] == 4
+
+
+EVIDENCE_MD = """\
+<!-- evidence-ledger: generated from notes; do not edit -->
+## 9. Evidence ledger
+
+Each citation ID used above is defined here.
+
+- **[C1] The queue starts with the source.** cite: algo.py:1 `queue = [source]`
+- **[D2] Append is constant time.** derive: C1 -- deque append does not copy
+
+<!-- /evidence-ledger -->
+"""
+
+
+def test_evidence_render_check_accepts_wrapped_extracted_text():
+    pdf_text = (
+        "Evidence ledger\n"
+        "[C1] The queue starts with the source. cite: algo.py:1\n"
+        "queue = [source]\n"
+        "[D2] Append is constant time. derive: C1 -- deque append does not copy\n"
+    )
+    assert evidence_render_problems(EVIDENCE_MD, pdf_text) == []
+
+
+def test_evidence_render_check_reports_a_missing_definition():
+    problems = evidence_render_problems(EVIDENCE_MD, "Evidence ledger\n[C1]\n")
+    assert any("C1" in problem for problem in problems)
+    assert any("D2" in problem for problem in problems)
+
+
+def test_sample_pages_reports_evidence_ledger():
+    samples = sample_pages(EVIDENCE_MD, ["Title\n", "Evidence ledger\n[C1] claim\n"])
+    assert samples["evidence_ledger"] == 2

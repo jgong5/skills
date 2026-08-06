@@ -194,9 +194,12 @@ above it makes the skill stop and ask for an output subdirectory rather than
 write to the root): the study document
 `<stem>_study.md`, the comprehension ledger `<stem>_study.notes.md`, any
 approved experiment scripts and their captured output under
-`<stem>_study_experiments/`, and the rendered `<stem>_study.pdf`. Every one
-of those paths must be new -- the skill creates files and never overwrites
-one.
+`<stem>_study_experiments/`, and the rendered `<stem>_study.pdf`. The notes
+file is the authoritative, machine-checked ledger; before rendering, the skill
+projects it into a generated terminal Evidence ledger in the study, so every
+`[C1]`-style mark is defined inside the PDF and the PDF can be read on its own.
+Every one of those paths must be new -- the skill creates files and never
+overwrites one.
 
 The rule the whole pipeline exists to enforce: every substantive claim is
 **cited** to a specific line of the code under study, **derived** from

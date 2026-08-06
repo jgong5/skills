@@ -36,6 +36,13 @@ def test_skill_documents_paths_and_five_phases():
         assert phase in text
 
 
+def test_skill_requires_self_contained_generated_evidence_ledger():
+    text = (SKILL_DIR / "SKILL.md").read_text()
+    assert "check_evidence.py materialize-ledger" in text
+    assert "terminal Evidence ledger" in text
+    assert "understandable inside the PDF itself" in text
+
+
 def test_skill_documents_requirements_and_degradation():
     text = (SKILL_DIR / "SKILL.md").read_text()
     for tool in ("pandoc", "websockets", "poppler-utils", "Chrome"):

@@ -13,9 +13,12 @@ from check_evidence import (
     check_measurements,
     check_prose_coverage,
     check_snapshot_integrity,
+    check_embedded_ledger,
     extend_integrity_snapshot,
     main,
+    materialize_evidence_ledger,
     parse_ledger,
+    render_evidence_ledger,
     write_integrity_snapshot,
 )
 
@@ -46,6 +49,83 @@ def test_parse_ledger_rejects_malformed_entries(line):
 def test_parse_ledger_rejects_duplicate_ids():
     with pytest.raises(EvidenceFormatError, match="duplicate C1"):
         parse_ledger("- [C1] One. cite: a.py:1 `x`\n- [C1] Two. cite: a.py:2 `y`\n")
+
+
+def _authored_study():
+    return """\
+# Study
+
+## 1. What it computes
+
+The queue starts with the source [C1].
+
+## 2. Sources
+
+- Python documentation.
+"""
+
+
+def _all_kinds_ledger():
+    return parse_ledger(
+        "- [C1] The queue starts with the source. cite: algo.py:1 `queue`\n"
+        "- [D2] Append is constant time. derive: C1 -- the queue is a deque\n"
+        "- [M3] Batching wins. measure: exp/bench.py -> exp/bench.out\n"
+    )
+
+
+def test_render_evidence_ledger_preserves_all_three_evidence_kinds():
+    rendered = render_evidence_ledger(_all_kinds_ledger(), 3)
+    assert "## 3. Evidence ledger" in rendered
+    assert "**[C1] The queue starts with the source.** cite: algo.py:1 `queue`" in rendered
+    assert "**[D2] Append is constant time.** derive: C1 -- the queue is a deque" in rendered
+    assert "**[M3] Batching wins.** measure: exp/bench.py -> exp/bench.out" in rendered
+
+
+def test_materialize_evidence_ledger_is_idempotent_and_replaces_stale_copy():
+    entries = _all_kinds_ledger()
+    first = materialize_evidence_ledger(_authored_study(), entries)
+    assert materialize_evidence_ledger(first, entries) == first
+    changed = dict(entries)
+    changed["C1"] = changed["C1"].__class__(
+        "C1", "The queue begins with the source", "cite",
+        "algo.py:1 `queue`", changed["C1"].line,
+    )
+    replaced = materialize_evidence_ledger(first, changed)
+    assert "begins with the source" in replaced
+    assert "starts with the source.** cite" not in replaced
+
+
+def test_materialize_requires_sequential_sections_and_terminal_sources():
+    entries = _all_kinds_ledger()
+    with pytest.raises(EvidenceFormatError, match="sequential"):
+        materialize_evidence_ledger(
+            _authored_study().replace("## 2. Sources", "## 3. Sources"), entries
+        )
+    with pytest.raises(EvidenceFormatError, match="Sources"):
+        materialize_evidence_ledger(
+            _authored_study().replace("Sources", "References"), entries
+        )
+
+
+def test_embedded_ledger_rejects_missing_stale_and_duplicate_blocks():
+    entries = _all_kinds_ledger()
+    assert "no generated Evidence ledger" in check_embedded_ledger(
+        _authored_study(), entries
+    )[0]
+    current = materialize_evidence_ledger(_authored_study(), entries)
+    assert check_embedded_ledger(current, entries) == []
+    stale = current.replace("The queue starts", "The queue maybe starts")
+    assert "stale or hand-edited" in check_embedded_ledger(stale, entries)[0]
+    duplicate = current + "\n" + render_evidence_ledger(entries, 4)
+    assert "duplicate" in check_embedded_ledger(duplicate, entries)[0]
+
+
+def test_prose_coverage_ignores_bracketed_source_text_in_generated_ledger():
+    entries = parse_ledger(
+        "- [C1] The source contains a marker. cite: algo.py:1 `[TODO]`\n"
+    )
+    study = materialize_evidence_ledger(_authored_study(), entries)
+    assert check_prose_coverage(study, entries) == []
 
 
 def test_citation_anchor_must_match_cited_line(tmp_path):
@@ -377,7 +457,28 @@ def _study(tmp_path, anchor="queue = [source]"):
         f"## Ledger\n\n- [C1] The queue begins with the source. "
         f"cite: algo.py:1 `{anchor}`\n"
     )
+    study.write_text(
+        materialize_evidence_ledger(
+            "## 1. Study\n\nThe queue begins with the source [C1].\n\n"
+            "## 2. Sources\n\nNo external sources.\n",
+            parse_ledger(notes.read_text()),
+        )
+    )
     return repo, out, study, notes
+
+
+def test_main_materialize_ledger_writes_once_and_is_idempotent(tmp_path, capsys):
+    study = tmp_path / "study.md"
+    notes = tmp_path / "study.notes.md"
+    study.write_text(_authored_study())
+    notes.write_text(
+        "- [C1] The queue starts with the source. cite: algo.py:1 `queue`\n"
+    )
+    assert main(["materialize-ledger", str(study), str(notes)]) == 0
+    first = study.read_bytes()
+    assert main(["materialize-ledger", str(study), str(notes)]) == 0
+    assert study.read_bytes() == first
+    assert "materialized 1 ledger entries" in capsys.readouterr().out
 
 
 def test_main_snapshot_then_verify_is_clean(tmp_path, capsys):
@@ -563,10 +664,17 @@ def _git_study(tmp_path):
     repo, out = _committed_repo(tmp_path)
     (repo / "algo.py").write_text("queue = [source]\n")
     _git(repo, "commit", "-am", "source")
-    (out / "algo_study.md").write_text("The queue begins with the source [C1].\n")
-    (out / "algo_study.notes.md").write_text(
+    notes_text = (
         "## Ledger\n\n- [C1] The queue begins with the source. "
         "cite: algo.py:1 `queue = [source]`\n"
+    )
+    (out / "algo_study.notes.md").write_text(notes_text)
+    (out / "algo_study.md").write_text(
+        materialize_evidence_ledger(
+            "## 1. Study\n\nThe queue begins with the source [C1].\n\n"
+            "## 2. Sources\n\nNo external sources.\n",
+            parse_ledger(notes_text),
+        )
     )
     return repo, out, out / "algo_study.md", out / "algo_study.notes.md"
 

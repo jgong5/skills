@@ -190,6 +190,19 @@ def test_writing_contains_spine_and_back_matter():
     assert "falsifiable" in text
 
 
+def test_generated_evidence_ledger_makes_the_pdf_self_contained():
+    writing = (SKILL_DIR / "writing.md").read_text()
+    verification = (SKILL_DIR / "verification.md").read_text()
+    rendering = (SKILL_DIR / "rendering.md").read_text()
+    assert "materialize-ledger" in writing
+    assert "single authored source of truth" in _normalize(writing)
+    assert "Evidence ledger" in writing
+    assert "without opening" in verification
+    assert "every generated evidence definition survived PDF extraction" in _normalize(verification)
+    assert "materialize-ledger" in rendering
+    assert "`[C]`/`[D]`/`[M]`" not in verification
+
+
 def test_writing_quotes_the_live_checker_regexes():
     # Ties the prose's quoted regexes to the actual compiled patterns, so a
     # future edit to either check_pdf.py or check_evidence.py that changes
