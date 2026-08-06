@@ -52,6 +52,37 @@ def test_renders_a_tiny_markdown_to_pdf(tmp_path):
     assert pdf.read_bytes()[:5] == b"%PDF-"
 
 
+def test_generated_evidence_ledger_survives_pdf_extraction(tmp_path):
+    import subprocess
+
+    md = tmp_path / "evidence.md"
+    md.write_text("""\
+# Evidence fixture
+
+## 1. Sources
+
+No external sources.
+
+<!-- evidence-ledger: generated from notes; do not edit -->
+## 2. Evidence ledger
+
+Each citation ID used above is defined here.
+
+- **[C1] The queue starts with the source.** cite: algo.py:1 `queue = [source]`
+
+<!-- /evidence-ledger -->
+""")
+    pdf = make_pdf.convert(md, make_pdf.find_chrome())
+    extracted = subprocess.run(
+        ["pdftotext", "-layout", str(pdf), "-"],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    assert "Evidence ledger" in extracted
+    assert "[C1]" in extracted
+    assert "The queue starts with the source" in extracted
+    assert "algo.py:1" in extracted
+
+
 def test_inline_svg_survives_html_and_pdf_with_selectable_text(tmp_path):
     import subprocess
 

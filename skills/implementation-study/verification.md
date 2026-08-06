@@ -85,8 +85,11 @@ only when the repository under study has no version control:
     <skill-dir>/check_evidence.py verify <stem>_study.md <stem>_study.notes.md \
         --repo-root ROOT --output-dir OUT [--snapshot FILE]
 
-This is the ledger discipline made mechanical: every entry parses in the
-exact grammar with a recognized evidence class; every `cite:` file citation
+This is the ledger discipline made mechanical: the terminal generated
+Evidence ledger exists and exactly matches the authoritative notes file, so a
+reader can resolve every inline ID inside the Markdown or PDF without opening
+that companion file; every entry parses in the exact grammar with a recognized
+evidence class; every `cite:` file citation
 resolves inside the repository with its backticked anchor still on the
 cited line; every `derive:` names ledger IDs that exist, shows its reasoning
 after `--`, and takes part in no cycle; every `measure:` points at a script
@@ -153,7 +156,8 @@ a citation and did not get one from ordinary connective prose ("first,"
 "this means," "as a result") that never needed one -- that distinction is
 exactly what this pass exists to make. Read every sentence and ask whether
 a skeptical reader could reasonably ask "says who?" about it; if so, it
-needs a `[C]`/`[D]`/`[M]`-style reference and it is a Pass 3 finding if it
+needs a digit-suffixed ledger reference such as `[C1]`, `[D2]`, or `[M3]`,
+and it is a Pass 3 finding if it
 does not have one, mechanically clean ledger or not.
 
 Treat each figure as prose with geometry. Trace every important node, edge,
@@ -204,8 +208,10 @@ read-through needs to re-examine.
 
 Do not call the study finished until all of the following are true:
 
-- Pass 1 (`check_pdf.py`) exits clean, and every sample page it reported has
-  actually been rasterized and looked at;
+- Pass 1 (`check_pdf.py`) exits clean, including its check that every generated
+  evidence definition survived PDF extraction, and every sample page it
+  reported -- including the Evidence ledger page -- has actually been
+  rasterized and looked at;
 - Pass 2 (`check_evidence.py verify`) exits clean, using `--snapshot` only
   when the repository under study is not a git work tree, and with no
   outstanding "mtime changed" or "tracked change" findings papered over

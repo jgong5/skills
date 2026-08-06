@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Verify an implementation study's claim ledger and the repository boundary.
 
-    <skill-dir>/check_evidence.py snapshot       --repo-root ROOT --output-dir OUT --snapshot FILE [--cited-file PATH ...]
-    <skill-dir>/check_evidence.py extend-snapshot --repo-root ROOT --output-dir OUT --snapshot FILE [--cited-file PATH ...]
+    <skill-dir>/check_evidence.py snapshot         --repo-root ROOT --output-dir OUT --snapshot FILE [--cited-file PATH ...]
+    <skill-dir>/check_evidence.py extend-snapshot  --repo-root ROOT --output-dir OUT --snapshot FILE [--cited-file PATH ...]
+    <skill-dir>/check_evidence.py materialize-ledger STUDY NOTES
     <skill-dir>/check_evidence.py verify STUDY NOTES --repo-root ROOT --output-dir OUT [--snapshot FILE]
 
 `verify` is the Phase 5 gate. It reads the ledger out of `<stem>_study.notes.md`
@@ -67,6 +68,12 @@ BARE_FILE_CITE_RE = re.compile(r"[^\s,:`]+:\d+(?:-\d+)?")
 INLINE_CODE_RE = re.compile(r"`[^`]*`")
 URL_RE = re.compile(r"\bhttps?://\S+")
 FENCE_RE = re.compile(r"^(```|~~~)")
+HEADING_RE = re.compile(r"^##\s+(\d+)\.\s+(.+?)\s*$")
+LEDGER_START = "<!-- evidence-ledger: generated from notes; do not edit -->"
+LEDGER_END = "<!-- /evidence-ledger -->"
+LEDGER_BLOCK_RE = re.compile(
+    rf"(?ms)^{re.escape(LEDGER_START)}\n.*?^{re.escape(LEDGER_END)}\s*$"
+)
 
 SNAPSHOT_VERSION = 1
 HASH_CHUNK = 1024 * 1024
@@ -218,6 +225,100 @@ def parse_ledger(text: str) -> dict[str, LedgerEntry]:
             id=entry_id, claim=claim, kind=kind, source=source, line=number
         )
     return entries
+
+
+def render_evidence_ledger(
+    entries: dict[str, LedgerEntry], section_number: int
+) -> str:
+    """Render the notes ledger as a terminal, human-readable study appendix."""
+    lines = [
+        LEDGER_START,
+        f"## {section_number}. Evidence ledger",
+        "",
+        "Each citation ID used above is defined here so this document can be "
+        "read without its companion notes file. The notes file remains the "
+        "authoritative ledger.",
+        "",
+    ]
+    for entry in entries.values():
+        lines.append(
+            f"- **[{entry.id}] {entry.claim}.** {entry.kind}: {entry.source}"
+        )
+    lines.extend(["", LEDGER_END])
+    return "\n".join(lines)
+
+
+def _ledger_blocks(study_text: str) -> list[re.Match]:
+    return list(LEDGER_BLOCK_RE.finditer(study_text))
+
+
+def _section_number_before_ledger(study_text: str) -> tuple[int | None, list[str]]:
+    """Return the appendix number and any section-numbering problems."""
+    prefix = study_text.split(LEDGER_START, 1)[0]
+    headings = [
+        (int(match.group(1)), match.group(2))
+        for line in prefix.splitlines()
+        if (match := HEADING_RE.match(line))
+    ]
+    if not headings:
+        return None, ["study has no numbered '## N. Title' headings"]
+    numbers = [number for number, _ in headings]
+    expected = list(range(1, len(numbers) + 1))
+    if numbers != expected:
+        return None, [
+            "study section headings must be sequential and unique before the "
+            f"evidence ledger (found {numbers}, expected {expected})"
+        ]
+    if headings[-1][1] != "Sources":
+        return None, [
+            "Sources must be the final authored section before the generated "
+            "Evidence ledger"
+        ]
+    return numbers[-1] + 1, []
+
+
+def materialize_evidence_ledger(
+    study_text: str, entries: dict[str, LedgerEntry]
+) -> str:
+    """Create or replace the one managed terminal appendix, idempotently."""
+    starts = study_text.count(LEDGER_START)
+    ends = study_text.count(LEDGER_END)
+    blocks = _ledger_blocks(study_text)
+    if starts != ends or starts > 1 or (starts == 1 and len(blocks) != 1):
+        raise EvidenceFormatError(
+            "malformed or duplicate generated Evidence ledger markers"
+        )
+    if starts == 1:
+        study_text = study_text[:blocks[0].start()].rstrip() + "\n"
+    section_number, problems = _section_number_before_ledger(study_text)
+    if problems:
+        raise EvidenceFormatError(problems[0])
+    block = render_evidence_ledger(entries, section_number)
+    return study_text.rstrip() + "\n\n" + block + "\n"
+
+
+def check_embedded_ledger(
+    study_text: str, entries: dict[str, LedgerEntry]
+) -> list[str]:
+    """Require one current generated appendix at the end of the study."""
+    starts = study_text.count(LEDGER_START)
+    ends = study_text.count(LEDGER_END)
+    blocks = _ledger_blocks(study_text)
+    if starts == 0 and ends == 0:
+        return ["study has no generated Evidence ledger; run materialize-ledger"]
+    if starts != 1 or ends != 1 or len(blocks) != 1:
+        return ["study has malformed or duplicate generated Evidence ledger markers"]
+    section_number, problems = _section_number_before_ledger(study_text)
+    if problems:
+        return problems
+    expected = render_evidence_ledger(entries, section_number)
+    actual = blocks[0].group(0).rstrip()
+    if actual != expected:
+        return [
+            "generated Evidence ledger is stale or hand-edited; rerun "
+            "materialize-ledger from the notes file"
+        ]
+    return []
 
 
 def check_citations(entries: dict[str, LedgerEntry], repo_root: Path) -> list[str]:
@@ -389,13 +490,19 @@ def _check_one_measurement(entry: LedgerEntry, output_dir: Path) -> list[str]:
 
 
 def check_prose_coverage(prose: str, entries: dict[str, LedgerEntry]) -> list[str]:
-    """Report every `[ID]` the prose cites that the ledger does not define.
+    """Report every authored `[ID]` the ledger does not define.
 
     The reverse -- a ledger entry the prose never cites -- is allowed on
     purpose: analysis turns up evidence that does not make the final cut, and
     deleting it to satisfy a checker would throw away the audit trail. Fenced
     code is skipped because `writing.md` documents this very syntax in fences.
+    The generated appendix is skipped too: it may reproduce a cited source
+    anchor such as `[TODO]`, which is evidence text rather than an authored
+    prose reference.
     """
+    blocks = _ledger_blocks(prose)
+    if len(blocks) == 1:
+        prose = prose[:blocks[0].start()]
     unknown: list[str] = []
     seen: set[str] = set()
     # Remember which marker opened the fence. A bare toggle lets a `~~~` line
@@ -754,6 +861,13 @@ def _build_parser() -> argparse.ArgumentParser:
                          metavar="PATH",
                          help="repository-relative path to hash (repeatable)")
 
+    materialize = subcommands.add_parser(
+        "materialize-ledger",
+        help="project the notes ledger into the terminal study appendix",
+    )
+    materialize.add_argument("study", metavar="STUDY")
+    materialize.add_argument("notes", metavar="NOTES")
+
     verify = subcommands.add_parser("verify", help="check the ledger and the "
                                                    "repository boundary")
     verify.add_argument("study", metavar="STUDY")
@@ -781,6 +895,7 @@ def _verify(args: argparse.Namespace) -> int:
     problems += check_derivations(entries)
     problems += check_measurements(entries, output_dir)
     problems += check_prose_coverage(study_text, entries)
+    problems += check_embedded_ledger(study_text, entries)
 
     in_git = is_git_work_tree(repo_root)
     if in_git:
@@ -803,10 +918,27 @@ def _verify(args: argparse.Namespace) -> int:
     return 0
 
 
+def _materialize(args: argparse.Namespace) -> int:
+    study = Path(args.study)
+    notes = Path(args.notes)
+    try:
+        study_text = study.read_text()
+        entries = parse_ledger(notes.read_text())
+        rendered = materialize_evidence_ledger(study_text, entries)
+        if rendered != study_text:
+            study.write_text(rendered)
+    except (EvidenceFormatError, OSError) as exc:
+        return _report([str(exc)])
+    print(f"materialized {len(entries)} ledger entries into {study}")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     args = _build_parser().parse_args(argv)
     if args.command == "verify":
         return _verify(args)
+    if args.command == "materialize-ledger":
+        return _materialize(args)
 
     repo_root = Path(args.repo_root)
     output_dir = Path(args.output_dir)

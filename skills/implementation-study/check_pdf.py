@@ -37,6 +37,14 @@ FENCE_RE = re.compile(r"^(```|~~~)")
 HEADING_RE = re.compile(r"^##\s+(\d+)\.\s")
 XREF_RE = re.compile(r"\b[Ss]ections?\s+(\d+)(?:\s+and\s+(\d+))?")
 TABLE_ROW_RE = re.compile(r"^\s*\|")
+LEDGER_START = "<!-- evidence-ledger: generated from notes; do not edit -->"
+LEDGER_END = "<!-- /evidence-ledger -->"
+LEDGER_HEADING_RE = re.compile(r"^##\s+\d+\.\s+Evidence ledger\s*$", re.MULTILINE)
+LEDGER_ENTRY_RE = re.compile(
+    r"^- \*\*\[([A-Z][A-Z0-9_-]*\d+)\] (.+?)\.\*\* "
+    r"(cite|derive|measure): (.+)$",
+    re.MULTILINE,
+)
 
 # Machine-readable contract with writing.md. Change both ends together.
 DECISION_MARKERS = (
@@ -184,6 +192,37 @@ def diagram_problems(md_text: str) -> list[str]:
     for number in {int(m.group(1)) for m in FIGURE_REF_RE.finditer(md_text)}:
         if number not in known:
             problems.append(f"Figure {number} has no matching figcaption")
+    return problems
+
+
+def evidence_render_problems(md_text: str, pdf_text: str) -> list[str]:
+    """Return generated evidence definitions missing from PDF extraction."""
+    if LEDGER_START not in md_text or LEDGER_END not in md_text:
+        return ["markdown has no generated Evidence ledger"]
+    start = md_text.find(LEDGER_START)
+    end = md_text.find(LEDGER_END, start)
+    if end < 0:
+        return ["markdown has an unterminated generated Evidence ledger"]
+    block = md_text[start:end]
+    if not LEDGER_HEADING_RE.search(block):
+        return ["generated Evidence ledger has no numbered heading"]
+    normalized_pdf = _normalize_ws(pdf_text)
+    problems = []
+    if "Evidence ledger" not in normalized_pdf:
+        problems.append("Evidence ledger heading did not survive extraction")
+    entries = list(LEDGER_ENTRY_RE.finditer(block))
+    if not entries:
+        problems.append("generated Evidence ledger has no entries")
+    for match in entries:
+        entry_id, claim, kind, source = match.groups()
+        rendered_source = source.replace("`", "")
+        expected = _normalize_ws(
+            f"[{entry_id}] {claim}. {kind}: {rendered_source}"
+        )
+        if expected not in normalized_pdf:
+            problems.append(
+                f"evidence definition did not survive extraction: {entry_id}"
+            )
     return problems
 
 
@@ -393,6 +432,10 @@ def sample_pages(md_text: str, page_texts: list[str]) -> dict[str, int]:
             if all(_normalize_ws(anchor) in normalized_page for anchor in anchors):
                 result[sample_name] = i
                 break
+    for i, normalized_page in enumerate(normalized_pages, start=1):
+        if "Evidence ledger" in normalized_page:
+            result["evidence_ledger"] = i
+            break
     return result
 
 
@@ -437,6 +480,10 @@ def main(argv: list[str]) -> int:
     if rendered_diagrams:
         problems.append(f"{len(rendered_diagrams)} diagram render problem(s): "
                         + "; ".join(rendered_diagrams[:5]))
+    rendered_evidence = evidence_render_problems(md_text, pdf_text)
+    if rendered_evidence:
+        problems.append(f"{len(rendered_evidence)} evidence render problem(s): "
+                        + "; ".join(rendered_evidence[:5]))
     page_count_m = re.search(r"^Pages:\s*(\d+)", info_text, re.MULTILINE)
     if not page_count_m:
         problems.append("pdfinfo did not report a page count")
@@ -451,7 +498,8 @@ def main(argv: list[str]) -> int:
     print(f"clean: {len(page_texts)} pages, all fonts embedded")
     print("sample pages for a visual look:")
     for name in ("title", "contents", "structure_diagram", "flow_diagram",
-                 "decisions_diagram", "widest_code", "table", "prose", "last"):
+                 "decisions_diagram", "evidence_ledger", "widest_code", "table",
+                 "prose", "last"):
         if name in samples:
             print(f"  {name:<12} page {samples[name]}")
         else:

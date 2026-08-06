@@ -1,8 +1,11 @@
 # Phase 4: Render
 
 Phase 4 turns the finished `<stem>_study.md` from Phase 3 into
-`<stem>_study.pdf`. Nothing here changes what the document says -- Phase 4 is
-mechanical layout, not a second editing pass. If the content is wrong,
+`<stem>_study.pdf`. "Finished" includes the terminal Evidence ledger generated
+from `<stem>_study.notes.md` by `check_evidence.py materialize-ledger`; Render
+never copies or edits that ledger itself. Nothing here changes what the
+document says -- Phase 4 is mechanical layout, not a second editing pass. If
+the content is wrong,
 that is a Phase 3 problem (or, if a claim itself is wrong, a Phase 1 or
 Phase 2 problem); Phase 4 exists to catch a document that is content-correct
 but does not fit the page, and to fix that without touching the content.

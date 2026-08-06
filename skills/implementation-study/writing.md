@@ -231,7 +231,8 @@ full block.
 
 ## Improvements and back matter
 
-Three chapters close every study document, always in this order:
+Four chapters close every study document, always in this order. The first
+three are authored; the fourth is generated from the notes ledger:
 
 - **Improvements.** One entry per credible improvement Phase 1 and Phase 2
   surfaced but the implementation does not take. Each entry states what
@@ -248,6 +249,27 @@ Three chapters close every study document, always in this order:
 - **Sources.** Every external reference used anywhere in the document --
   specifications, papers, writeups -- listed once, so a reader does not
   have to hunt back through the prose to find a URL cited only inline.
+- **Evidence ledger.** The terminal, generated definition of every inline
+  `[ID]`: claim, evidence class, and source. This makes the Markdown and PDF
+  self-contained; a reader never needs the companion notes file to decode a
+  mark such as `[C1]`. The notes file remains the single authored source of
+  truth. Never type or edit this chapter by hand. After all authored prose and
+  notes are final, invoke through the project's command wrapper:
+
+      <skill-dir>/check_evidence.py materialize-ledger \
+          <stem>_study.md <stem>_study.notes.md
+
+  The command creates or replaces the managed terminal chapter
+  deterministically. If the notes change, rerun it before Render;
+  `check_evidence.py verify` rejects a missing, stale, reordered, or edited
+  projection.
+
+Inline IDs remain required even though their definitions now appear at the
+end. They connect each sentence to one precise definition; the appendix makes
+that connection usable inside the deliverable rather than replacing it with
+uncited prose. `Sources` and `Evidence ledger` also have different jobs:
+Sources deduplicates external references, while Evidence ledger defines every
+code citation, derivation, and measurement used by the study.
 
 ## Code excerpts, headings, and cross-references
 
@@ -314,8 +336,10 @@ Do not move to Phase 4 until all of the following are true:
   entry, so nothing mechanical will flag it;
 - no bracketed all-uppercase text appears in prose except genuine ledger
   IDs;
-- Improvements, Boundary note, and Sources all exist, in that order, with
-  every improvement entry falsifiable;
+- Improvements, Boundary note, Sources, and the generated Evidence ledger all
+  exist in that order, with every improvement entry falsifiable; Sources is
+  the final authored section, and `materialize-ledger` has projected the
+  current notes into the terminal managed section without hand edits;
 - every section heading is `## N. Title`, numbered sequentially with no
   gaps or repeats by discipline (checked by eye -- the checker only builds
   a set of numbers seen and does not notice a gap or a duplicate), and
