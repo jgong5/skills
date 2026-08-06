@@ -167,6 +167,78 @@ div.sourceCode {
   margin: 0.85em 0;
 }
 
+/* --- diagrams ------------------------------------------------------------ */
+figure.study-diagram {
+  margin: 1.1em 0 1.25em;
+  padding: 10px 12px 7px;
+  border: 1px solid #c8d2dc;
+  border-left: 3px solid #3f6480;
+  border-radius: 3px;
+  background: #f7f9fb;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.study-diagram svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 490px;
+  overflow: visible;
+  font-family: "Liberation Sans", sans-serif;
+  font-size: 13px;
+}
+figcaption {
+  margin-top: 6px;
+  color: #4b5660;
+  font-family: "Liberation Sans", sans-serif;
+  font-size: 8.5pt;
+  text-align: center;
+}
+.diagram-node {
+  fill: #edf3f7;
+  stroke: #38556b;
+  stroke-width: 1.4;
+}
+.diagram-entry {
+  fill: #e2eef5;
+  stroke-width: 2;
+}
+.diagram-state {
+  fill: #f3efe2;
+  stroke: #705f2f;
+  stroke-width: 1.8;
+}
+.diagram-alternative {
+  fill: #fff;
+  stroke: #6f7780;
+  stroke-dasharray: 5 3;
+}
+.diagram-emphasis {
+  fill: #e6f0e8;
+  stroke: #3f6547;
+  stroke-width: 2;
+}
+.diagram-edge {
+  fill: none;
+  stroke: #455762;
+  stroke-width: 1.5;
+}
+.diagram-proposed {
+  stroke-dasharray: 5 3;
+}
+.diagram-arrow {
+  fill: #455762;
+}
+.diagram-label {
+  fill: #17232b;
+  font-weight: 600;
+}
+.diagram-note,
+.diagram-edge-label {
+  fill: #52616b;
+  font-size: 11px;
+}
+
 /* --- tables -------------------------------------------------------------- */
 table {
   border-collapse: collapse;

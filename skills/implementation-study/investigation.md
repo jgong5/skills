@@ -29,7 +29,11 @@ For each candidate decision, record:
 - the evidence IDs backing all of the above;
 - whether the candidate is significant enough to merit its own decision
   block in the eventual study document, or minor enough to fold into
-  surrounding prose without one.
+  surrounding prose without one;
+- the chosen path, alternative paths, deciding constraint, and downstream
+  consequence that the decision-landscape figure will connect. This is a
+  visual inventory entry, not permission to manufacture an alternative that
+  the evidence does not support.
 
 ## Name realistic alternatives
 
@@ -92,7 +96,9 @@ Do not move to Phase 3 until all of the following exist:
   `experiments.md` with the escalation resolved (approved and measured,
   declined and recorded, or superseded);
 - a decision made, per candidate, on whether it becomes a decision block in
-  the study document or folds into prose.
+  the study document or folds into prose;
+- a grounded decision-landscape figure inventory connecting every significant
+  choice to its realistic alternatives, deciding constraint, and consequence.
 
 A decision inventory that skips grounding and goes straight to writing
 prose about "why" is exactly the failure mode this phase exists to prevent:

@@ -7,7 +7,7 @@ section for what it does and how to install it.
 | --- | --- | --- |
 | [`pr-review-kit`](#pr-review-kit) | `pr-explain`, `pr-review-draft`, `pr-review-dossier` | Context-first pull-request review |
 | [`amd-gpu`](#amd-gpu) | `kernel-perf`, `asm-tutorial` | Find a CDNA kernel's bottleneck by ablation; turn its assembly into a verified PDF tutorial |
-| [`implementation-study`](#implementation-study) | `implementation-study` | Turn one algorithm implementation into an evidence-grounded, verified PDF study |
+| [`implementation-study`](#implementation-study) | `implementation-study` | Turn one algorithm implementation into a diagram-first, evidence-grounded, verified PDF study |
 
 ## pr-review-kit
 
@@ -156,10 +156,14 @@ one skill. That is a property of `asm-tutorial`, not a rule for this repo.
 
 ## implementation-study
 
-Turns one algorithm implementation into a study document and a verified PDF:
-what it computes, where it sits, why each choice was made rather than the
-alternatives it beat, and what would have to be true for a different choice
-to win.
+Turns one algorithm implementation into a diagram-first study document and a
+verified PDF: what it computes, where it sits, why each choice was made rather
+than the alternatives it beat, and what would have to be true for a different
+choice to win. Three inline-SVG views form the visual backbone -- implementation
+structure, execution/data/state flow, and the decision landscape -- with
+additional state, layout, lifecycle, concurrency, or algorithm-stage figures
+when the implementation needs them. Prose interprets those visuals instead of
+reading every box and arrow aloud.
 
 ```
 /implementation-study path/to/file.py:symbol
@@ -176,9 +180,9 @@ Five phases run in order, each reading only its own reference doc:
 | --- | --- |
 | Analyze | Resolves the boundary, the contract, and the caller map; opens the comprehension ledger; records the integrity baseline the last phase checks against. |
 | Investigate | Turns the ledger into a decision inventory -- the implementation's choices, their realistic alternatives, and the trade-off between them. Proposes an experiment only when a trade-off cannot be settled by reasoning. |
-| Write | Turns the ledger and the inventory into the study document: a fixed five-section spine, a middle shaped by the code's own structure, decision blocks, and back matter. Discovers nothing new. |
-| Render | Turns the markdown into a PDF through pandoc and headless Chrome, classifying any overlong code line before touching the stylesheet. |
-| Verify | The gate: mechanical PDF checks, a mechanical evidence check, and a manual read-through, with every finding routed back to the phase that caused it. |
+| Write | Turns the ledger and the inventories into a diagram-first study: a fixed five-section spine, three required inline-SVG views, supplemental visuals where relationships beat enumeration, a middle shaped by the code, decision blocks, and back matter. Discovers nothing new. |
+| Render | Turns the markdown and vector figures into a PDF through pandoc and headless Chrome, classifying crowded diagrams and overlong code before touching the stylesheet. |
+| Verify | The gate: mechanical PDF and SVG-survival checks, a mechanical evidence check, rasterized inspection of every figure page, and a manual read-through, with every finding routed back to the phase that caused it. |
 
 Outputs land next to the code, in the nearest ancestor `docs/` directory found
 without crossing the repository boundary -- an ancestor `docs/` outside the

@@ -88,6 +88,25 @@ from scratch. If the shipped size already satisfies the inequality for this
 document's `N`, leave it; a document with no unusually long code needs no
 change at all.
 
+## Classify oversized diagrams before changing styles
+
+Inline SVG is vector content, but a vector can still be unreadable when too
+much meaning is packed into one page. Inspect every figure for labels that
+collide, crossing edges, nodes that require tiny type, or a height that forces a
+page break. Fix these in the markdown in this order: shorten labels while
+preserving meaning, remove incidental nodes outside the declared boundary,
+then split the figure by concern and connect the parts in prose. Never
+rasterize a figure, scale one crowded figure until its text is too small, or
+shrink every diagram to rescue one bad composition.
+
+`figure.study-diagram` is kept on one page by `tutorial.css`, just as `pre` is.
+That protection only works when the figure fits. An over-tall diagram is
+therefore the diagram equivalent of a page-tall code block: a Phase 3
+composition problem, not permission to adjust global type or page margins. If
+an SVG looks wrong, render with `--keep-html` and open the intermediate HTML to
+separate raw-markup or pandoc behavior from Chrome print layout before changing
+either the source or CSS.
+
 ## Render through the project wrapper
 
 Invoke the renderer through the project's command wrapper, never a bare
@@ -131,6 +150,9 @@ Do not move to Phase 5 until all of the following are true:
   preference;
 - every code block taller than a page has been excerpted or split in the
   markdown, never resized;
+- every inline-SVG figure fits on one page with readable labels and uncrossed
+  edges; crowded figures were simplified or split by concern, never
+  rasterized or globally shrunk;
 - any `tutorial.css` font-size change is backed by the
   `N * 0.602 * code_pt <= 612 - 2 * (MARGIN_X * 72)` arithmetic, recomputed
   for this document's actual `N`, with the header comment updated to match;

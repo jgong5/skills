@@ -125,6 +125,37 @@ list of facts. Skipping a section because it feels thin is not an option;
 say plainly that there are no callers, or no canonical form, rather than
 omitting the heading.
 
+## Diagram-first composition
+
+Read `<skill-dir>/diagrams.md` before drafting the body. The document is not a
+prose report with pictures added afterward: the figures establish the reader's
+mental model, and prose explains the consequence. Place the canonical
+`data-diagram="implementation-structure"` figure after "Where it sits", the
+`data-diagram="execution-flow"` figure around "Data structures and invariants"
+or at the opening of the derived middle, and the
+`data-diagram="decision-landscape"` figure before the detailed decision blocks.
+
+Every factual node, edge, transition, and comparison is an assertion. It must
+come from Phase 1's visual inventory or Phase 2's decision inventory, and the
+paragraph immediately after its figure states the takeaway with ledger IDs.
+Citations stay in ordinary prose, not only inside SVG, because
+`check_evidence.py` verifies Markdown references rather than interpreting a
+drawing. If the inventories do not support a relationship, return to the phase
+that should establish it or omit it.
+
+Number captions `Figure N. Title`, from 1 without gaps, and refer to each as
+`Figure N` in adjacent prose. Add a supplemental state-machine, data-layout,
+lifecycle, concurrency, or algorithm-stage figure whenever it makes a
+load-bearing relationship visible more directly than a paragraph can. Then cut
+the paragraph that merely recites its nodes and arrows: interpretation should
+explain causality, caveats, and why the picture matters, not duplicate it.
+
+The literal role names, SVG metadata, CSS classes, accessibility requirements,
+and drawing recipes are the machine-readable contract in `diagrams.md`. Use
+that markup exactly. These are load-bearing figures, not decoration, and
+`check_pdf.py` checks both their source structure and whether their visible text
+survived rendering.
+
 ## Derived middle
 
 After the fixed spine, the document follows the implementation's actual
@@ -260,6 +291,16 @@ Do not move to Phase 4 until all of the following are true:
   form exists";
 - the derived middle reflects the implementation's own structure, not a
   generic template;
+- the three canonical inline-SVG roles -- `implementation-structure`,
+  `execution-flow`, and `decision-landscape` -- each appear exactly once, with
+  the metadata and numbered caption required by `diagrams.md`;
+- every canonical and supplemental figure is followed by a cited
+  interpretation, contains only relationships established in the visual or
+  decision inventory, and replaces rather than duplicates an enumeration in
+  prose;
+- every load-bearing state machine, data layout, lifecycle, concurrency
+  protocol, or algorithm-stage relationship that reads more clearly as a
+  visual has a supplemental figure;
 - every decision block uses the exact three markers, in order, at column
   zero, separated by blank lines so the parts render as three lines rather
   than one paragraph, closed by the next `**Decision.**` or the next `## `

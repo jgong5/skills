@@ -149,6 +149,33 @@ def test_writing_documents_how_a_decision_block_renders():
     assert "\n\n**Why this one.**" in block
 
 
+def test_diagram_first_contract_is_documented_across_phases():
+    diagrams = (SKILL_DIR / "diagrams.md").read_text()
+    writing = (SKILL_DIR / "writing.md").read_text()
+    skill = (SKILL_DIR / "SKILL.md").read_text()
+    analysis = (SKILL_DIR / "analysis.md").read_text()
+    investigation = (SKILL_DIR / "investigation.md").read_text()
+    verification = (SKILL_DIR / "verification.md").read_text()
+
+    for role in ("implementation-structure", "execution-flow",
+                 "decision-landscape"):
+        assert role in diagrams
+        assert role in writing
+    assert "`<skill-dir>/diagrams.md`" in skill
+    assert "visual inventory" in analysis
+    assert "decision-landscape figure" in investigation
+    assert "Every factual node, edge, transition, and comparison" in writing
+    assert "every diagram page" in verification
+
+
+def test_diagram_contract_matches_checker_roles():
+    import check_pdf
+
+    text = (SKILL_DIR / "diagrams.md").read_text()
+    for role in check_pdf.REQUIRED_DIAGRAMS:
+        assert f'data-diagram="{role}"' in text
+
+
 def test_writing_contains_spine_and_back_matter():
     text = (SKILL_DIR / "writing.md").read_text()
     for title in (
@@ -235,6 +262,15 @@ def test_verification_documents_poppler_preflight():
         "Stop and name the specific missing tool and the "
         "`poppler-utils` package that provides it"
     ) in normalized_skill
+
+
+def test_css_styles_inline_svg_as_a_print_figure():
+    css = (SKILL_DIR / "tutorial.css").read_text()
+    for selector in ("figure.study-diagram", ".study-diagram svg",
+                     ".diagram-node", ".diagram-edge",
+                     ".diagram-alternative", "figcaption"):
+        assert selector in css
+    assert "break-inside: avoid" in css
 
 
 def test_rendering_keeps_margin_css_arithmetic_coupled():

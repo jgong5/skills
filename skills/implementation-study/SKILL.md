@@ -115,11 +115,13 @@ vocabulary leaks backward into an earlier one's ledger.
    `<skill-dir>/experiments.md` only when a trade-off is genuinely unclear
    without running code -- derivation from what Phase 1 already established
    settles most of them without it.
-3. **Write** -- read `<skill-dir>/writing.md`. Turns the ledger and the
-   decision inventory into `<stem>_study.md`: the fixed spine, the derived
-   middle, decision blocks, and back matter. Discovers nothing new; a
-   sentence that needs evidence Phase 1 or Phase 2 did not produce is a sign
-   to go back, not to write around it.
+3. **Write** -- read `<skill-dir>/writing.md` and
+   `<skill-dir>/diagrams.md`. Turns the ledger, visual inventory, and decision
+   inventory into `<stem>_study.md`: a diagram-first fixed spine and derived
+   middle, the required implementation-structure, execution-flow, and
+   decision-landscape figures, decision blocks, and back matter. Discovers
+   nothing new; a sentence or edge that needs evidence Phase 1 or Phase 2 did
+   not produce is a sign to go back, not to write or draw around it.
 4. **Render** -- read `<skill-dir>/rendering.md`. Turns `<stem>_study.md`
    into `<stem>_study.pdf`; it invokes `<skill-dir>/make_pdf.py` and
    `<skill-dir>/tutorial.css`, and classifies any overlong code line before
@@ -172,6 +174,12 @@ Do not report the study finished until every line below is true:
   present -- even where a section is one honest sentence.
 - Every substantive claim carries at least one ledger ID, checked by a full
   read-through, not only by `check_evidence.py`'s mechanical pass.
+- The implementation-structure, execution-flow, and decision-landscape inline
+  SVG figures are present; each has accessible metadata, a numbered caption,
+  an adjacent cited interpretation, and only relationships established by the
+  Phase 1 or Phase 2 inventories.
+- Every relationship better shown than enumerated has a supplemental visual,
+  while every figure teaches something its prose does not merely repeat.
 - Every decision block has all three literal parts -- `**Decision.**`,
   `**Alternatives.**`, `**Why this one.**` -- at column zero, in order.
 - Every Improvements entry is falsifiable: a reader could go check the

@@ -50,15 +50,21 @@ reports and look at each one:
 
     pdftoppm -f <N> -l <N> -png <stem>_study.pdf page
 
-`check_pdf.py` reports up to six page numbers worth a visual look -- title,
-contents, the widest code block, a table, a dense prose page, and the last
-page -- because it already has the extracted text and works these out
-itself; do not hunt for them by hand. For each rasterized page, look
-specifically for what a mechanical check cannot see: a title page with the
-right title, a contents page whose entries look complete, the widest code
-block rendered without visible overflow past the margin, a table with
-readable columns, a dense prose page with normal line breaks, and a last
-page that actually looks like an ending (Sources, not a mid-sentence cutoff).
+`check_pdf.py` reports the title, contents, every required diagram page, the
+widest code block, a table, a dense prose page, and the last page because it
+already has the extracted text and works these out itself; do not hunt for
+them by hand. For each rasterized page, look specifically for what a
+mechanical check cannot see: a title page with the right title, a contents page
+whose entries look complete, the widest code block rendered without visible
+overflow past the margin, a table with readable columns, a dense prose page
+with normal line breaks, and a last page that actually looks like an ending
+(Sources, not a mid-sentence cutoff).
+
+Inspect every diagram page for clipped nodes, edges, labels, or arrowheads;
+type too small to read; a figure split across pages; reliance on color without
+a line-style or label distinction; and a caption separated from its figure.
+Read the interpretation beside it too: it must explain the takeaway and cite
+the visual assertions rather than repeat each label in sentence form.
 
 The table's `widest_code` entry is about width only, and width says nothing
 about height: the page carrying the longest code *line* is usually not the
@@ -149,6 +155,13 @@ exactly what this pass exists to make. Read every sentence and ask whether
 a skeptical reader could reasonably ask "says who?" about it; if so, it
 needs a `[C]`/`[D]`/`[M]`-style reference and it is a Pass 3 finding if it
 does not have one, mechanically clean ledger or not.
+
+Treat each figure as prose with geometry. Trace every important node, edge,
+transition, and comparison to its adjacent cited interpretation and the ledger
+entries behind that interpretation. Then ask whether the figure teaches a
+relationship more directly than the prose; a decorative visual or a paragraph
+that simply reads the diagram aloud is a Phase 3 finding even when every
+mechanical check passes.
 
 Do not turn this pass into a mechanical check of the fixed-spine headings
 from `writing.md`. A section that honestly says "there are no callers" or
