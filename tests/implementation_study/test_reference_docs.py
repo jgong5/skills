@@ -198,9 +198,20 @@ def test_generated_evidence_ledger_makes_the_pdf_self_contained():
     assert "single authored source of truth" in _normalize(writing)
     assert "Evidence ledger" in writing
     assert "without opening" in verification
-    assert "every generated evidence definition survived PDF extraction" in _normalize(verification)
     assert "materialize-ledger" in rendering
     assert "`[C]`/`[D]`/`[M]`" not in verification
+
+
+def test_evidence_marks_are_documented_as_two_way_links():
+    writing = _normalize((SKILL_DIR / "writing.md").read_text())
+    verification = _normalize((SKILL_DIR / "verification.md").read_text())
+    assert '<a id="ref-C1-1" href="#evidence-C1">[C1]</a>' in writing
+    assert "Keep typing the plain `[C1]`" in writing
+    assert "idempotent and reversible" in writing
+    assert (
+        "every generated evidence definition survived PDF extraction and that "
+        "every mark and back-reference became a working PDF link"
+    ) in verification
 
 
 def test_writing_quotes_the_live_checker_regexes():

@@ -4,7 +4,7 @@ import check_pdf
 from check_pdf import (code_lines, parse_pdffonts, wrapped_lines, broken_xrefs,
                        pages, sample_pages, incomplete_decision_blocks,
                        diagram_problems, diagram_render_problems,
-                       evidence_render_problems)
+                       evidence_render_problems, evidence_link_problems)
 
 SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "implementation-study"
 
@@ -261,6 +261,22 @@ def test_broken_figure_reference_is_reported():
     assert any("Figure 9" in problem for problem in problems)
 
 
+def test_diagram_render_check_tolerates_pandoc_smart_punctuation():
+    # Same smart-punctuation trap as the evidence check: a label written
+    # `one K-stage -- read by the MFMAs` or with an apostrophe comes back from
+    # the page as an en dash or a curly quote. Found on a real study, where
+    # four labels that rendered perfectly were reported as missing.
+    md = DIAGRAM_MD.replace(
+        "<text x=\"20\" y=\"40\">entry point</text>",
+        "<text x=\"20\" y=\"40\">one K-stage -- the CU's budget</text>",
+    )
+    pdf_text = md.replace(
+        "one K-stage -- the CU's budget",
+        "one K-stage \u2013 the CU\u2019s budget",
+    )
+    assert diagram_render_problems(md, pdf_text) == []
+
+
 def test_diagram_render_check_reports_missing_visible_svg_text():
     pdf_text = DIAGRAM_MD.replace("worker", "")
     problems = diagram_render_problems(DIAGRAM_MD, pdf_text)
@@ -281,13 +297,17 @@ def test_sample_pages_reports_each_required_diagram():
 
 
 EVIDENCE_MD = """\
+## 8. Body
+
+The queue starts with the source <a id="ref-C1-1" href="#evidence-C1">[C1]</a>.
+
 <!-- evidence-ledger: generated from notes; do not edit -->
 ## 9. Evidence ledger
 
 Each citation ID used above is defined here.
 
-- **[C1] The queue starts with the source.** cite: algo.py:1 `queue = [source]`
-- **[D2] Append is constant time.** derive: C1 -- deque append does not copy
+- <span id="evidence-C1">**[C1] The queue starts with the source.** cite: algo.py:1 `queue = [source]`</span> (cited at [1](#ref-C1-1))
+- <span id="evidence-D2">**[D2] Append is constant time.** derive: C1 -- deque append does not copy</span>
 
 <!-- /evidence-ledger -->
 """
@@ -303,12 +323,82 @@ def test_evidence_render_check_accepts_wrapped_extracted_text():
     assert evidence_render_problems(EVIDENCE_MD, pdf_text) == []
 
 
+def test_evidence_render_check_tolerates_pandoc_smart_punctuation():
+    # pandoc's smart punctuation is on by default, so a `derive: C1 -- why`
+    # source reaches the page as an en dash. End-to-end rendering surfaced
+    # this: the definition was present and correct and the check still called
+    # it missing.
+    pdf_text = (
+        "Evidence ledger\n"
+        "[C1] The queue starts with the source. cite: algo.py:1 queue = [source]\n"
+        "[D2] Append is constant time. derive: C1 \u2013 deque append does not copy\n"
+    )
+    assert evidence_render_problems(EVIDENCE_MD, pdf_text) == []
+
+
+def test_evidence_render_check_ignores_a_page_footer_inside_a_definition():
+    # A definition that straddles a page break has the running page number
+    # spliced into the middle of it by `pdftotext -layout`. Found on a real
+    # 25-page study, where three correct definitions were reported missing.
+    pdf_text = (
+        "Evidence ledger\n"
+        "[C1] The queue starts with the source. cite: algo.py:1 queue =\n"
+        "16\n\f"
+        "[source]\n"
+        "[D2] Append is constant time. derive: C1 -- deque append does not copy\n"
+    )
+    assert evidence_render_problems(EVIDENCE_MD, pdf_text) == []
+
+
 def test_evidence_render_check_reports_a_missing_definition():
     problems = evidence_render_problems(EVIDENCE_MD, "Evidence ledger\n[C1]\n")
     assert any("C1" in problem for problem in problems)
     assert any("D2" in problem for problem in problems)
 
 
-def test_sample_pages_reports_evidence_ledger():
-    samples = sample_pages(EVIDENCE_MD, ["Title\n", "Evidence ledger\n[C1] claim\n"])
-    assert samples["evidence_ledger"] == 2
+def test_sample_pages_reports_the_evidence_ledger_not_the_contents_page():
+    # "Evidence ledger" is a Contents line too, so anchoring on the heading
+    # sends the visual check to the table of contents. Anchor on a definition.
+    page_texts = [
+        "Contents\n1. Body\n2. Evidence ledger\n",
+        "Body text\n",
+        "Evidence ledger\n[C1] The queue starts with the source. cite: algo.py:1\n",
+    ]
+    samples = sample_pages(EVIDENCE_MD, page_texts)
+    assert samples["evidence_ledger"] == 3
+
+
+def test_evidence_link_check_accepts_reachable_destinations():
+    # D2 is in the ledger but no sentence cites it, so Chrome emits no
+    # destination for it and none is required -- an unused ledger entry is
+    # allowed on purpose. Only C1, which is cited, must be reachable.
+    pdf_bytes = (b"/Subtype /Link /Dest /evidence-C1\n"
+                 b"/Subtype /Link /Dest /ref-C1-1\n"
+                 b"<</evidence-C1 [9 0 R] /ref-C1-1 [2 0 R]>>")
+    assert evidence_link_problems(EVIDENCE_MD, pdf_bytes) == []
+
+
+def test_evidence_link_check_reports_an_unreachable_back_reference():
+    pdf_bytes = b"<</evidence-C1 [9 0 R]>>"
+    assert evidence_link_problems(EVIDENCE_MD, pdf_bytes) == [
+        "evidence link target is not reachable in the PDF: ref-C1-1"
+    ]
+
+
+def test_evidence_link_check_reports_an_unreachable_definition():
+    pdf_bytes = b"<</ref-C1-1 [2 0 R]>>"
+    assert evidence_link_problems(EVIDENCE_MD, pdf_bytes) == [
+        "evidence link target is not reachable in the PDF: evidence-C1"
+    ]
+
+
+def test_evidence_link_check_finds_destinations_inside_compressed_streams():
+    # Chrome writes these as plain objects today. If a future version packs
+    # them into a compressed object stream, the check must keep looking rather
+    # than report every link as broken.
+    import zlib
+
+    packed = zlib.compress(b"<</evidence-C1 [9 0 R] /evidence-D2 [9 0 R] "
+                           b"/ref-C1-1 [2 0 R]>>")
+    pdf_bytes = b"1 0 obj\n<</Filter /FlateDecode>> stream\n" + packed + b"\nendstream"
+    assert evidence_link_problems(EVIDENCE_MD, pdf_bytes) == []
