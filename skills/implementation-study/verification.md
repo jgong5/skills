@@ -86,9 +86,10 @@ only when the repository under study has no version control:
         --repo-root ROOT --output-dir OUT [--snapshot FILE]
 
 This is the ledger discipline made mechanical: the terminal generated
-Evidence ledger exists and exactly matches the authoritative notes file, so a
-reader can resolve every inline ID inside the Markdown or PDF without opening
-that companion file; every entry parses in the exact grammar with a recognized
+Evidence ledger exists and exactly matches the authoritative notes file, and
+every prose mark carries its current cross-link, so a reader can resolve every
+inline ID inside the Markdown or PDF without opening that companion file;
+every entry parses in the exact grammar with a recognized
 evidence class; every `cite:` file citation
 resolves inside the repository with its backticked anchor still on the
 cited line; every `derive:` names ledger IDs that exist, shows its reasoning
@@ -208,8 +209,9 @@ read-through needs to re-examine.
 
 Do not call the study finished until all of the following are true:
 
-- Pass 1 (`check_pdf.py`) exits clean, including its check that every generated
-  evidence definition survived PDF extraction, and every sample page it
+- Pass 1 (`check_pdf.py`) exits clean, including its checks that every
+  generated evidence definition survived PDF extraction and that every mark
+  and back-reference became a working PDF link, and every sample page it
   reported -- including the Evidence ledger page -- has actually been
   rasterized and looked at;
 - Pass 2 (`check_evidence.py verify`) exits clean, using `--snapshot` only

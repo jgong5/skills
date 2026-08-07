@@ -121,8 +121,9 @@ vocabulary leaks backward into an earlier one's ledger.
    middle, the required implementation-structure, execution-flow, and
    decision-landscape figures, decision blocks, and back matter. As its final
    action, runs `check_evidence.py materialize-ledger` to project the
-   authoritative notes into a terminal Evidence ledger, so the Markdown and
-   PDF define every inline ID without a separate file. Discovers nothing new;
+   authoritative notes into a terminal Evidence ledger and cross-link every
+   mark to its definition and back, so the Markdown and PDF define every
+   inline ID without a separate file. Discovers nothing new;
    a sentence or edge that needs evidence Phase 1 or Phase 2 did not produce
    is a sign to go back, not to write or draw around it.
 4. **Render** -- read `<skill-dir>/rendering.md`. Turns `<stem>_study.md`
@@ -178,7 +179,7 @@ Do not report the study finished until every line below is true:
 - Every substantive claim carries at least one ledger ID, checked by a full
   read-through, not only by `check_evidence.py`'s mechanical pass; the current
   notes ledger is projected into the terminal Evidence ledger, making every ID
-  understandable inside the PDF itself.
+  understandable inside the PDF itself and clickable in both directions.
 - The implementation-structure, execution-flow, and decision-landscape inline
   SVG figures are present; each has accessible metadata, a numbered caption,
   an adjacent cited interpretation, and only relationships established by the

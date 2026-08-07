@@ -55,20 +55,26 @@ def test_renders_a_tiny_markdown_to_pdf(tmp_path):
 def test_generated_evidence_ledger_survives_pdf_extraction(tmp_path):
     import subprocess
 
+    import check_pdf
+
     md = tmp_path / "evidence.md"
     md.write_text("""\
 # Evidence fixture
 
-## 1. Sources
+## 1. Body
+
+The queue starts with the source <a id="ref-C1-1" href="#evidence-C1">[C1]</a>.
+
+## 2. Sources
 
 No external sources.
 
 <!-- evidence-ledger: generated from notes; do not edit -->
-## 2. Evidence ledger
+## 3. Evidence ledger
 
 Each citation ID used above is defined here.
 
-- **[C1] The queue starts with the source.** cite: algo.py:1 `queue = [source]`
+- <span id="evidence-C1">**[C1] The queue starts with the source.** cite: algo.py:1 `queue = [source]`</span> (cited at [1](#ref-C1-1))
 
 <!-- /evidence-ledger -->
 """)
@@ -81,6 +87,9 @@ Each citation ID used above is defined here.
     assert "[C1]" in extracted
     assert "The queue starts with the source" in extracted
     assert "algo.py:1" in extracted
+    # The whole point of the anchors: Chrome must turn the mark and its
+    # back-reference into real PDF link destinations, not just styled text.
+    assert check_pdf.evidence_link_problems(md.read_text(), pdf.read_bytes()) == []
 
 
 def test_inline_svg_survives_html_and_pdf_with_selectable_text(tmp_path):

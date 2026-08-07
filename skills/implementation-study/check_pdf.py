@@ -14,6 +14,8 @@ Mechanical checks, over every page:
     `**Why this one.**`, in that order) is complete and in order
   * all three required inline-SVG diagrams have canonical metadata, resolvable
     figure references, and visible text that survived PDF extraction
+  * every generated evidence definition survived extraction, and every `[C1]`
+    mark and its back-reference became a working PDF link
   * pdfinfo reports a page count
 
 Then reports which page number carries the title, contents, all three required
@@ -29,6 +31,7 @@ from __future__ import annotations
 import re
 import subprocess
 import sys
+import zlib
 from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
@@ -41,10 +44,16 @@ LEDGER_START = "<!-- evidence-ledger: generated from notes; do not edit -->"
 LEDGER_END = "<!-- /evidence-ledger -->"
 LEDGER_HEADING_RE = re.compile(r"^##\s+\d+\.\s+Evidence ledger\s*$", re.MULTILINE)
 LEDGER_ENTRY_RE = re.compile(
-    r"^- \*\*\[([A-Z][A-Z0-9_-]*\d+)\] (.+?)\.\*\* "
-    r"(cite|derive|measure): (.+)$",
+    r'^- <span id="evidence-(?P<id>[A-Z][A-Z0-9_-]*\d+)">'
+    r'\*\*\[(?P=id)\] (?P<claim>.+?)\.\*\* '
+    r'(?P<kind>cite|derive|measure): (?P<source>.*?)</span>',
     re.MULTILINE,
 )
+PROSE_ANCHOR_RE = re.compile(
+    r'<a id="(?P<anchor>ref-(?P<id>[A-Z][A-Z0-9_-]*)-\d+)" '
+    r'href="#evidence-(?P=id)">'
+)
+DEST_NAME_RE = re.compile(rb"/((?:evidence|ref)-[A-Za-z0-9_-]+)")
 
 # Machine-readable contract with writing.md. Change both ends together.
 DECISION_MARKERS = (
@@ -206,7 +215,7 @@ def evidence_render_problems(md_text: str, pdf_text: str) -> list[str]:
     block = md_text[start:end]
     if not LEDGER_HEADING_RE.search(block):
         return ["generated Evidence ledger has no numbered heading"]
-    normalized_pdf = _normalize_ws(pdf_text)
+    normalized_pdf = _normalize_text(_body_text(pdf_text))
     problems = []
     if "Evidence ledger" not in normalized_pdf:
         problems.append("Evidence ledger heading did not survive extraction")
@@ -214,27 +223,86 @@ def evidence_render_problems(md_text: str, pdf_text: str) -> list[str]:
     if not entries:
         problems.append("generated Evidence ledger has no entries")
     for match in entries:
-        entry_id, claim, kind, source = match.groups()
-        rendered_source = source.replace("`", "")
-        expected = _normalize_ws(
-            f"[{entry_id}] {claim}. {kind}: {rendered_source}"
+        rendered_source = match.group("source").replace("`", "")
+        expected = _normalize_text(
+            f"[{match.group('id')}] {match.group('claim')}. "
+            f"{match.group('kind')}: {rendered_source}"
         )
         if expected not in normalized_pdf:
             problems.append(
-                f"evidence definition did not survive extraction: {entry_id}"
+                "evidence definition did not survive extraction: "
+                + match.group("id")
             )
     return problems
+
+
+def _pdf_destination_names(pdf_bytes: bytes) -> set[bytes]:
+    """Every name the PDF uses as a link target or a named destination.
+
+    Chrome writes each `href="#name"` as `/Dest /name` on a link annotation and
+    each matching element `id` as a `/name [...]` entry in the document's
+    destination dictionary. Both are plain objects today; the compressed
+    streams are searched too so a future Chrome that packs them away does not
+    silently turn this check into a no-op.
+    """
+    chunks = [pdf_bytes]
+    for match in re.finditer(rb"stream\r?\n", pdf_bytes):
+        start = match.end()
+        end = pdf_bytes.find(b"endstream", start)
+        if end < 0:
+            continue
+        try:
+            chunks.append(zlib.decompress(pdf_bytes[start:end]))
+        except zlib.error:
+            continue
+    names: set[bytes] = set()
+    for chunk in chunks:
+        names.update(match.group(1) for match in DEST_NAME_RE.finditer(chunk))
+    return names
+
+
+def evidence_link_problems(md_text: str, pdf_bytes: bytes) -> list[str]:
+    """Return evidence cross-links that did not become PDF links.
+
+    A `[C1]` a reader cannot click is the defect this catches: the definition
+    may be present and still leave them scrolling, which is the whole reason
+    the marks are anchored rather than merely printed.
+
+    Only cited IDs are expected to have a destination. Chrome emits a named
+    destination for an element id when something links to it, so an uncited
+    ledger entry -- which `writing.md` allows on purpose -- legitimately has
+    none, and demanding one would report a whole document as broken over
+    evidence that simply did not make the final cut.
+    """
+    anchors = list(PROSE_ANCHOR_RE.finditer(_outside_fences(md_text)))
+    cited = {match.group("id") for match in anchors}
+    expected = {
+        f"evidence-{match.group('id')}".encode()
+        for match in LEDGER_ENTRY_RE.finditer(md_text)
+        if match.group("id") in cited
+    }
+    expected.update(match.group("anchor").encode() for match in anchors)
+    if not expected:
+        return []
+    names = _pdf_destination_names(pdf_bytes)
+    return [
+        f"evidence link target is not reachable in the PDF: {name.decode()}"
+        for name in sorted(expected - names)
+    ]
 
 
 def diagram_render_problems(md_text: str, pdf_text: str) -> list[str]:
     """Return visible figure text that did not survive PDF extraction."""
     figures, _ = _diagrams(md_text)
-    haystack = {_normalize_ws(line) for line in pdf_text.splitlines()}
+    # Smart punctuation applies here too: a label written `A -- B` or with an
+    # apostrophe comes back from the page as an en dash or a curly quote, and
+    # comparing raw ASCII reports a label that rendered perfectly as missing.
+    haystack = {_normalize_text(line) for line in pdf_text.splitlines()}
     problems = []
     for figure in figures:
         labels = [figure["title"], figure["caption"], *figure["texts"]]
         for label in labels:
-            target = _normalize_ws(label)
+            target = _normalize_text(label)
             if target and not any(target in line for line in haystack):
                 problems.append(f"diagram text did not survive extraction: {label!r}")
     return problems
@@ -276,6 +344,39 @@ def parse_pdffonts(text: str) -> list[str]:
 
 def _normalize_ws(s: str) -> str:
     return re.sub(r"\s+", " ", s.strip())
+
+
+# pandoc's smart punctuation is on by default, so a `derive: C1 -- reasoning`
+# source reaches the page as an en dash and no longer matches the ASCII the
+# markdown (and this repository) is written in. Folding the rendered
+# typography back to ASCII compares what was said rather than how it was set.
+SMART_PUNCTUATION = str.maketrans({
+    "\u2013": "--", "\u2014": "---", "\u2018": "'", "\u2019": "'",
+    "\u201c": '"', "\u201d": '"', "\u2026": "...",
+})
+
+
+def _normalize_text(s: str) -> str:
+    return _normalize_ws(s.translate(SMART_PUNCTUATION))
+
+
+def _body_text(pdf_text: str) -> str:
+    """The extraction with each page's running footer removed.
+
+    `pdftotext -layout` keeps the page number where it sits on the page, so
+    joining the pages splices that number into whatever sentence straddled the
+    break. A definition that spans two pages is present and correct and would
+    still be reported as missing.
+    """
+    kept = []
+    for page in pages(pdf_text):
+        lines = page.splitlines()
+        while lines and not lines[-1].strip():
+            lines.pop()
+        if lines and lines[-1].strip().isdigit():
+            lines.pop()
+        kept.append("\n".join(lines))
+    return "\n".join(kept)
 
 
 def wrapped_lines(md_text: str, pdf_text: str) -> list[str]:
@@ -432,10 +533,18 @@ def sample_pages(md_text: str, page_texts: list[str]) -> dict[str, int]:
             if all(_normalize_ws(anchor) in normalized_page for anchor in anchors):
                 result[sample_name] = i
                 break
-    for i, normalized_page in enumerate(normalized_pages, start=1):
-        if "Evidence ledger" in normalized_page:
-            result["evidence_ledger"] = i
-            break
+    # Anchor on the first definition, not on the heading: "Evidence ledger" is
+    # also a Contents line, and reporting page 1 would send the visual check
+    # to the table of contents instead of the ledger it is meant to inspect.
+    first = LEDGER_ENTRY_RE.search(md_text)
+    if first:
+        target = _normalize_text(
+            f"[{first.group('id')}] {first.group('claim')}."
+        )
+        for i, text in enumerate(page_texts, start=1):
+            if target in _normalize_text(text):
+                result["evidence_ledger"] = i
+                break
     return result
 
 
@@ -484,6 +593,10 @@ def main(argv: list[str]) -> int:
     if rendered_evidence:
         problems.append(f"{len(rendered_evidence)} evidence render problem(s): "
                         + "; ".join(rendered_evidence[:5]))
+    evidence_links = evidence_link_problems(md_text, pdf.read_bytes())
+    if evidence_links:
+        problems.append(f"{len(evidence_links)} evidence link problem(s): "
+                        + "; ".join(evidence_links[:5]))
     page_count_m = re.search(r"^Pages:\s*(\d+)", info_text, re.MULTILINE)
     if not page_count_m:
         problems.append("pdfinfo did not report a page count")

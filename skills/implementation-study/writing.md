@@ -252,17 +252,29 @@ three are authored; the fourth is generated from the notes ledger:
 - **Evidence ledger.** The terminal, generated definition of every inline
   `[ID]`: claim, evidence class, and source. This makes the Markdown and PDF
   self-contained; a reader never needs the companion notes file to decode a
-  mark such as `[C1]`. The notes file remains the single authored source of
-  truth. Never type or edit this chapter by hand. After all authored prose and
-  notes are final, invoke through the project's command wrapper:
+  mark such as `[C1]`. Each definition is also a link target, and each entry
+  lists the sentences that cite it, so a reader clicks a mark to reach its
+  evidence and clicks back to where they were reading. The notes file remains
+  the single authored source of truth. Never type or edit this chapter by
+  hand. After all authored prose and notes are final, invoke through the
+  project's command wrapper:
 
       <skill-dir>/check_evidence.py materialize-ledger \
           <stem>_study.md <stem>_study.notes.md
 
   The command creates or replaces the managed terminal chapter
-  deterministically. If the notes change, rerun it before Render;
+  deterministically, and rewrites each plain `[C1]` in the prose into the
+  anchor that links it:
+
+      <a id="ref-C1-1" href="#evidence-C1">[C1]</a>
+
+  Keep typing the plain `[C1]`. The rewrite is idempotent and reversible --
+  it strips the previous anchors before generating new ones -- so edit a
+  linked sentence as though the marks were still plain text and rerun the
+  command. If the prose or the notes change, rerun it before Render;
   `check_evidence.py verify` rejects a missing, stale, reordered, or edited
-  projection.
+  projection, and that includes a citation added or deleted since the links
+  were last generated.
 
 Inline IDs remain required even though their definitions now appear at the
 end. They connect each sentence to one precise definition; the appendix makes
@@ -339,7 +351,9 @@ Do not move to Phase 4 until all of the following are true:
 - Improvements, Boundary note, Sources, and the generated Evidence ledger all
   exist in that order, with every improvement entry falsifiable; Sources is
   the final authored section, and `materialize-ledger` has projected the
-  current notes into the terminal managed section without hand edits;
+  current notes into the terminal managed section without hand edits, linking
+  every prose mark to its definition and every definition back to the
+  sentences that cite it;
 - every section heading is `## N. Title`, numbered sequentially with no
   gaps or repeats by discipline (checked by eye -- the checker only builds
   a set of numbers seen and does not notice a gap or a duplicate), and

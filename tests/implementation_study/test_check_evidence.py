@@ -16,9 +16,11 @@ from check_evidence import (
     check_embedded_ledger,
     extend_integrity_snapshot,
     main,
+    link_evidence_references,
     materialize_evidence_ledger,
     parse_ledger,
     render_evidence_ledger,
+    unlink_evidence_references,
     write_integrity_snapshot,
 )
 
@@ -76,9 +78,65 @@ def _all_kinds_ledger():
 def test_render_evidence_ledger_preserves_all_three_evidence_kinds():
     rendered = render_evidence_ledger(_all_kinds_ledger(), 3)
     assert "## 3. Evidence ledger" in rendered
-    assert "**[C1] The queue starts with the source.** cite: algo.py:1 `queue`" in rendered
-    assert "**[D2] Append is constant time.** derive: C1 -- the queue is a deque" in rendered
-    assert "**[M3] Batching wins.** measure: exp/bench.py -> exp/bench.out" in rendered
+    assert '<span id="evidence-C1">**[C1] The queue starts with the source.**' \
+        " cite: algo.py:1 `queue`</span>" in rendered
+    assert '<span id="evidence-D2">**[D2] Append is constant time.**' \
+        " derive: C1 -- the queue is a deque</span>" in rendered
+    assert '<span id="evidence-M3">**[M3] Batching wins.**' \
+        " measure: exp/bench.py -> exp/bench.out</span>" in rendered
+
+
+def test_evidence_marks_link_to_their_definition_and_back():
+    entries = _all_kinds_ledger()
+    study = materialize_evidence_ledger(
+        "## 1. Body\n\nFirst [C1], then [C1] again, and [D2].\n\n"
+        "## 2. Sources\n\nNone.\n",
+        entries,
+    )
+    assert '<a id="ref-C1-1" href="#evidence-C1">[C1]</a>' in study
+    assert '<a id="ref-C1-2" href="#evidence-C1">[C1]</a>' in study
+    assert '<a id="ref-D2-1" href="#evidence-D2">[D2]</a>' in study
+    assert "(cited at [1](#ref-C1-1), [2](#ref-C1-2))" in study
+    assert "(cited at [1](#ref-D2-1))" in study
+    # M3 is never cited, so it gets a definition and no back-reference list.
+    assert '<span id="evidence-M3">' in study
+    assert "#ref-M3-1" not in study
+
+
+def test_linking_leaves_fenced_and_inline_code_alone():
+    entries = _all_kinds_ledger()
+    prose = "```text\n[C1]\n```\n\nUse `[C1]` literally, but cite [C1] here.\n"
+    linked, counts = link_evidence_references(prose, entries)
+    assert "```text\n[C1]\n```" in linked
+    assert "`[C1]` literally" in linked
+    assert counts == {"C1": 1}
+
+
+def test_linking_is_idempotent_and_reversible():
+    entries = _all_kinds_ledger()
+    prose = "Cite [C1] and [D2].\n"
+    linked, _ = link_evidence_references(prose, entries)
+    assert link_evidence_references(linked, entries)[0] == linked
+    assert unlink_evidence_references(linked) == prose
+
+
+def test_an_unknown_id_is_left_unlinked_for_prose_coverage_to_report():
+    entries = _all_kinds_ledger()
+    linked, counts = link_evidence_references("Unsupported [C9].\n", entries)
+    assert linked == "Unsupported [C9].\n"
+    assert counts == {}
+    assert check_prose_coverage(linked, entries) == [
+        "prose references unknown ledger id C9"
+    ]
+
+
+def test_a_citation_added_after_linking_is_reported_as_stale():
+    entries = _all_kinds_ledger()
+    study = materialize_evidence_ledger(_authored_study(), entries)
+    edited = study.replace(
+        "## 2. Sources", "One more mention [D2].\n\n## 2. Sources"
+    )
+    assert "stale" in check_embedded_ledger(edited, entries)[0]
 
 
 def test_materialize_evidence_ledger_is_idempotent_and_replaces_stale_copy():

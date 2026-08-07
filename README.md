@@ -197,7 +197,9 @@ approved experiment scripts and their captured output under
 `<stem>_study_experiments/`, and the rendered `<stem>_study.pdf`. The notes
 file is the authoritative, machine-checked ledger; before rendering, the skill
 projects it into a generated terminal Evidence ledger in the study, so every
-`[C1]`-style mark is defined inside the PDF and the PDF can be read on its own.
+`[C1]`-style mark is defined inside the PDF and the PDF can be read on its
+own. Those marks are hyperlinks in both directions -- click one to jump to its
+evidence, click the entry's back-reference to return to the sentence.
 Every one of those paths must be new -- the skill creates files and never
 overwrites one.
 

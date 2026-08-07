@@ -74,6 +74,15 @@ LEDGER_END = "<!-- /evidence-ledger -->"
 LEDGER_BLOCK_RE = re.compile(
     rf"(?ms)^{re.escape(LEDGER_START)}\n.*?^{re.escape(LEDGER_END)}\s*$"
 )
+# Both ends of the generated cross-link: the anchor that wraps an inline `[C1]`
+# in the prose, and the `<span>` that wraps its definition in the appendix.
+# Chrome turns each `href="#name"` into a PDF link annotation and each `id`
+# into a named destination, which is what makes the marks clickable both ways.
+PROSE_ANCHOR_RE = re.compile(
+    r'<a id="ref-(?P<id>[A-Z][A-Z0-9_-]*)-(?P<n>\d+)" '
+    r'href="#evidence-(?P=id)">\[(?P=id)\]</a>'
+)
+INLINE_CODE_SPAN_RE = re.compile(r"`[^`\n]*`")
 
 SNAPSHOT_VERSION = 1
 HASH_CHUNK = 1024 * 1024
@@ -227,23 +236,101 @@ def parse_ledger(text: str) -> dict[str, LedgerEntry]:
     return entries
 
 
+def unlink_evidence_references(text: str) -> str:
+    """Strip generated prose anchors back to the plain `[ID]` an author types."""
+    return PROSE_ANCHOR_RE.sub(lambda match: f"[{match.group('id')}]", text)
+
+
+def _link_plain(
+    text: str, entries: dict[str, LedgerEntry], counts: dict[str, int]
+) -> str:
+    def replace(match: re.Match) -> str:
+        entry_id = match.group(1)
+        if entry_id not in entries:
+            # An unknown ID is check_prose_coverage's finding to report, not
+            # something to paper over with a link to a definition that does
+            # not exist.
+            return match.group(0)
+        counts[entry_id] = counts.get(entry_id, 0) + 1
+        return (
+            f'<a id="ref-{entry_id}-{counts[entry_id]}" '
+            f'href="#evidence-{entry_id}">[{entry_id}]</a>'
+        )
+
+    return PROSE_REF_RE.sub(replace, text)
+
+
+def _link_line(
+    line: str, entries: dict[str, LedgerEntry], counts: dict[str, int]
+) -> str:
+    """Link every `[ID]` on one line, leaving inline code spans untouched."""
+    pieces: list[str] = []
+    position = 0
+    for code in INLINE_CODE_SPAN_RE.finditer(line):
+        pieces.append(_link_plain(line[position:code.start()], entries, counts))
+        pieces.append(code.group(0))
+        position = code.end()
+    pieces.append(_link_plain(line[position:], entries, counts))
+    return "".join(pieces)
+
+
+def link_evidence_references(
+    prose: str, entries: dict[str, LedgerEntry]
+) -> tuple[str, dict[str, int]]:
+    """Anchor every authored `[ID]` so it jumps to its ledger definition.
+
+    Returns the rewritten prose and how many times each ID was cited, which is
+    what the appendix needs to link back to each citing sentence. Existing
+    anchors are stripped first, so this is idempotent and an author can edit a
+    linked sentence as though the marks were still plain text. Fenced blocks
+    and inline code are left alone: `writing.md` documents this very syntax in
+    fences, and a `[C1]` inside backticks is code, not a citation.
+    """
+    counts: dict[str, int] = {}
+    out: list[str] = []
+    fence: str | None = None
+    for line in unlink_evidence_references(prose).split("\n"):
+        marker = FENCE_RE.match(line.strip())
+        if marker:
+            if fence is None:
+                fence = marker.group(1)
+            elif marker.group(1) == fence:
+                fence = None
+            out.append(line)
+            continue
+        out.append(line if fence is not None else _link_line(line, entries, counts))
+    return "\n".join(out), counts
+
+
 def render_evidence_ledger(
-    entries: dict[str, LedgerEntry], section_number: int
+    entries: dict[str, LedgerEntry],
+    section_number: int,
+    occurrences: dict[str, int] | None = None,
 ) -> str:
     """Render the notes ledger as a terminal, human-readable study appendix."""
+    occurrences = occurrences or {}
     lines = [
         LEDGER_START,
         f"## {section_number}. Evidence ledger",
         "",
         "Each citation ID used above is defined here so this document can be "
-        "read without its companion notes file. The notes file remains the "
-        "authoritative ledger.",
+        "read without its companion notes file, and every mark links to its "
+        "definition and back to the sentences that cite it. The notes file "
+        "remains the authoritative ledger.",
         "",
     ]
     for entry in entries.values():
-        lines.append(
-            f"- **[{entry.id}] {entry.claim}.** {entry.kind}: {entry.source}"
+        definition = (
+            f'- <span id="evidence-{entry.id}">**[{entry.id}] {entry.claim}.** '
+            f"{entry.kind}: {entry.source}</span>"
         )
+        count = occurrences.get(entry.id, 0)
+        if count:
+            back = ", ".join(
+                f"[{n}](#ref-{entry.id}-{n})" for n in range(1, count + 1)
+            )
+            definition += f" (cited at {back})"
+        lines.append(definition)
     lines.extend(["", LEDGER_END])
     return "\n".join(lines)
 
@@ -280,7 +367,12 @@ def _section_number_before_ledger(study_text: str) -> tuple[int | None, list[str
 def materialize_evidence_ledger(
     study_text: str, entries: dict[str, LedgerEntry]
 ) -> str:
-    """Create or replace the one managed terminal appendix, idempotently."""
+    """Link the prose marks and (re)build the managed terminal appendix.
+
+    Idempotent by construction: the previous appendix and the previous anchors
+    are both removed before either is regenerated, so running this twice on
+    unchanged inputs produces byte-identical output.
+    """
     starts = study_text.count(LEDGER_START)
     ends = study_text.count(LEDGER_END)
     blocks = _ledger_blocks(study_text)
@@ -293,14 +385,20 @@ def materialize_evidence_ledger(
     section_number, problems = _section_number_before_ledger(study_text)
     if problems:
         raise EvidenceFormatError(problems[0])
-    block = render_evidence_ledger(entries, section_number)
-    return study_text.rstrip() + "\n\n" + block + "\n"
+    prose, occurrences = link_evidence_references(study_text, entries)
+    block = render_evidence_ledger(entries, section_number, occurrences)
+    return prose.rstrip() + "\n\n" + block + "\n"
 
 
 def check_embedded_ledger(
     study_text: str, entries: dict[str, LedgerEntry]
 ) -> list[str]:
-    """Require one current generated appendix at the end of the study."""
+    """Require a current appendix and a current set of prose cross-links.
+
+    Comparing against a fresh materialization is what makes this one check
+    cover both halves: an appendix that no longer matches the notes, and a
+    citation added, moved, or deleted since the links were last generated.
+    """
     starts = study_text.count(LEDGER_START)
     ends = study_text.count(LEDGER_END)
     blocks = _ledger_blocks(study_text)
@@ -308,15 +406,14 @@ def check_embedded_ledger(
         return ["study has no generated Evidence ledger; run materialize-ledger"]
     if starts != 1 or ends != 1 or len(blocks) != 1:
         return ["study has malformed or duplicate generated Evidence ledger markers"]
-    section_number, problems = _section_number_before_ledger(study_text)
-    if problems:
-        return problems
-    expected = render_evidence_ledger(entries, section_number)
-    actual = blocks[0].group(0).rstrip()
-    if actual != expected:
+    try:
+        expected = materialize_evidence_ledger(study_text, entries)
+    except EvidenceFormatError as exc:
+        return [str(exc)]
+    if expected != study_text:
         return [
-            "generated Evidence ledger is stale or hand-edited; rerun "
-            "materialize-ledger from the notes file"
+            "generated Evidence ledger or its citation links are stale or "
+            "hand-edited; rerun materialize-ledger from the notes file"
         ]
     return []
 
