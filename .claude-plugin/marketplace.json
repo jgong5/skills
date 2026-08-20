@@ -52,7 +52,7 @@
     {
       "name": "implementation-study",
       "source": "./",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "description": "Turn one algorithm implementation into a diagram-first verified PDF study: inline-SVG structure, execution, and decision views backed by claims that are cited, derived, or measured.",
       "category": "engineering",
       "keywords": [

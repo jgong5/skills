@@ -163,7 +163,9 @@ choice to win. Three inline-SVG views form the visual backbone -- implementation
 structure, execution/data/state flow, and the decision landscape -- with
 additional state, layout, lifecycle, concurrency, or algorithm-stage figures
 when the implementation needs them. Prose interprets those visuals instead of
-reading every box and arrow aloud.
+reading every box and arrow aloud, and each key algorithm gets pseudocode in
+the domain's own vocabulary -- a top level at one altitude, with complex
+steps refined into their own named blocks rather than piled into one.
 
 ```
 /implementation-study path/to/file.py:symbol
@@ -180,7 +182,7 @@ Five phases run in order, each reading only its own reference doc:
 | --- | --- |
 | Analyze | Resolves the boundary, the contract, and the caller map; opens the comprehension ledger; records the integrity baseline the last phase checks against. |
 | Investigate | Turns the ledger into a decision inventory -- the implementation's choices, their realistic alternatives, and the trade-off between them. Proposes an experiment only when a trade-off cannot be settled by reasoning. |
-| Write | Turns the ledger and the inventories into a diagram-first study: a fixed five-section spine, three required inline-SVG views, supplemental visuals where relationships beat enumeration, a middle shaped by the code, decision blocks, and back matter. Discovers nothing new. |
+| Write | Turns the ledger and the inventories into a diagram-first study: a fixed five-section spine, three required inline-SVG views, supplemental visuals where relationships beat enumeration, refined pseudocode for each key algorithm, a middle shaped by the code, decision blocks, and back matter. Discovers nothing new. |
 | Render | Turns the markdown and vector figures into a PDF through pandoc and headless Chrome, classifying crowded diagrams and overlong code before touching the stylesheet. |
 | Verify | The gate: mechanical PDF and SVG-survival checks, a mechanical evidence check, rasterized inspection of every figure page, and a manual read-through, with every finding routed back to the phase that caused it. |
 

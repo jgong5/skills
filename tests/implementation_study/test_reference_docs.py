@@ -5,7 +5,7 @@ SKILL_DIR = REPO_ROOT / "skills" / "implementation-study"
 README = REPO_ROOT / "README.md"
 DOCS = (
     "analysis.md", "investigation.md", "experiments.md", "writing.md",
-    "rendering.md", "verification.md",
+    "rendering.md", "verification.md", "pseudocode.md",
 )
 
 
@@ -166,6 +166,55 @@ def test_diagram_first_contract_is_documented_across_phases():
     assert "decision-landscape figure" in investigation
     assert "Every factual node, edge, transition, and comparison" in writing
     assert "every diagram page" in verification
+
+
+def test_pseudocode_contract_is_documented_across_phases():
+    # Pseudocode is composed in Phase 3 but traced in Phase 1 and read again
+    # in Phase 5, so the rule has to be visible in each of those docs rather
+    # than only in the language doc a writer happens to open.
+    pseudocode = (SKILL_DIR / "pseudocode.md").read_text()
+    writing = _normalize((SKILL_DIR / "writing.md").read_text())
+    analysis = _normalize((SKILL_DIR / "analysis.md").read_text())
+    verification = _normalize((SKILL_DIR / "verification.md").read_text())
+    skill = _normalize((SKILL_DIR / "SKILL.md").read_text())
+
+    assert "## Stepwise refinement" in pseudocode
+    assert "`<skill-dir>/pseudocode.md`" in writing
+    assert "step trace" in analysis
+    assert "step trace" in writing
+    assert "`pseudocode` block opens with a `procedure` or `refine` header" \
+        in verification
+    assert "`<skill-dir>/pseudocode.md`" in skill
+    # "Where applicable" is part of the contract: a delegating routine gets a
+    # plain sentence, not a manufactured block.
+    assert "only delegates" in skill
+    assert "does not earn a block" in _normalize(pseudocode)
+
+
+def test_pseudocode_contract_matches_the_checker():
+    # Ties the prose's grammar and step limit to the compiled patterns, so a
+    # change to either end without the other fails here.
+    import check_pdf
+
+    text = (SKILL_DIR / "pseudocode.md").read_text()
+    for name in ("PSEUDOCODE_FENCE_RE", "PSEUDOCODE_HEADER_RE",
+                 "PSEUDOCODE_MAX_STEPS"):
+        assert name in text
+    assert str(check_pdf.PSEUDOCODE_MAX_STEPS) in text
+    for keyword in ("procedure", "refine"):
+        assert check_pdf.PSEUDOCODE_HEADER_RE.match(f"{keyword} name(x):")
+
+
+def test_pseudocode_worked_example_satisfies_the_checker():
+    # The copyable example is what an author imitates, so it must pass the
+    # same check their study will. Scoped to the worked-example section: the
+    # grammar snippets above it are templates with `<name>` placeholders.
+    import check_pdf
+
+    text = (SKILL_DIR / "pseudocode.md").read_text()
+    example = text.split("## A worked example", 1)[1].split("## Evidence", 1)[0]
+    assert "```pseudocode" in example
+    assert check_pdf.pseudocode_problems(example) == []
 
 
 def test_diagram_contract_matches_checker_roles():
