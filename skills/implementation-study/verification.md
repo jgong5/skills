@@ -31,10 +31,12 @@ every code line in the markdown survives verbatim (mod whitespace) in the
 is caught; every "section N" / "sections N and M" cross-reference resolves
 to a `## N.` heading that exists; every `**Decision.**` /
 `**Alternatives.**` / `**Why this one.**` block is complete and in order;
-and `pdfinfo` reports a page count. It exits 0 and prints a one-line
-"clean: N pages, all fonts embedded" summary followed by a sample-page
-table; it exits 1 with one `PROBLEM:` line per failed category on stderr
-and skips the table.
+every `pseudocode` block opens with a `procedure` or `refine` header, has a
+name used once, stays inside the step limit, and -- when it is a `refine`
+block -- is called by another block; and `pdfinfo` reports a page count.
+It exits 0 and prints a one-line "clean: N pages, all fonts embedded"
+summary followed by a sample-page table; it exits 1 with one `PROBLEM:`
+line per failed category on stderr and skips the table.
 
 `check_pdf.py`'s fence detection is a simple toggle: any line that opens
 with ` ``` ` or `~~~` flips an in-fence flag, without remembering which of
@@ -168,6 +170,15 @@ relationship more directly than the prose; a decorative visual or a paragraph
 that simply reads the diagram aloud is a Phase 3 finding even when every
 mechanical check passes.
 
+Read each pseudocode block the same way. The top level should read as the
+algorithm itself, in the domain's vocabulary and at one altitude, not as the
+source with its syntax filed off; a block that could be swapped for the
+excerpt beside it without loss is a Phase 3 finding. Check that the paragraph
+after each block carries the ledger IDs for what the block asserts -- an ID
+typed inside the fence is invisible to `check_evidence.py` and supports
+nothing -- and that a step no ledger entry covers goes back to Phase 1's step
+trace rather than being talked around.
+
 Do not turn this pass into a mechanical check of the fixed-spine headings
 from `writing.md`. A section that honestly says "there are no callers" or
 "no canonical form exists" is not a defect -- the spine's five sections
@@ -190,7 +201,8 @@ not at the pass that happened to catch it:
   established.
 - A render, wrapping, visual, or cross-reference finding -- a code line
   that wrapped, a page that looks visually wrong, a "section N" pointing at
-  a heading that does not exist -- returns to `Phase 3 or tutorial.css`:
+  a heading that does not exist, a pseudocode block that overran the step
+  limit or transliterated its source -- returns to `Phase 3 or tutorial.css`:
   either the markdown itself needs to change (a shorter excerpt, a
   corrected section number, a fixed decision block), or `tutorial.css`'s
   code-sizing arithmetic needs to change per `rendering.md`, but not both

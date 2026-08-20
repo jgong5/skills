@@ -10,8 +10,8 @@ def test_every_skill_dir_reference_resolves():
     referenced = set(LINK_RE.findall(text))
     expected = {
         "analysis.md", "investigation.md", "experiments.md", "writing.md",
-        "rendering.md", "verification.md", "make_pdf.py", "check_pdf.py",
-        "check_evidence.py", "tutorial.css",
+        "pseudocode.md", "rendering.md", "verification.md", "make_pdf.py",
+        "check_pdf.py", "check_evidence.py", "tutorial.css",
     }
     assert expected <= referenced
     missing = [name for name in referenced if not (SKILL_DIR / name).exists()]

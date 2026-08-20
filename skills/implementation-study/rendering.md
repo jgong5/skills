@@ -60,7 +60,10 @@ kinds, and only one of them is a styling problem:
   set by the width arithmetic below, and re-solving it for height would
   shrink every other code block in the document to rescue one. Fix it in the
   markdown: a shorter excerpt, or a deliberate split into two blocks with a
-  sentence between them saying what the split skips.
+  sentence between them saying what the split skips. A page-tall
+  `pseudocode` block has its own fix, and it is the one the reader wanted
+  anyway: refine a step out into its own named block, per
+  `<skill-dir>/pseudocode.md`.
 
 Width and height are independent, and finding one tells you nothing about the
 other -- the block holding the longest line is usually not the tallest block
@@ -152,7 +155,8 @@ Do not move to Phase 5 until all of the following are true:
   handled accordingly -- excerpted, sized, or rewrapped, in that order of
   preference;
 - every code block taller than a page has been excerpted or split in the
-  markdown, never resized;
+  markdown, never resized, and a page-tall pseudocode block was refined into
+  a further named block rather than excerpted;
 - every inline-SVG figure fits on one page with readable labels and uncrossed
   edges; crowded figures were simplified or split by concern, never
   rasterized or globally shrunk;

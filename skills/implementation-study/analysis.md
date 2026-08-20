@@ -221,6 +221,23 @@ Preserve the same boundary discipline as the study: central state and adjacent
 collaborators belong; incidental utility calls do not. Its purpose is to make
 Phase 3 composition rather than discovery.
 
+## Trace the key algorithm's steps
+
+Pseudocode is written in Phase 3, but the steps it states are read here. For
+each routine inside the boundary whose control flow is load-bearing -- an
+order, a condition, a loop, a state transition a reader could not reconstruct
+from the signature -- record the steps in the order they run, each named for
+what it accomplishes and each carrying the evidence ID for the lines it
+summarizes. Keep one trace at one altitude: when a step hides detail that
+matters, note it as a candidate for its own trace rather than inlining its
+mechanics into this one.
+
+A routine that only delegates gets no trace and no pseudocode later; record
+that it delegates and trace what it delegates to. As with the visual
+inventory, this exists so Phase 3 composes rather than discovers -- a step
+that first appears while writing the pseudocode is an uncited claim wearing a
+monospace font.
+
 ## Phase 1 exit criteria
 
 Do not move to Phase 2 until all of the following exist:
@@ -233,6 +250,9 @@ Do not move to Phase 2 until all of the following exist:
 - a visual inventory covering the boundary nodes and edges, runtime stages,
   state transitions, important data movement, and any supplemental view that
   would make a load-bearing relationship visible rather than paragraph-long;
+- a step trace for every routine whose control flow is load-bearing, at one
+  altitude, with an evidence ID on every step and the steps that hide
+  detail worth its own trace marked as such;
 - a comprehension ledger (`<stem>_study.notes.md`) in the exact grammar
   above, with at least the contract, caller, and invariant claims entered;
 - an integrity baseline -- a clean git status, or a written

@@ -110,8 +110,8 @@ The document opens with these five sections, in this order, every time:
 2. Where it sits -- real callers, nearest public API path, dependents; say
    plainly when no callers exist.
 3. Background and the canonical algorithm -- only load-bearing concepts,
-   the standard name and form, pseudocode, complexity, an external source;
-   say plainly when no canonical form exists.
+   the standard name and form, its pseudocode, complexity, an external
+   source; say plainly when no canonical form exists.
 4. How this implementation departs from the canonical form -- the deltas
    from that standard form, or the design as a whole when the
    implementation is bespoke and there is no canonical form to depart from.
@@ -155,6 +155,31 @@ and drawing recipes are the machine-readable contract in `diagrams.md`. Use
 that markup exactly. These are load-bearing figures, not decoration, and
 `check_pdf.py` checks both their source structure and whether their visible text
 survived rendering.
+
+## Pseudocode composition
+
+Read `<skill-dir>/pseudocode.md` before writing any algorithm block. A figure
+carries shape and a source excerpt proves what the code says; neither states
+the algorithm's order and conditions, which is the job pseudocode does. Every
+key algorithm gets a block in the domain's own vocabulary, and a complex one
+is refined -- a top level at one altitude, with each step whose detail matters
+expanded into its own named block underneath.
+
+Write the canonical form in section 3 and the implementation in the same
+notation, so section 4's departures read as a diff rather than a paragraph
+asserting that a difference exists. A routine that only delegates earns no
+block: say so and spend the page on the routine it delegates to.
+
+Pseudocode is an assertion like any other: every step comes from Phase 1's
+step trace, and the paragraph immediately after the block carries the ledger
+IDs, exactly as the paragraph after a figure does. A step invented to make
+the block read well is a Phase 1 gap, not a writing decision.
+
+The fence's info string, the `procedure` and `refine` headers, unique block
+names, the step limit, and the rule that every `refine` block is called by
+another are the machine-readable contract in `pseudocode.md`
+(`check_pdf.py`'s `PSEUDOCODE_FENCE_RE`, `PSEUDOCODE_HEADER_RE`, and
+`PSEUDOCODE_MAX_STEPS`). Use that grammar exactly.
 
 ## Derived middle
 
@@ -335,6 +360,10 @@ Do not move to Phase 4 until all of the following are true:
 - every load-bearing state machine, data layout, lifecycle, concurrency
   protocol, or algorithm-stage relationship that reads more clearly as a
   visual has a supplemental figure;
+- every key algorithm whose control flow is load-bearing has a `pseudocode`
+  block in the study's own fixed vocabulary, refined into named blocks where
+  one block would run past the step limit, each followed by a cited
+  interpretation and none of them a transliteration of the source;
 - every decision block uses the exact three markers, in order, at column
   zero, separated by blank lines so the parts render as three lines rather
   than one paragraph, closed by the next `**Decision.**` or the next `## `

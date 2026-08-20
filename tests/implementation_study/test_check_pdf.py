@@ -4,7 +4,8 @@ import check_pdf
 from check_pdf import (code_lines, parse_pdffonts, wrapped_lines, broken_xrefs,
                        pages, sample_pages, incomplete_decision_blocks,
                        diagram_problems, diagram_render_problems,
-                       evidence_render_problems, evidence_link_problems)
+                       evidence_render_problems, evidence_link_problems,
+                       pseudocode_problems)
 
 SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "implementation-study"
 
@@ -402,3 +403,97 @@ def test_evidence_link_check_finds_destinations_inside_compressed_streams():
                            b"/ref-C1-1 [2 0 R]>>")
     pdf_bytes = b"1 0 obj\n<</Filter /FlateDecode>> stream\n" + packed + b"\nendstream"
     assert evidence_link_problems(EVIDENCE_MD, pdf_bytes) == []
+
+
+PSEUDOCODE_MD = """\
+## 1. Traversal
+
+```pseudocode
+procedure shortest_paths(graph, source):
+    dist <- {source: 0}
+    while queue is not empty:
+        relax(dist, queue, node, neighbor)
+    return dist
+```
+
+The frontier is consumed in arrival order [C1].
+
+```pseudocode
+refine relax(dist, queue, node, neighbor):
+    if neighbor is already in dist:
+        return
+    dist[neighbor] <- dist[node] + 1
+```
+"""
+
+
+def test_refined_pseudocode_passes():
+    assert pseudocode_problems(PSEUDOCODE_MD) == []
+
+
+def test_pseudocode_without_a_header_is_reported():
+    md = "```pseudocode\npop the queue\nreturn dist\n```\n"
+    problems = pseudocode_problems(md)
+    assert len(problems) == 1
+    assert "does not open with" in problems[0]
+
+
+def test_uncalled_refinement_is_reported():
+    md = PSEUDOCODE_MD.replace("        relax(dist, queue, node, neighbor)\n", "")
+    problems = pseudocode_problems(md)
+    assert len(problems) == 1
+    assert "refinement relax" in problems[0]
+    assert "never called" in problems[0]
+
+
+def test_self_reference_does_not_count_as_a_call():
+    # A refinement that only names itself (a recursive step) is still
+    # unreachable from the algorithm the study is explaining.
+    md = """```pseudocode
+procedure walk(tree):
+    return depth
+
+```
+
+```pseudocode
+refine descend(node):
+    descend(node.left)
+```
+"""
+    problems = pseudocode_problems(md)
+    assert len(problems) == 1
+    assert "refinement descend" in problems[0]
+
+
+def test_block_over_the_step_limit_is_reported():
+    steps = "\n".join(f"    step {i}" for i in range(check_pdf.PSEUDOCODE_MAX_STEPS + 1))
+    md = f"```pseudocode\nprocedure big(x):\n{steps}\n```\n"
+    problems = pseudocode_problems(md)
+    assert len(problems) == 1
+    assert "refine a step into its own block" in problems[0]
+    # Exactly at the limit is fine -- the message only fires above it.
+    steps = "\n".join(f"    step {i}" for i in range(check_pdf.PSEUDOCODE_MAX_STEPS))
+    assert pseudocode_problems(f"```pseudocode\nprocedure big(x):\n{steps}\n```\n") == []
+
+
+def test_duplicate_block_names_are_reported():
+    md = PSEUDOCODE_MD + """
+```pseudocode
+refine relax(dist, queue, node, neighbor):
+    return
+```
+"""
+    problems = pseudocode_problems(md)
+    assert len(problems) == 1
+    assert "redefines relax" in problems[0]
+
+
+def test_ordinary_code_fences_are_not_pseudocode_blocks():
+    assert pseudocode_problems(MD) == []
+    assert pseudocode_problems("```python\ndef f():\n    pass\n```\n") == []
+
+
+def test_a_study_without_pseudocode_is_not_a_problem():
+    # "Where applicable" is the rule: a delegating entry point earns no block,
+    # and the checker never demands one.
+    assert pseudocode_problems("## 1. Overview\n\nIt delegates.\n") == []

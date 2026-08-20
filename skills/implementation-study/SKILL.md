@@ -115,11 +115,12 @@ vocabulary leaks backward into an earlier one's ledger.
    `<skill-dir>/experiments.md` only when a trade-off is genuinely unclear
    without running code -- derivation from what Phase 1 already established
    settles most of them without it.
-3. **Write** -- read `<skill-dir>/writing.md` and
-   `<skill-dir>/diagrams.md`. Turns the ledger, visual inventory, and decision
-   inventory into `<stem>_study.md`: a diagram-first fixed spine and derived
-   middle, the required implementation-structure, execution-flow, and
-   decision-landscape figures, decision blocks, and back matter. As its final
+3. **Write** -- read `<skill-dir>/writing.md`, `<skill-dir>/diagrams.md`,
+   and `<skill-dir>/pseudocode.md`. Turns the ledger, visual inventory, step
+   trace, and decision inventory into `<stem>_study.md`: a diagram-first fixed
+   spine and derived middle, the required implementation-structure,
+   execution-flow, and decision-landscape figures, a refined pseudocode block
+   for each key algorithm, decision blocks, and back matter. As its final
    action, runs `check_evidence.py materialize-ledger` to project the
    authoritative notes into a terminal Evidence ledger and cross-link every
    mark to its definition and back, so the Markdown and PDF define every
@@ -146,6 +147,7 @@ past one of these produces a study that reads as confident and is not.
 | entry point ambiguous: resolves to more than one file or symbol | Stop and ask the user which one is meant; do not pick for them. |
 | the entry point sits at the repository root and no ancestor `docs/` exists | Stop and ask the user to name an output subdirectory inside the repository; do not create or guess one. An output directory equal to the repository root is rejected by `check_evidence.py` and would leave the no-modification boundary unchecked. |
 | no callers found anywhere in the repository | State plainly, in Phase 3's "Where it sits" section, that there are no callers, rather than omitting the section. |
+| the entry point only delegates, or its control flow is otherwise trivial | State that plainly and write no pseudocode block for it; describe the routine it delegates to instead. A block transcribed from a routine with nothing to explain spends a page and teaches nothing. |
 | no canonical form to depart from (the implementation is bespoke) | State plainly, in Phase 3, that no canonical form exists, and describe the design as a whole instead of a delta from a standard one. |
 | no tests exist for the entry point | Derive the contract only from the signature, docstring, and in-repo callers Phase 1 can actually read -- do not invent behavior the code does not demonstrate. |
 | the repository under study is not a git repository | Run `check_evidence.py snapshot` in Phase 1 instead of a clean `git status`, and pass `--snapshot` to `check_evidence.py verify` in Phase 5. |
@@ -186,6 +188,9 @@ Do not report the study finished until every line below is true:
   Phase 1 or Phase 2 inventories.
 - Every relationship better shown than enumerated has a supplemental visual,
   while every figure teaches something its prose does not merely repeat.
+- Every key algorithm whose control flow is load-bearing has a `pseudocode`
+  block in the domain's vocabulary, refined into named blocks rather than
+  written as one long one, each followed by a cited interpretation.
 - Every decision block has all three literal parts -- `**Decision.**`,
   `**Alternatives.**`, `**Why this one.**` -- at column zero, in order.
 - Every Improvements entry is falsifiable: a reader could go check the

@@ -79,6 +79,16 @@ DIAGRAM_SAMPLE_NAMES = {
     "execution-flow": "flow_diagram",
     "decision-landscape": "decisions_diagram",
 }
+# Machine-readable contract with pseudocode.md. A study's algorithm blocks
+# are fenced with the literal info string `pseudocode`; the first non-blank
+# line names the block, and `refine` marks a block as the expansion of a step
+# some other block calls. The step limit is what forces a complex algorithm to
+# be refined into named parts instead of written as one unreadable block.
+PSEUDOCODE_FENCE_RE = re.compile(r"^(?:```|~~~)pseudocode\s*$")
+PSEUDOCODE_HEADER_RE = re.compile(
+    r"^(?P<kind>procedure|refine)\s+(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*\("
+)
+PSEUDOCODE_MAX_STEPS = 20
 FIGURE_REF_RE = re.compile(r"\bFigure\s+(\d+)\b")
 FIGURE_CAPTION_RE = re.compile(r"^Figure\s+(\d+)\.\s+(.+)$")
 
@@ -416,6 +426,84 @@ def broken_xrefs(md_text: str) -> list[str]:
     return broken
 
 
+def _pseudocode_blocks(md_text: str) -> list[tuple[int, list[str]]]:
+    """(1-indexed fence line, non-blank body lines) per `pseudocode` block."""
+    blocks = []
+    current = None
+    start = 0
+    in_fence = False
+    for number, line in enumerate(md_text.splitlines(), start=1):
+        stripped = line.strip()
+        if FENCE_RE.match(stripped):
+            if in_fence:
+                in_fence = False
+                if current is not None:
+                    blocks.append((start, current))
+                    current = None
+            else:
+                in_fence = True
+                if PSEUDOCODE_FENCE_RE.match(stripped):
+                    current, start = [], number
+            continue
+        if current is not None and stripped:
+            current.append(stripped)
+    if current is not None:  # an unclosed fence at end of document
+        blocks.append((start, current))
+    return blocks
+
+
+def pseudocode_problems(md_text: str) -> list[str]:
+    """Return pseudocode blocks that break the pseudocode.md contract:
+    a missing or malformed header line, a name defined twice, a block over
+    PSEUDOCODE_MAX_STEPS steps, or a `refine` block no other block calls.
+    Nothing here requires a study to contain pseudocode at all -- an
+    implementation whose control flow is one delegating call earns no block,
+    and manufacturing one to satisfy a checker is the failure this skill
+    exists to avoid.
+    """
+    problems = []
+    defined = {}
+    bodies = []
+    for line_no, body in _pseudocode_blocks(md_text):
+        if not body:
+            problems.append(f"pseudocode block at line {line_no} is empty")
+            continue
+        header = PSEUDOCODE_HEADER_RE.match(body[0])
+        if header is None:
+            problems.append(
+                f"pseudocode block at line {line_no} does not open with "
+                "`procedure <name>(...):` or `refine <name>(...):`"
+            )
+            continue
+        name = header.group("name")
+        bodies.append((name, body[1:]))
+        if name in defined:
+            problems.append(
+                f"pseudocode block at line {line_no} redefines {name}, "
+                f"already defined at line {defined[name][1]}"
+            )
+            continue
+        defined[name] = (header.group("kind"), line_no)
+        if len(body) - 1 > PSEUDOCODE_MAX_STEPS:
+            problems.append(
+                f"pseudocode {name} at line {line_no} has {len(body) - 1} "
+                f"steps (limit {PSEUDOCODE_MAX_STEPS}); refine a step into "
+                "its own block"
+            )
+    for name, (kind, line_no) in defined.items():
+        if kind != "refine":
+            continue
+        call = re.compile(rf"\b{re.escape(name)}\s*\(")
+        called = any(caller != name and any(call.search(ln) for ln in lines)
+                     for caller, lines in bodies)
+        if not called:
+            problems.append(
+                f"refinement {name} at line {line_no} is never called by "
+                "another pseudocode block"
+            )
+    return problems
+
+
 def incomplete_decision_blocks(md_text: str) -> list[str]:
     """Return incomplete or out-of-order decision blocks outside fences."""
     blocks = []
@@ -581,6 +669,10 @@ def main(argv: list[str]) -> int:
             f"{len(incomplete)} incomplete decision block(s): "
             + "; ".join(incomplete[:5])
         )
+    pseudocode = pseudocode_problems(md_text)
+    if pseudocode:
+        problems.append(f"{len(pseudocode)} pseudocode contract problem(s): "
+                        + "; ".join(pseudocode[:5]))
     diagrams = diagram_problems(md_text)
     if diagrams:
         problems.append(f"{len(diagrams)} diagram contract problem(s): "
