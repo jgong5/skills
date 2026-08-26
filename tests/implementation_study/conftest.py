@@ -34,9 +34,13 @@ sys.path.insert(0, str(SKILL_DIR))
 #
 # This file cannot close the second case: the eviction below and the
 # provenance assertions in this suite's test_check_pdf.py and test_make_pdf.py
-# only guarantee which copy THIS suite imports. The symmetric guarantee for
-# asm-tutorial's suite has to live in tests/asm_tutorial/conftest.py. Until
-# then: run the whole `tests/` directory, or one suite at a time.
+# only guarantee which copy THIS suite imports. Every other suite now runs the
+# same eviction in its own conftest, which is what keeps a whole-`tests/` run
+# correct no matter which directory collects first -- skills/architecture-study
+# ships a third check_pdf.py and its suite sorts ahead of every other. The
+# explicit-two-directories case above stays unsupported: there, both conftests
+# load before any test module is imported, so nothing is cached yet for either
+# eviction to catch. Run the whole `tests/` directory, or one suite at a time.
 for script in SKILL_DIR.glob("*.py"):
     cached = sys.modules.get(script.stem)
     if cached is not None and Path(getattr(cached, "__file__", "")).resolve() != script.resolve():

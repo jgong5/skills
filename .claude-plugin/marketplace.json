@@ -50,13 +50,15 @@
       ]
     },
     {
-      "name": "implementation-study",
+      "name": "code-study",
       "source": "./",
-      "version": "0.5.0",
-      "description": "Turn one algorithm implementation into a diagram-first verified PDF study: inline-SVG structure, execution, and decision views backed by claims that are cited, derived, or measured.",
+      "version": "0.6.0",
+      "description": "Turn code you did not write into a diagram-first verified PDF study: one algorithm implementation, or a whole system's architecture. Every claim is cited, derived, or measured, and every figure is inline vector SVG.",
       "category": "engineering",
       "keywords": [
         "algorithm",
+        "architecture",
+        "design-review",
         "diagrams",
         "documentation",
         "tutorial",
@@ -64,7 +66,8 @@
         "code-explanation"
       ],
       "skills": [
-        "./skills/implementation-study"
+        "./skills/implementation-study",
+        "./skills/architecture-study"
       ]
     }
   ]

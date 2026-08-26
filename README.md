@@ -7,7 +7,7 @@ section for what it does and how to install it.
 | --- | --- | --- |
 | [`pr-review-kit`](#pr-review-kit) | `pr-explain`, `pr-review-draft`, `pr-review-dossier` | Context-first pull-request review |
 | [`amd-gpu`](#amd-gpu) | `kernel-perf`, `asm-tutorial` | Find a CDNA kernel's bottleneck by ablation; turn its assembly into a verified PDF tutorial |
-| [`implementation-study`](#implementation-study) | `implementation-study` | Turn one algorithm implementation into a diagram-first, evidence-grounded, verified PDF study |
+| [`code-study`](#code-study) | `implementation-study`, `architecture-study` | Turn code you did not write into a diagram-first, evidence-grounded, verified PDF study -- one algorithm, or a whole system's architecture |
 
 ## pr-review-kit
 
@@ -154,7 +154,22 @@ a tutorial this dense in 100-column assembly needs pandoc's markdown handling
 and a real print stylesheet, which is worth the extra dependencies for this
 one skill. That is a property of `asm-tutorial`, not a rule for this repo.
 
-## implementation-study
+## code-study
+
+Two skills for reading code you did not write and turning what you learned into
+a verified PDF. `implementation-study` zooms in on one algorithm;
+`architecture-study` zooms out to a whole system. Both are user-invoked only,
+both are language-agnostic, and both enforce the same rule: every substantive
+claim is cited to a line of the code, derived from something already cited,
+measured by an approved experiment, or omitted -- nothing is estimated to fill
+a gap.
+
+| Skill | Invocation | What it produces |
+| --- | --- | --- |
+| `implementation-study` | `/implementation-study path/to/file.py:symbol` | A study of one algorithm: what it computes, where it sits, how it departs from the canonical form, and why each choice beat its alternatives. |
+| `architecture-study` | `/architecture-study path/to/system` | A review of a system's design: the paradigms its structure witnesses, its contracts and seams, one traced execution, its trade-offs, where it blocks, and what a different design would buy. |
+
+### implementation-study
 
 Turns one algorithm implementation into a diagram-first study document and a
 verified PDF: what it computes, where it sits, why each choice was made rather
@@ -214,10 +229,65 @@ the alternatives and the trade-off rather than only the choice, and as an
 Improvements chapter whose every entry is falsifiable -- a reader can go
 check the stated condition and find it false.
 
+### architecture-study
+
+Turns a directory into an architecture review a peer would recognise: the
+paradigm each layer's structure actually witnesses and the forcing function
+that produced it, the contract at every seam and whether that seam could be
+cut, one execution traced from entry to exit with its state mutations and
+allocations, the trade-offs priced with the condition that makes each cost
+bite, the blocking and coupling mechanisms, one or two alternative paradigms
+with the condition under which each wins, and two to four questions the
+report cannot answer and you can.
+
+```
+/architecture-study path/to/system
+```
+
+The argument is a directory -- the working directory when omitted. A single
+file is not an architecture, and the skill says so and points at
+`/implementation-study` instead.
+
+Seven fixed sections answer the same seven questions every time, checked
+verbatim, so a reader who has read one report can navigate any other. Four
+inline-SVG views form the backbone -- system decomposition, contract map,
+execution lifecycle, and trade-off landscape -- with blocking-path,
+alternative-paradigm, state, layout, memory-lifetime, and concurrency figures
+where they beat a paragraph. Every abbreviation is spelled out and footnoted
+at its first use, once, and the checker enforces that too.
+
+Six phases run in order, each reading only its own reference doc:
+
+| Phase | What it does |
+| --- | --- |
+| Survey | Records the integrity baseline, declares the boundary, and builds the component and contract inventories. The boundary is exactly the files that were opened and read -- a component named but never read is reported as a boundary edge, not described. |
+| Trace | Follows one concrete execution end to end, recording state mutations, ownership transfers, allocations, seam crossings, and every point where it blocks. |
+| Weigh | Turns the inventories into decisions, realistic alternatives, priced trade-offs, alternative paradigms, and the open questions the report closes on. |
+| Write | Turns the four inventories into the seven-section report: the boundary block, the four required views, decision blocks, footnoted abbreviations, and the generated evidence ledger. Discovers nothing new. |
+| Render | Turns markdown and vector figures into a PDF through pandoc and headless Chrome, classifying crowded diagrams and overlong code before touching the stylesheet. |
+| Verify | The gate: mechanical PDF and evidence checks, rasterized inspection of every sample page, and six read-through sweeps, with every finding routed back to the phase that caused it. |
+
+Outputs land beside the code under the same rules as `implementation-study`:
+`<stem>_architecture.md`, `<stem>_architecture.notes.md`, the non-git
+`<stem>_architecture.integrity.json`, and `<stem>_architecture.pdf`.
+
+What keeps the report honest is the **witness rule**: every paradigm,
+contract, constraint, and coupling it names carries the code structure that
+instantiates it, cited to `path:line`. A pattern is not witnessed by a class
+name, a docstring, or a folder called `pipeline/`. The rule bites hardest on
+the constraints section, where "Python holds a Global Interpreter Lock" and
+"model calls are latency-bound" are facts about the world that will write
+themselves into any review that does not stop them. A mechanism with no
+witness becomes one of the closing questions instead of a finding.
+
+Unlike `implementation-study`, this skill runs nothing at all -- no
+experiments, no test suite, no service. A claim that needs a benchmark before
+it is credible is reported as a question, not implied to have been measured.
+
 ### Safety model
 
-- **The repository under study is read-only.** The skill writes only inside
-  the output paths above, and the final phase checks that mechanically: a
+- **The repository under study is read-only.** Each skill writes only inside
+  its own output paths above, and its final phase checks that mechanically: a
   clean `git status` against the baseline the first phase recorded, or a file
   snapshot comparison when the repository is not a git work tree. A phase
   that wants to reformat or "just quickly fix" something in the code under
@@ -228,7 +298,8 @@ check the stated condition and find it false.
   experiment must run with its language's cache and artifact writes
   suppressed (`PYTHONDONTWRITEBYTECODE=1` and the per-language equivalents),
   as part of the wrapper command, so those writes never happen.
-- **Experiments run only with explicit approval.** Each one is proposed as a
+- **Experiments run only with explicit approval**, and only in
+  `implementation-study`; `architecture-study` executes nothing. Each one is proposed as a
   single plan line naming the claim it supports, the script, what it
   measures, and its bounds; nothing is written or run until you approve that
   exact line. A declined experiment is recorded as declined, and the claim it
@@ -243,14 +314,14 @@ check the stated condition and find it false.
 
 ```
 /plugin marketplace add jgong5/skills
-/plugin install implementation-study@jgong5
+/plugin install code-study@jgong5
 ```
 
 Or from your shell:
 
 ```bash
 claude plugin marketplace add jgong5/skills
-claude plugin install implementation-study@jgong5
+claude plugin install code-study@jgong5
 ```
 
 ### Requirements
@@ -264,13 +335,12 @@ Same dependency set as `asm-tutorial`, and for the same reason: a dense
 technical document needs pandoc's markdown handling, a real print stylesheet,
 and poppler to check what actually came out.
 
-This skill is **user-invoked only** -- it never fires on its own, because a
+Both skills are **user-invoked only** -- neither fires on its own, because a
 study is a deliberate, expensive act, not something to start by mentioning a
-file. It is language-agnostic: nothing in the pipeline assumes Python, and
-the entry point can be any hand-written source file. It stops rather than
-studying generated, vendored, or minified code (`vendor/`, `third_party/`,
-`node_modules/`, `*.min.*`, or a "do not edit" header) -- code nobody
-hand-wrote has no design decisions to recover.
+file. Both are language-agnostic: nothing in either pipeline assumes Python.
+Both stop rather than studying generated, vendored, or minified code
+(`vendor/`, `third_party/`, `node_modules/`, `*.min.*`, or a "do not edit"
+header) -- code nobody hand-wrote has no design decisions to recover.
 
 ## Update
 
@@ -279,7 +349,7 @@ hand-wrote has no design decisions to recover.
 /plugin update <bundle>@jgong5
 ```
 
-where `<bundle>` is `pr-review-kit`, `amd-gpu`, or `implementation-study`.
+where `<bundle>` is `pr-review-kit`, `amd-gpu`, or `code-study`.
 Same commands work as `claude plugin ...` from the shell. Updates apply on
 restart.
 
@@ -312,12 +382,17 @@ skills/
   implementation-study/  # SKILL.md + five phase docs, experiments.md,
                          # make_pdf.py, check_pdf.py, check_evidence.py,
                          # tutorial.css
+  architecture-study/    # SKILL.md + six phase docs, paradigms.md,
+                         # diagrams.md, make_pdf.py, check_pdf.py,
+                         # check_evidence.py, tutorial.css
   kernel-perf/           # SKILL.md + ablation.md, modelling.md,
                          # bank_model.py, probe_roofline.py
 tests/
   asm_tutorial/          # pytest suite for asm-tutorial's scripts
   kernel_perf/           # pytest suite for the bank model and the probe
   implementation_study/  # pytest suite for implementation-study's scripts
+                         # and reference docs
+  architecture_study/    # pytest suite for architecture-study's scripts
                          # and reference docs
 ```
 
