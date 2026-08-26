@@ -16,17 +16,22 @@ change.
 
 ## Commands
 
-Tests run **inside the ROCm container**, per `/md1/users/jgong5/CLAUDE.md` and
-`gpu_docker/CLAUDE.md`. The host `python3` is 3.6 with no pytest; the
-container's is 3.12. Host path `/md1/users/jgong5` is container path
-`/workspace` -- edit on the host, run in the container.
+The suite is pytest, run from the repository root:
 
 ```bash
-cd /md1/users/jgong5/gpu_docker
-./shell.sh python3 -m pytest /workspace/skills/tests -q            # whole suite
-./shell.sh python3 -m pytest /workspace/skills/tests/asm_tutorial/test_check_pdf.py -v
-./shell.sh python3 -m pytest /workspace/skills/tests -k wrapped_lines -v   # one test
+python3 -m pytest tests -q                                  # whole suite
+python3 -m pytest tests/asm_tutorial/test_check_pdf.py -v   # one file
+python3 -m pytest tests -k wrapped_lines -v                 # one test
 ```
+
+Python 3.10 or newer: the skills' scripts use `X | None` annotations.
+
+**The interpreter that runs those commands may not be the one on your `PATH`.**
+Anything specific to this checkout -- a container or wrapper the commands go
+through, the host/container path mapping, how a missing dependency gets
+reinstalled -- belongs in `CLAUDE.local.md`, which `.gitignore` excludes. Read
+it before running anything here; if it is absent, run the commands as written.
+Nothing tracked in this repository may depend on its contents.
 
 Each suite's `conftest.py` puts its own skill directory on `sys.path`, so tests
 import the scripts by bare module name (`import check_pdf`). There is no
@@ -45,11 +50,12 @@ full analysis is in `tests/implementation_study/conftest.py`.
 
 The render tests -- `test_renders_a_tiny_markdown_to_pdf`,
 `test_footnotes_render_as_a_notes_chapter`,
-`test_a_conforming_report_passes_every_check` -- need pandoc and Chrome
-present in the container. Chrome does not survive `./teardown.sh` or an image
-upgrade -- reinstall with `gpu_docker/install-chrome.sh`.
+`test_a_conforming_report_passes_every_check` -- need `pandoc`, a Chrome-family
+binary, `poppler-utils`, and the `websockets` package actually present. A
+missing Chrome is the usual failure, and it is the one most likely to need a
+reinstall step recorded in `CLAUDE.local.md`.
 
-Before pushing a manifest change, run both (from the repo root, on the host):
+Before pushing a manifest change, run both from the repository root:
 
 ```bash
 claude plugin validate .
