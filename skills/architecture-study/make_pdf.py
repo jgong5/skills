@@ -1,28 +1,22 @@
 #!/usr/bin/env python3
-"""Render a tutorial markdown file to PDF.
+"""Render an architecture study markdown file to PDF.
 
     <skill-dir>/make_pdf.py <doc.md> [doc2.md ...]
 
-Markdown paths are required -- this script does not own a docs/ directory to
-glob, unlike the project-specific fork it was forked from. Output lands next
-to each input as .pdf. --keep-html leaves the intermediate HTML there too,
-which is the thing to look at when the PDF comes out wrong.
+Markdown paths are required. Output lands next to each input as .pdf.
+--keep-html leaves the intermediate HTML there too for layout diagnosis.
 
 The route is markdown -> HTML -> Chrome's print-to-PDF. pandoc does the first
 leg (tutorial.css is the print stylesheet, next to this file); Chrome does the
-second over the DevTools protocol rather than the --print-to-pdf command-line
-flag, because the flag gives no control over the running header and footer --
-it either stamps every page with the file:// URL or, with
---print-to-pdf-no-header, drops the page numbers as well.
-
-Requirements this script does not install, and that a container teardown or an
-image rebuild takes with it:
-
-    google-chrome                    usually installed by hand
-    python3 -c 'import websockets'   already present in some environments
-
-pandoc is expected to be present. Chrome finds "Liberation Serif" and friends through
-fontconfig, so nothing here has to name a font file.
+second through the DevTools protocol's Page.printToPDF, driven over a
+WebSocket, rather than the --print-to-pdf command-line flag. That is
+deliberate and load-bearing: the CLI flag offers no independent control over
+the running header and footer, so it either stamps every page with the
+file:// URL or, with --print-to-pdf-no-header, suppresses the URL and the page
+numbers together. Page.printToPDF takes headerTemplate and footerTemplate as
+separate parameters, which is the only way to get page numbers with no URL
+header -- see HEADER_HTML and FOOTER_HTML below. Simplifying this back to the
+CLI flag reintroduces that defect.
 """
 import asyncio
 import base64
