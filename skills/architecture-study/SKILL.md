@@ -189,7 +189,7 @@ produces a report that reads as confident and is not.
 | the system under study is not in a git work tree | Run `check_evidence.py snapshot` in Phase 1 and pass `--snapshot` to `verify` in Phase 6. |
 | the code under study is generated, vendored, or minified | Stop before Phase 1 starts. |
 | the studied directory is the repository root and no `docs/` exists | Stop and ask the user to name an output subdirectory inside the repository. |
-| Chrome/Chromium is missing at Render preflight | Stop and point the user at the project's Chrome-install help (e.g. `gpu_docker/install-chrome.sh`) by name; do not install a substitute browser. |
+| Chrome/Chromium is missing at Render preflight | Stop and point the user at the project's own Chrome-install help by name; do not install a substitute browser. |
 | `pandoc` is missing at Render preflight | Stop and report the gap. A missing `pandoc` is an environment problem, not a document problem. |
 | a `poppler-utils` tool (`pdftotext`, `pdffonts`, `pdfinfo`, `pdftoppm`) is missing at Verify preflight | Stop and name the missing tool and the package that provides it; do not skip the pass or report it clean without running it. |
 

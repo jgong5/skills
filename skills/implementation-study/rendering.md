@@ -22,10 +22,9 @@ skipping fonts): stop and report the specific gap instead.
   wrong with the environment, not with this document.
 - a Chrome-family binary (`google-chrome`, `google-chrome-stable`,
   `chromium`, or `chromium-browser` -- `make_pdf.py`'s `CHROME_CANDIDATES`).
-  Chrome does not survive a container teardown or an image upgrade; if the
-  project documents a Chrome-install script (e.g.
-  `gpu_docker/install-chrome.sh`), point the user at it by name rather than
-  installing a substitute browser yourself.
+  Chrome does not survive a container teardown or an image rebuild; if the
+  project documents a Chrome-install script, point the user at it by name
+  rather than installing a substitute browser yourself.
 - `websockets`, imported by `make_pdf.py` to drive Chrome over the DevTools
   protocol; install it the project's usual way if it is absent.
 

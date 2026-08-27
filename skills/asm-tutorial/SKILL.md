@@ -24,10 +24,10 @@ are sourced and added.
 2. Otherwise, the directory this file is read from.
 
 Before running any script below, confirm `<skill-dir>` is reachable by the
-toolchain that will run `python3` (for example, `./shell.sh ls <skill-dir>`
-if the project's own instructions route commands through a container). If it
-is not, copy `<skill-dir>` into a directory that toolchain can reach, and use
-that copy as `<skill-dir>` for the rest of this run.
+toolchain that will run `python3` -- list it through the project's own command
+wrapper, if its instructions route commands through one. If it is not
+reachable, copy `<skill-dir>` into a directory that toolchain can reach, and
+use that copy as `<skill-dir>` for the rest of this run.
 
 `<scratch>` is `<dir>/docs/`, the same directory the tutorial markdown lands
 in (see `writing.md`'s Output path section) -- the fact ledger

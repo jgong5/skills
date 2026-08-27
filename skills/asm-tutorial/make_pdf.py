@@ -15,13 +15,13 @@ flag, because the flag gives no control over the running header and footer --
 it either stamps every page with the file:// URL or, with
 --print-to-pdf-no-header, drops the page numbers as well.
 
-Requirements beyond the base image, neither of which survives `./teardown.sh`
-or an image upgrade:
+Requirements this script does not install, and that a container teardown or an
+image rebuild takes with it:
 
-    google-chrome        installed into the container by hand
-    python3 -c 'import websockets'   present in the image today, via vLLM
+    google-chrome                    usually installed by hand
+    python3 -c 'import websockets'   already present in some environments
 
-pandoc is preinstalled. Chrome finds "Liberation Serif" and friends through
+pandoc is expected to be present. Chrome finds "Liberation Serif" and friends through
 fontconfig, so nothing here has to name a font file.
 """
 import asyncio

@@ -55,13 +55,13 @@ scratch.
 
 ## Requirements
 
-- `pandoc` -- expected to already be in the container image; if missing,
-  something else is wrong and this stops with a clear message rather than
-  guessing a substitute.
+- `pandoc` -- expected to already be present; if missing, something else is
+  wrong and this stops with a clear message rather than guessing a substitute.
 - `google-chrome-stable` (or another binary in `make_pdf.py`'s
-  `CHROME_CANDIDATES`) -- installed by hand, does not survive
-  `./teardown.sh` or an image upgrade. Reinstall with the project's own
-  Chrome-install script if one exists (e.g. `gpu_docker/install-chrome.sh`);
-  otherwise download and install `google-chrome-stable` the same way.
-- `python3 -c 'import websockets'` -- present via vLLM in images that ship it;
+  `CHROME_CANDIDATES`) -- usually installed by hand, and usually the first
+  thing lost when a container is torn down or an image is rebuilt. Reinstall
+  through the project's own Chrome-install script if it documents one;
+  otherwise install `google-chrome-stable` the way that project installs
+  system packages.
+- `python3 -c 'import websockets'` -- already present in some environments;
   otherwise `pip install websockets`.

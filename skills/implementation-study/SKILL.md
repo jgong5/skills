@@ -154,7 +154,7 @@ past one of these produces a study that reads as confident and is not.
 | experiments declined by the user, in full or in part | Record the decline in the experiment's `PLAN.md` and in the ledger, then derive an answer from what is already known or omit the claim. |
 | the code under study is generated, vendored, or minified | Stop before Phase 1 starts; a study of code nobody hand-wrote has no design decisions to recover. |
 | an honest trace would make the boundary too large to read closely | Declare a narrower boundary, and preserve every excluded component for the Boundary note, so a reader can tell what was deliberately excluded from what was simply missed. |
-| Chrome/Chromium is missing at Render preflight | Stop and point the user at the project's Chrome-install help (e.g. `gpu_docker/install-chrome.sh`) by name; do not install a substitute browser. |
+| Chrome/Chromium is missing at Render preflight | Stop and point the user at the project's own Chrome-install help by name; do not install a substitute browser. |
 | `pandoc` is missing at Render preflight | Stop and report the gap; a missing `pandoc` is an environment problem, not a document problem, and downgrading the render to work around it is not an option. |
 | a `poppler-utils` tool (`pdftotext`, `pdffonts`, `pdfinfo`, `pdftoppm`) is missing at Verify preflight | Stop and name the specific missing tool and the `poppler-utils` package that provides it; do not skip Pass 1 or report it clean without having actually run it. |
 
