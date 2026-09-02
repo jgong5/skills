@@ -15,12 +15,12 @@ Claude Code skills for reviewing pull requests **context-first**: understand the
 change's blast radius before reading a line of it, keep the review private until
 you have judged every comment, and publish only on an explicit say-so.
 
-The three skills are designed to be used in order, but each works alone.
+The three skills are complementary, and each works alone.
 
 | Skill | Invocation | What it does |
 | --- | --- | --- |
 | `pr-explain` | automatic, or ask to "explain this PR" | Turns a PR into a reviewer briefing: why it exists, what it touches beyond the diff, and two plain-ASCII diagrams (architecture and data/control flow) that render in any terminal. Read-only. |
-| `pr-review-draft` | `/pr-review-draft` | Runs a `pr-explain` briefing, delegates the review itself to your installed `pr-review` skill, then submits findings as a GitHub **pending** review that stays private until you click Submit. Publishes only when you explicitly ask. |
+| `pr-review-draft` | `/pr-review-draft` | Runs your installed `pr-review` skill, then submits its findings as a GitHub **pending** review that stays private until you click Submit. Publishes only when you explicitly ask. |
 | `pr-review-dossier` | `/pr-review-dossier` | Builds a printable PDF case file for the drafted comments: each one with the code it points at, the precedent behind it, the failure scenario, and a Confirmed/Speculative/Refuted verdict, plus tick-boxes for Publish / Reword / Drop and a typable reword note. Hand the marked-up PDF back and it applies your decisions. |
 
 Why the split: a diff can be read locally, but its interactions cannot, and a
@@ -52,8 +52,8 @@ with `claude plugin list`, or by typing `/pr-review-draft` and seeing it resolve
 - **[`gh`](https://cli.github.com/), authenticated** (`gh auth login`) -- all
   three skills read PRs through it, and `pr-review-draft` writes through it.
 - **A `pr-review` skill**, for `pr-review-draft` only. This kit deliberately does
-  not ship one. `pr-review-draft` is a wrapper that adds context up front and
-  draft-safety at the end; the review standards themselves belong to your
+  not ship one. `pr-review-draft` is a wrapper that adds draft submission and
+  publication safety; the review standards themselves belong to your
   project, and many repositories ship their own `pr-review` under
   `.claude/skills/pr-review/`. Without one available, `pr-review-draft` stops
   rather than substituting a generic review.

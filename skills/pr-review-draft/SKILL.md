@@ -1,16 +1,14 @@
 ---
 name: pr-review-draft
-description: Full PR review that surfaces a pr-explain briefing to you first and, on request, posts findings as a GitHub draft (pending) review; publishes only when explicitly asked to. User-invoked: type /pr-review-draft.
+description: Runs your installed pr-review skill and, on request, posts its findings as a GitHub draft (pending) review; publishes only when explicitly asked to. User-invoked: type /pr-review-draft.
 disable-model-invocation: true
 ---
 
-# PR Review (context-first, draft-submit)
+# PR Review (draft-submit)
 
-A wrapper around your installed `pr-review` skill, with two changes:
-
-1. Build context with a **pr-explain** briefing before reviewing.
-2. Submit findings as a **draft** (pending) review; publish only when the user
-   explicitly asks you to publish.
+A wrapper around your installed `pr-review` skill that adds draft submission:
+submit findings as a **draft** (pending) review, and publish only when the user
+explicitly asks you to publish.
 
 Everything else -- philosophy, checklist, backward-compatibility rules,
 fact-check, output format -- lives in `pr-review`. Do not restate or reinvent
@@ -31,31 +29,20 @@ git-ignored scratch directory: the repository's own if it has one (for example
 `agent_space/`), otherwise a temporary directory outside the working tree. Never
 leave intermediate files where they could be committed.
 
-## Step 1 -- Context briefing (pr-explain)
-
-Invoke the `pr-explain` skill on the target PR and dump its full briefing (why,
-blast radius, diagrams, review focus) to the user in chat before you read the
-diff. Carry the blast radius into the review: it names which changed lines are
-load-bearing and where to spawn investigation sub-agents.
-
-**Done when:** the complete pr-explain briefing has been delivered to the user
-and you can state the PR's purpose and its riskiest interactions.
-
-## Step 2 -- Review
+## Step 1 -- Review
 
 Invoke the `pr-review` skill and follow it end to end -- its usage modes, review
 philosophy, review workflow (including whatever checklist and
 backward-compatibility guidance it references), fact-check, and output format.
-Feed the Step 1 briefing in as its "understand the context" input, so
-investigation targets the interactions pr-explain surfaced.
+Do not add a separate briefing or substitute this wrapper's own review process.
 
 **Done when:** you have a review in that skill's output format, fact-checked per
 its own verification step.
 
-## Step 3 -- Submit (draft unless publishing is asked for)
+## Step 2 -- Submit (draft unless publishing is asked for)
 
 Only when the user asks you to submit, post, or leave comments on the PR.
-Delivering the review in chat (Step 2) never posts anything.
+Delivering the review in chat (Step 1) never posts anything.
 
 A submission from this skill is a **draft** -- a GitHub *pending* review that
 stays private until the user clicks Submit in the GitHub UI -- unless the user
