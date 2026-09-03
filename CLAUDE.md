@@ -174,14 +174,14 @@ Its cross-file couplings, all pinned by `tests/architecture_study/`:
   element-qualified selector stops applying across that upgrade and the
   chapter renders untitled with no error anywhere.
 
-### pr-review-kit: context first, publish last
+### pr-review-kit: separate review helpers, publish last
 
-Three skills meant to chain: `pr-explain` (read-only briefing, traces blast
-radius beyond the diff) -> `pr-review-draft` (wrapper that runs the briefing,
-delegates the actual review to *your project's* `pr-review` skill, and submits
-as a GitHub pending review) -> `pr-review-dossier` (read-only; builds a
-printable PDF case file with form fields, then applies the marked-up PDF's
-decisions).
+Three complementary skills: `pr-explain` is a read-only briefing that traces
+blast radius beyond the diff; `pr-review-draft` delegates the review to *your
+project's* `pr-review` skill and adds GitHub pending-review submission; and
+`pr-review-dossier` builds a printable PDF case file with form fields, then
+applies the marked-up PDF's decisions. `pr-review-draft` does not invoke
+`pr-explain`; use the briefing separately when wanted.
 
 `pr-review-draft` deliberately ships no review standards of its own -- if no
 `pr-review` skill is available it stops rather than substituting a generic
