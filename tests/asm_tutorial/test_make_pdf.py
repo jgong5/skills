@@ -2,6 +2,15 @@ from pathlib import Path
 
 import make_pdf
 
+SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "asm-tutorial"
+
+
+def test_imported_make_pdf_is_this_skills_copy():
+    # skills/implementation-study/ and skills/architecture-study/ each ship a
+    # make_pdf.py, imported by bare module name. A cached copy from either
+    # would make these tests silently green.
+    assert Path(make_pdf.__file__).resolve() == SKILL_DIR / "make_pdf.py"
+
 
 def test_no_args_returns_1(capsys):
     assert make_pdf.main([]) == 1
