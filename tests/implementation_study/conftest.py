@@ -34,8 +34,9 @@ sys.path.insert(0, str(SKILL_DIR))
 #
 # This file cannot close the second case: the eviction below and the
 # provenance assertions in this suite's test_check_pdf.py and test_make_pdf.py
-# only guarantee which copy THIS suite imports. Every other suite now runs the
-# same eviction in its own conftest, which is what keeps a whole-`tests/` run
+# only guarantee which copy THIS suite imports. Every other suite whose skill
+# ships a same-named script runs the same eviction in its own conftest, which
+# is what keeps a whole-`tests/` run
 # correct no matter which directory collects first -- skills/architecture-study
 # ships a third check_pdf.py and its suite sorts ahead of every other. The
 # explicit-two-directories case above stays unsupported: there, both conftests
