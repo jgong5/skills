@@ -69,6 +69,26 @@
         "./skills/implementation-study",
         "./skills/architecture-study"
       ]
+    },
+    {
+      "name": "agent-team",
+      "source": "./",
+      "version": "0.1.0",
+      "description": "Autonomous multi-agent development over a GitHub issue pool: briefs, developer and reviewer agents looping to APPROVE, squash landing behind tree checks, and an owner-only need human stop. Plus gh-prose, a style guide and lint for GitHub text.",
+      "category": "engineering",
+      "keywords": [
+        "agents",
+        "orchestration",
+        "github",
+        "issues",
+        "pull-request",
+        "code-review",
+        "workflow"
+      ],
+      "skills": [
+        "./skills/agent-team",
+        "./skills/gh-prose"
+      ]
     }
   ]
 }

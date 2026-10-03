@@ -1,6 +1,6 @@
 # jgong5's Claude Code skills
 
-Three independent plugin bundles, installed separately. See each bundle's own
+Independent plugin bundles, installed separately. See each bundle's own
 section for what it does and how to install it.
 
 | Bundle | Skills | What it's for |
@@ -8,6 +8,7 @@ section for what it does and how to install it.
 | [`pr-review-kit`](#pr-review-kit) | `pr-explain`, `pr-review-draft`, `pr-review-dossier` | Context-first pull-request review |
 | [`amd-gpu`](#amd-gpu) | `kernel-perf`, `asm-tutorial` | Find a CDNA kernel's bottleneck by ablation; turn its assembly into a verified PDF tutorial |
 | [`code-study`](#code-study) | `implementation-study`, `architecture-study` | Turn code you did not write into a diagram-first, evidence-grounded, verified PDF study -- one algorithm, or a whole system's architecture |
+| [`agent-team`](#agent-team) | `agent-team`, `gh-prose` | Run developer and reviewer agents over a GitHub issue pool, from brief to squash landing, with the owner ruling only on escalations |
 
 ## pr-review-kit
 
@@ -342,6 +343,84 @@ Both stop rather than studying generated, vendored, or minified code
 (`vendor/`, `third_party/`, `node_modules/`, `*.min.*`, or a "do not edit"
 header) -- code nobody hand-wrote has no design decisions to recover.
 
+## agent-team
+
+A standing workflow for autonomous multi-agent development on any GitHub
+repository. You write (or approve) the briefs; developer agents build each
+task in its own worktree and PR; reviewer agents review every head until
+APPROVE; the orchestrating agent lands approved PRs squashed onto your
+integration branch. You are asked only when an agent escalates, through a
+`need human` label that stops all automation on that item until you remove
+it.
+
+| Skill | Invocation | What it does |
+| --- | --- | --- |
+| `agent-team` | `/agent-team plan`, `/agent-team run`, `/agent-team status` | `plan` turns a design document, a goal, or existing issues into briefed issues linked by `Depends on #N`, and publishes them after you approve. `run` drives the pool: claim, develop, review, land, until nothing moves. `status` reports PR turns, holds, and what waits on you. |
+| `gh-prose` | automatic when writing GitHub text, or ask for it | Style rules and a lint for issues, PR bodies, comments and review records: state and ask first, each fact once, evidence folded. |
+
+Why this shape: every rule in it came from a run that went wrong. The task
+record lives only on GitHub, so any session can resume where another
+stopped. A PR's state is read from its thread, never from a summary, so a
+stale APPROVE cannot land. An approval names the sha it covers, and landing
+checks that the tree that lands is the tree that was approved, because two
+green PRs can merge red. A test counts only once someone has seen it fail,
+because a test that cannot fail passes every gate.
+
+### The project overlay
+
+Everything project-specific lives in one file in your repository,
+`.claude/agent-team.md`: the repository agents write to, the integration
+branch, the per-task gate command, the design document agents read first,
+and optional keys such as a repository agents must never touch. Its body
+holds free-text project rules. The first `plan` or `run` drafts it with
+you: it infers values from your remotes, docs and CI, runs the proposed gate
+once on the integration branch to show it is green, and writes the file only
+after you approve. The full key table is in
+[`skills/agent-team/overlay.md`](skills/agent-team/overlay.md).
+
+### Safety model
+
+- **Automation is on by default.** Under `run`, agents create branches,
+  worktrees, issues, PRs, comments and labels in the overlay's `repo`, and
+  land approved PRs onto its integration branch **without asking you**.
+  Point `repo` at a fork or a repository where that is acceptable.
+- **`need human` is the brake.** An agent applies it the moment it
+  escalates, and it stops all agent action on that issue or PR; only you
+  remove it. A repository named in `never_touch` is never written to.
+- **Nothing is rewritten.** PR branches only gain commits -- no force-push,
+  rebase or amend -- and nothing is pushed to the integration branch except
+  by a squash landing of an approved head.
+- **`plan` publishes nothing until you approve** the task graph and its
+  briefs.
+
+### Install
+
+```
+/plugin marketplace add jgong5/skills
+/plugin install agent-team@jgong5
+```
+
+Or from your shell:
+
+```bash
+claude plugin marketplace add jgong5/skills
+claude plugin install agent-team@jgong5
+```
+
+### Requirements
+
+- `gh`, authenticated with write access to the overlay's `repo`
+- git 2.40 or newer (`merge-tree --write-tree --merge-base`)
+- Python 3.10 or newer, standard library only
+- Recommended: the [`ponytail`](https://github.com/DietrichGebert/ponytail)
+  plugin, whose `ponytail` and `ponytail-review` skills developers and
+  reviewers use when installed; and the `github/gh-stack` extension for
+  stacking dependent PRs. Both are optional, and the skill says once when
+  it runs without them.
+
+`agent-team` is **user-invoked only**: an autonomous team that pushes and
+lands is not something to start by mentioning a PR.
+
 ## Update
 
 ```
@@ -349,7 +428,7 @@ header) -- code nobody hand-wrote has no design decisions to recover.
 /plugin update <bundle>@jgong5
 ```
 
-where `<bundle>` is `pr-review-kit`, `amd-gpu`, or `code-study`.
+where `<bundle>` is `pr-review-kit`, `amd-gpu`, `code-study`, or `agent-team`.
 Same commands work as `claude plugin ...` from the shell. Updates apply on
 restart.
 
@@ -387,6 +466,10 @@ skills/
                          # check_evidence.py, tutorial.css
   kernel-perf/           # SKILL.md + ablation.md, modelling.md,
                          # bank_model.py, probe_roofline.py
+  agent-team/            # SKILL.md + rules.md, overlay.md, plan.md,
+                         # develop.md, review.md, land.md, overlay.py,
+                         # pr_state.py, land.py
+  gh-prose/              # SKILL.md + lint_gh_prose.py
 tests/
   asm_tutorial/          # pytest suite for asm-tutorial's scripts
   kernel_perf/           # pytest suite for the bank model and the probe
@@ -394,6 +477,8 @@ tests/
                          # and reference docs
   architecture_study/    # pytest suite for architecture-study's scripts
                          # and reference docs
+  agent_team/            # pytest suite for agent-team's scripts
+  gh_prose/              # pytest suite for the lint, over real samples
 ```
 
 Skills live flat under `skills/`; nothing on disk records which bundle a skill
