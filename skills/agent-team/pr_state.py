@@ -77,7 +77,8 @@ def state(number, repo=None):
     elif not verdict["sha"]:
         holds.append("the last verdict names no sha")
     elif not covers:
-        holds.append(f"the last verdict covers {verdict['sha']}, head is {head[:12]}: delta review needed")
+        need = "delta review needed" if verdict["verdict"] == "APPROVE" else "review the whole head"
+        holds.append(f"the last verdict covers {verdict['sha']}, head is {head[:12]}: {need}")
     elif verdict["verdict"] != "APPROVE":
         holds.append(f"the last verdict is REQUEST CHANGES @ {verdict['sha']}")
     if pr["state"] != "OPEN" or any(LABEL in h for h in holds):

@@ -53,6 +53,13 @@ def test_a_head_past_the_approval_needs_a_delta_review(fake_gh):
     assert "delta review needed" in s["holds"][0]
 
 
+def test_a_head_past_a_request_changes_needs_the_whole_head_reviewed(fake_gh):
+    fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "REQUEST CHANGES @ 1111111: 1 blocking.", "rev")])
+    s = pr_state.state(7)
+    assert s["turn"] == "reviewer"
+    assert s["holds"][0].endswith("review the whole head")
+
+
 def test_the_last_verdict_wins_and_a_later_round_is_the_last_entry(fake_gh):
     fake_gh.pr = make_pr([
         comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev"),
