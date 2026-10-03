@@ -61,12 +61,13 @@ Decided = what the reviewer should check first.
 ```
 
 **Review record**: verdict line, `Checked:`, `Accepted with reservation:`,
-`Watch next:`, one line each; inline findings read `<problem>. <fix>.`
+`Watch next:`, one line each; inline findings read `<problem>. <fix>.` and
+lint as `--kind inline`.
 
 ## Before posting
 
 ```
-python3 <skill-dir>/lint_gh_prose.py --kind issue|brief|pr|ruling|review|comment body.md
+python3 <skill-dir>/lint_gh_prose.py --kind issue|brief|pr|ruling|review|comment|inline body.md
 ```
 Fix every hit, then `gh ... --body-file body.md`. The lint checks form only;
 rules 2, 3, 4 and 6 still need a reread as the owner.
