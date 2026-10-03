@@ -178,3 +178,10 @@ def test_a_poll_gh_fails_on_is_retried_after_github_accepted_the_merge(repo, fak
     monkeypatch.setattr(pr_state, "gh", flaky)
     assert run(monkeypatch) == 0
     assert fake_gh.polls == []
+
+
+def test_the_overlay_path_is_not_an_option(repo, fake_gh, monkeypatch, capsys):
+    fake_gh.head = branch_with(repo, ("g", "new"))
+    assert run(monkeypatch, "--overlay", ".claude/agent-team.md") == 2
+    assert "unrecognized arguments: --overlay" in capsys.readouterr().err
+    assert fake_gh.puts() == []

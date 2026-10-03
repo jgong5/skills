@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Land one approved PR onto the integration branch, squashed.
 
-Usage: land.py PR --message-file FILE [--merge-base SHA]
-               [--expect-tree TREE] [--overlay PATH]
+Usage: land.py PR --message-file FILE [--merge-base SHA] [--expect-tree TREE]
 
 Run from inside the repository. In order: refuse on any hold pr_state.py
 reports; refuse a PR not based on the integration branch (land the one below
@@ -84,10 +83,9 @@ def main():
     ap.add_argument("--message-file", required=True)
     ap.add_argument("--merge-base")
     ap.add_argument("--expect-tree")
-    ap.add_argument("--overlay", default=overlay.DEFAULT_PATH)
     a = ap.parse_args()
 
-    keys, _, problems = overlay.load(a.overlay)
+    keys, _, problems = overlay.load()
     if problems:
         stop(2, "\n".join(problems))
     s = pr_state.state(a.pr, keys["repo"])
