@@ -7,11 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A Claude Code **plugin marketplace**, not an application. The product is prose:
 each skill is a `SKILL.md` (instructions Claude follows) plus companion
 reference docs it reads on demand, plus a few Python scripts the skill shells
-out to. Three bundles ship from one marketplace entry -- `pr-review-kit`
+out to. Four bundles ship from one marketplace entry -- `pr-review-kit`
 (`pr-explain`, `pr-review-draft`, `pr-review-dossier`), `amd-gpu`
-(`asm-tutorial`, `kernel-perf`), and `code-study` (`implementation-study`,
-`architecture-study`). `README.md` is the user-facing documentation for all
-three; keep it in sync when a bundle's skills, requirements, or install story
+(`asm-tutorial`, `kernel-perf`), `code-study` (`implementation-study`,
+`architecture-study`), and `agent-team` (`agent-team`, `gh-prose`).
+`README.md` is the user-facing documentation for all four; keep it in sync when a bundle's skills, requirements, or install story
 change.
 
 ## Commands
@@ -88,9 +88,9 @@ the rest: every installed skill's description costs context in every session.
   concrete phrasings and states where the skill degrades.
 - `disable-model-invocation: true` marks a skill as user-invoked only
   (`/pr-review-draft`, `/pr-review-dossier`, `/implementation-study`,
-  `/architecture-study`); its description becomes human-facing rather than a
-  trigger, and costs no context. `pr-explain`, `asm-tutorial`, and
-  `kernel-perf` omit it and fire automatically.
+  `/architecture-study`, `/agent-team`); its description becomes human-facing
+  rather than a trigger, and costs no context. `pr-explain`, `asm-tutorial`,
+  `kernel-perf`, and `gh-prose` omit it and fire automatically.
 - Companion `.md` files (`analysis.md`, `writing.md`, `render.md`,
   `diagrams.md`, ...) are read on demand, one per phase or topic, to keep the
   always-loaded `SKILL.md` small.
@@ -194,11 +194,39 @@ weasyprint) so `pr-review-dossier` stays zero-install beyond Chrome and Python.
 `asm-tutorial` is the deliberate exception: it needs pandoc and poppler, and
 that is a property of that one skill, not a rule for the repo.
 
+### agent-team: standing rules as an orchestrator
+
+`agent-team` was extracted from one project's standing rules for autonomous
+agents (ATOM Compass's `AI_DEV_RULES.md`); every project-specific value moved
+into a per-project overlay, `<repo>/.claude/agent-team.md`, parsed by
+`overlay.py`. `SKILL.md` is the orchestrator's spine (`plan`, `run`,
+`status`); `rules.md` binds every role; `plan.md`, `develop.md`, `review.md`
+and `land.md` are per-role docs handed to dispatched agents. It ships no
+prompt templates on purpose: a dispatched agent gets its role doc, the issue
+and the overlay, so nothing stored can drift from the brief.
+
+`run` is stateless: each pass rereads GitHub, and `pr_state.py` derives a
+PR's turn from its thread. Two contracts span files:
+
+- A verdict's first line names the head it covers (`APPROVE @ <sha>.`).
+  `pr_state.py`'s `VERDICT`/`SHA`, `review.md`'s Post step, and `gh-prose`'s
+  rule 1 must agree; `lint_gh_prose.py`'s `STATE` must accept each state line
+  the docs prescribe, including the `Claimed:` comment.
+- `land.py`'s exit codes are what `land.md` branches on.
+
+Both skills test **behaviour only** -- no test reads their prose -- because
+`rules.md` tells target projects that prose is not a test subject, and this
+repo's own suites for those skills follow the rule they ship. `land.py` is
+tested against real temporary git repositories with `gh` replaced by a
+recording fake; the merge-async endpoint itself has no offline test.
+
 ## Conventions
 
 - **Every tracked file is ASCII.** Use `--` for dashes, straight quotes. Tests
   enforce this for `asm-tutorial`'s, `implementation-study`'s, and
-  `architecture-study`'s docs; the rest of the repo follows it too.
+  `architecture-study`'s docs; the rest of the repo follows it too. The one
+  exception is `tests/gh_prose/samples/bad/`: real GitHub text kept verbatim
+  because its em dashes and CJK are what the lint must catch.
 - Prose in skills explains *why* a mechanism exists, not just what it does --
   the "Why this pipeline and not something simpler" sections are load-bearing,
   because a future editor who does not know why Chrome is driven over CDP
