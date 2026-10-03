@@ -2,7 +2,7 @@
 """Land one approved PR onto the integration branch, squashed.
 
 Usage: land.py PR --message-file FILE [--title TITLE] [--merge-base SHA]
-               [--expect-tree TREE] [--overlay PATH] [--timeout SECONDS]
+               [--expect-tree TREE] [--overlay PATH]
 
 Run from inside the repository. In order: refuse on any hold pr_state.py
 reports; refuse a PR not based on the integration branch (land the one below
@@ -21,6 +21,8 @@ import time
 
 import overlay
 import pr_state
+
+TIMEOUT = 900  # seconds GitHub gets to report the merge
 
 
 def git(*args):
@@ -51,7 +53,7 @@ def tree_check(remote, branch, number, head, merge_base=None, expect=None):
     return None
 
 
-def merge(repo, number, head, title, message_file, timeout):
+def merge(repo, number, head, title, message_file):
     """Squash through merge-async and poll; returns the final status object."""
     base = f"repos/{repo}/pulls/{number}/merge-async"
     out = pr_state.gh(["api", "-X", "PUT", base, "-f", "merge_method=squash",
@@ -62,14 +64,17 @@ def merge(repo, number, head, title, message_file, timeout):
         res = json.loads(out)
     except ValueError:
         return {"status": "failed", "error": out or "no response"}
-    deadline = time.monotonic() + timeout
+    deadline = time.monotonic() + TIMEOUT
     # A 409 (a merge already pending) carries the pending request's uuid too.
     uuid = (res.get("details") or {}).get("uuid")
     while res.get("status") not in ("merged", "failed", "enqueued"):
         if not uuid or time.monotonic() > deadline:
             return {**res, "status": "failed", "error": res.get("error") or "no uuid or timed out"}
         time.sleep(5)
-        res = json.loads(pr_state.gh(["api", f"{base}/{uuid}"]))
+        try:  # GitHub has accepted the merge: a failed poll is retried, never fatal
+            res = json.loads(pr_state.gh(["api", f"{base}/{uuid}"], check=False))
+        except ValueError:
+            pass
     return res
 
 
@@ -81,7 +86,6 @@ def main():
     ap.add_argument("--merge-base")
     ap.add_argument("--expect-tree")
     ap.add_argument("--overlay", default=overlay.DEFAULT_PATH)
-    ap.add_argument("--timeout", type=int, default=900)
     a = ap.parse_args()
 
     keys, _, problems = overlay.load(a.overlay)
@@ -99,7 +103,7 @@ def main():
         ["pr", "view", str(a.pr), "-R", keys["repo"], "--json", "title"]))["title"]
     if not title.endswith(f" (#{a.pr})"):
         title += f" (#{a.pr})"  # GitHub does not add it on this endpoint
-    res = merge(keys["repo"], a.pr, s["head"], title, a.message_file, a.timeout)
+    res = merge(keys["repo"], a.pr, s["head"], title, a.message_file)
     print(json.dumps(res, indent=1))
     sys.exit(0 if res.get("status") == "merged" else 5)
 

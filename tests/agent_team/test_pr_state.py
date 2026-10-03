@@ -97,3 +97,11 @@ def test_no_verdict_or_a_verdict_without_a_sha_is_the_reviewers_turn(fake_gh):
     fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "APPROVE.", "rev")])
     s = pr_state.state(7)
     assert s["holds"] == ["the last verdict names no sha"] and s["turn"] == "reviewer"
+
+
+def test_a_pending_review_is_not_in_the_thread(fake_gh):
+    # GitHub leaves submittedAt null on a review not yet submitted.
+    fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")],
+                         reviews=[{"submittedAt": None, "author": {"login": "rev"},
+                                   "body": "REQUEST CHANGES @ c0ffee1: 1 blocking."}])
+    assert pr_state.state(7)["turn"] == "land"

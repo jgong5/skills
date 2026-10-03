@@ -1,4 +1,4 @@
-REQUEST CHANGES: 1 blocking. `_as_key` calls `hash()` on key values, and `hash(SymBool)` installs a guard, so building the predicate narrows the trace it came from.
+REQUEST CHANGES @ d1e828b: 1 blocking. `_as_key` calls `hash()` on key values, and `hash(SymBool)` installs a guard, so building the predicate narrows the trace it came from.
 
 Checked: named result, both gate counts and effort re-run on node 18; all reproduce.
 Accepted with reservation: none.

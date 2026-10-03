@@ -46,6 +46,9 @@ def lint(text, kind):
     first = next((l for l in lines if l.strip()), "")
     if kind not in ("issue", "brief") and not STATE.search(first):
         hits.append(f"first line states no state or ask: {first[:60]!r}")
+    verdict = r"[\s#>*_]*(APPROVE|REQUEST CHANGES)\b.*\b[0-9a-f]{7,40}\b"
+    if kind == "review" and not re.match(verdict, first):
+        hits.append(f"first line is no verdict naming its head sha: {first[:60]!r}")
     for n, line in enumerate(lines, 1):
         line = re.sub(r"\[[^\]]*\]\([^)]*\)", "", line)  # a linked ref is fine
         for name, pat in PATTERNS.items():

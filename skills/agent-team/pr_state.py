@@ -43,7 +43,7 @@ def thread(pr):
     entries = [(c["createdAt"], "comment", c["author"]["login"], first_line(c["body"]))
                for c in pr["comments"]]
     entries += [(r["submittedAt"], "review", r["author"]["login"], first_line(r["body"]))
-                for r in pr["reviews"] if (r.get("body") or "").strip()]
+                for r in pr["reviews"] if r.get("submittedAt") and (r.get("body") or "").strip()]
     entries += [(c["committedDate"], "commit", "", c["oid"]) for c in pr["commits"]]
     return sorted(entries)
 

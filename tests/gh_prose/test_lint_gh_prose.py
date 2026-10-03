@@ -22,3 +22,8 @@ def test_sample(path):
 
 def test_a_claim_comment_states_its_state():
     assert lint_gh_prose.lint("Claimed: worktree ../r-worktrees/12, branch task-12.", "comment") == []
+
+
+def test_a_review_verdict_names_the_head_it_covers():
+    assert lint_gh_prose.lint("REQUEST CHANGES: 1 blocking.", "review")
+    assert lint_gh_prose.lint("**APPROVE** @ c0ffee1.", "review") == []

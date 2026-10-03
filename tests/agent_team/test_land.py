@@ -161,3 +161,20 @@ def test_a_failed_merge_exits_nonzero(repo, fake_gh, monkeypatch):
     fake_gh.head = branch_with(repo, ("g", "new"))
     fake_gh.polls = ["pending", "failed"]
     assert run(monkeypatch) == 5
+
+
+def test_a_poll_gh_fails_on_is_retried_after_github_accepted_the_merge(repo, fake_gh, monkeypatch):
+    fake_gh.head = branch_with(repo, ("g", "new"))
+    failures = [True]
+
+    def flaky(args, check=True):
+        if args[1].endswith("/merge-async/u-1") and failures:
+            failures.pop()
+            if check:
+                raise SystemExit("gh api failed: HTTP 502")
+            return ""
+        return fake_gh(args, check)
+
+    monkeypatch.setattr(pr_state, "gh", flaky)
+    assert run(monkeypatch) == 0
+    assert fake_gh.polls == []
