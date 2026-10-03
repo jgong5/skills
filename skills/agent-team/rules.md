@@ -26,7 +26,7 @@ away on landing and a file in the tree goes stale.
 
 | Section | Written by | Lives in | Contains |
 |---|---|---|---|
-| Brief | the planner | the issue body | what to build; the interfaces it implements and consumes; its file set; exit criteria; the named result; effort in code lines and test lines; `Depends on #N` lines |
+| Brief | the planner | the issue body | what to build; the interfaces it implements and consumes; its file set; exit criteria; the named result; effort in lines; `Depends on #N` lines |
 | Dev record | the developer | the PR body | what was found, what was decided that the design did not cover, what surprised it, what was left undone |
 | Review record | the reviewer | the PR verdict comment | what was checked, what was accepted with reservation, what the next task in this area should watch |
 | Handoff | both | a closing comment on the issue | what a successor needs that is not in the code |
