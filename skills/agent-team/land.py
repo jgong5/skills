@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Land one approved PR onto the integration branch, squashed.
 
-Usage: land.py PR --message-file FILE [--title TITLE] [--merge-base SHA]
+Usage: land.py PR --message-file FILE [--merge-base SHA]
                [--expect-tree TREE] [--overlay PATH]
 
 Run from inside the repository. In order: refuse on any hold pr_state.py
@@ -82,7 +82,6 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("pr", type=int)
     ap.add_argument("--message-file", required=True)
-    ap.add_argument("--title")
     ap.add_argument("--merge-base")
     ap.add_argument("--expect-tree")
     ap.add_argument("--overlay", default=overlay.DEFAULT_PATH)
@@ -99,7 +98,7 @@ def main():
     why = tree_check(keys["remote"], keys["integration_branch"], a.pr, s["head"], a.merge_base, a.expect_tree)
     if why:
         stop(4, why)
-    title = a.title or json.loads(pr_state.gh(
+    title = json.loads(pr_state.gh(
         ["pr", "view", str(a.pr), "-R", keys["repo"], "--json", "title"]))["title"]
     if not title.endswith(f" (#{a.pr})"):
         title += f" (#{a.pr})"  # GitHub does not add it on this endpoint

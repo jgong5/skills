@@ -135,8 +135,8 @@ def test_a_stacked_child_needs_its_parents_reviewed_head_as_merge_base(repo, fak
     fake_gh.head = branch_with(repo, ("f", "c"), start=parent)
     repo.land_on_tip(("f", "b"))  # the parent, landed squashed: same tree, new commit
     assert run(monkeypatch) == 4  # the false conflict the plain form reports
-    assert run(monkeypatch, "--merge-base", parent, "--title", "Child (#7)") == 0
-    assert "commit_title=Child (#7)" in fake_gh.puts()[0]
+    assert run(monkeypatch, "--merge-base", parent) == 0
+    assert "commit_title=Add the thing (#7)" in fake_gh.puts()[0]
 
 
 def test_a_gated_batch_tree_lands_where_the_reviewed_tree_would_not(repo, fake_gh, monkeypatch):
