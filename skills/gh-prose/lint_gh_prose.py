@@ -12,6 +12,7 @@ BUDGET = {
     "ruling": 150,
     "review": 200,
     "comment": 80,
+    "inline": 60,
 }
 STATE = re.compile(
     r"\b(Closes|Fixes|Part of|Blocked|Claimed|Needs owner ruling|Ready|No blocking|APPROVE|REQUEST CHANGES|Round \d+ pushed)\b"
@@ -44,7 +45,7 @@ def lint(text, kind):
     if bold > 3:
         hits.append(f"{bold} bold spans, max 3")
     first = next((l for l in lines if l.strip()), "")
-    if kind not in ("issue", "brief") and not STATE.search(first):
+    if kind not in ("issue", "brief", "inline") and not STATE.search(first):
         hits.append(f"first line states no state or ask: {first[:60]!r}")
     verdict = r"[\s#>*_]*(APPROVE|REQUEST CHANGES)\b.*\b[0-9a-f]{7,40}\b"
     if kind == "review" and not re.match(verdict, first):
@@ -54,6 +55,8 @@ def lint(text, kind):
         for name, pat in PATTERNS.items():
             if name == "round history in body" and kind in ("comment", "review"):
                 continue
+            if name.startswith("line number") and kind == "inline":
+                continue  # GitHub pins an inline comment to a commit
             m = re.search(pat, line)
             if m:
                 hits.append(f"line {n}: {name}: {m.group(0)!r}")
