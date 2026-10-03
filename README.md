@@ -459,8 +459,8 @@ skills/
                          # verification.md, cdna-facts.md, annotate_asm.py,
                          # make_pdf.py, check_pdf.py, tutorial.css
   implementation-study/  # SKILL.md + phase docs, experiments.md,
-                         # make_pdf.py, check_pdf.py, check_evidence.py,
-                         # tutorial.css
+                         # diagrams.md, pseudocode.md, make_pdf.py,
+                         # check_pdf.py, check_evidence.py, tutorial.css
   architecture-study/    # SKILL.md + phase docs, paradigms.md,
                          # diagrams.md, make_pdf.py, check_pdf.py,
                          # check_evidence.py, tutorial.css
