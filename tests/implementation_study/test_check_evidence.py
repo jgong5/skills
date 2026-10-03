@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+import check_evidence
 from check_evidence import (
     EvidenceFormatError,
     check_citations,
@@ -23,6 +24,14 @@ from check_evidence import (
     unlink_evidence_references,
     write_integrity_snapshot,
 )
+
+SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "implementation-study"
+
+
+def test_imported_check_evidence_is_this_skills_copy():
+    # skills/architecture-study/ ships a check_evidence.py that defines every
+    # name imported above, so a cached copy of it would keep this suite green.
+    assert Path(check_evidence.__file__).resolve() == SKILL_DIR / "check_evidence.py"
 
 
 def test_parse_ledger_accepts_all_three_classes():
