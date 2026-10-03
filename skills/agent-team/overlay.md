@@ -44,7 +44,7 @@ owner; every value you propose carries the source you read it from.
 3. **Run the candidate once** on the tip of `<integration_branch>`, in a
    worktree or `git archive` snapshot, and report its exit status and wall
    time. This run is the baseline every later gate is judged against.
-4. **A red baseline stops the drafting.** Offer the owner two ways on: a first
+4. **A red baseline stops the drafting.** Offer the owner these ways on: a first
    task that makes the baseline green, or a project-owned wrapper script that
    excludes the known failures by name (and fails on anything else), which
    then becomes `gate_task`. This skill keeps no list of known failures,

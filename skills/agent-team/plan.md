@@ -59,6 +59,6 @@ GitHub before the owner approves. Then create or edit the issues, applying
 `Depends on` lines as the dependency issues get them. Create parents before
 children so every number exists when it is cited.
 
-**Done when** every approved task is an issue whose brief has all six parts
-and whose `Depends on` lines name existing issues, and you have told the
+**Done when** every approved task is an issue whose brief has every part step 3
+lists and whose `Depends on` lines name existing issues, and you have told the
 owner which tasks are claimable now.

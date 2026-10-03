@@ -84,7 +84,7 @@ on another issue, label each PR it holds and name that issue. A PR whose body
 declares an escalation without the label gets the label.
 
 The label stops all agent action on that issue or PR: no commit, review,
-amend or merge, even after a passed review. Three exceptions:
+amend or merge, even after a passed review. Exceptions:
 
 1. `gh stack link` by PR number, which lands and pushes nothing, though it
    retargets the linked PRs' bases (then, and when a PR below lands).

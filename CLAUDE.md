@@ -7,12 +7,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A Claude Code **plugin marketplace**, not an application. The product is prose:
 each skill is a `SKILL.md` (instructions Claude follows) plus companion
 reference docs it reads on demand, plus a few Python scripts the skill shells
-out to. Four bundles ship from one marketplace entry -- `pr-review-kit`
+out to. Bundles ship from one marketplace entry -- `pr-review-kit`
 (`pr-explain`, `pr-review-draft`, `pr-review-dossier`), `amd-gpu`
 (`asm-tutorial`, `kernel-perf`), `code-study` (`implementation-study`,
 `architecture-study`), and `agent-team` (`agent-team`, `gh-prose`).
-`README.md` is the user-facing documentation for all four; keep it in sync when a bundle's skills, requirements, or install story
-change.
+`README.md` is the user-facing documentation for every bundle; keep it in
+sync when a bundle's skills, requirements, or install story change.
 
 ## Commands
 
@@ -206,7 +206,7 @@ prompt templates on purpose: a dispatched agent gets its role doc, the issue
 and the overlay, so nothing stored can drift from the brief.
 
 `run` is stateless: each pass rereads GitHub, and `pr_state.py` derives a
-PR's turn from its thread. Two contracts span files:
+PR's turn from its thread. Contracts that span files:
 
 - A verdict's first line names the head it covers (`APPROVE @ <sha>.`).
   `pr_state.py`'s `VERDICT`/`SHA`, `review.md`'s Post step, and `gh-prose`'s

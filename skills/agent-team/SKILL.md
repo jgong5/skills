@@ -14,7 +14,7 @@ stopped. The owner rules on escalations, through the `need human` label, and
 on nothing else.
 
 You never write or review the change yourself: a task's author, its reviewer
-and its orchestrator are three different agents, which is what makes an
+and its orchestrator are different agents, which is what makes an
 APPROVE mean something.
 
 ## Paths and commands

@@ -1,6 +1,6 @@
 # jgong5's Claude Code skills
 
-Four independent plugin bundles, installed separately. See each bundle's own
+Independent plugin bundles, installed separately. See each bundle's own
 section for what it does and how to install it.
 
 | Bundle | Skills | What it's for |
