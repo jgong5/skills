@@ -1,4 +1,5 @@
 import subprocess
+import sys
 from pathlib import Path
 
 import overlay
@@ -92,3 +93,10 @@ def test_an_explicit_remote_wins(tmp_path, monkeypatch):
 
 def test_a_missing_file_is_a_problem_not_a_crash(tmp_path):
     assert overlay.load(str(tmp_path / "nope.md"))[2][0].startswith("cannot read")
+
+
+def test_the_script_takes_no_path(tmp_path, monkeypatch):
+    repo_with(tmp_path, monkeypatch, GOOD)
+    r = subprocess.run([sys.executable, overlay.__file__, ".claude/agent-team.md"],
+                       capture_output=True, text=True)
+    assert r.returncode == 1 and "takes no arguments" in r.stderr

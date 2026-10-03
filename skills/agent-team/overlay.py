@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read a project's agent-team overlay.
 
-Usage: overlay.py [PATH]   (default .claude/agent-team.md under the work tree's root)
+Usage: overlay.py   (reads .claude/agent-team.md under the work tree's root)
 
 Prints the resolved keys as JSON and exits 0, or prints every problem and
 exits 1. The keys and their meaning are documented in overlay.md.
@@ -88,7 +88,9 @@ def load(path=DEFAULT_PATH):
 
 
 if __name__ == "__main__":
-    keys, body, problems = load(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PATH)
+    if len(sys.argv) > 1:
+        sys.exit("usage: overlay.py (takes no arguments)")
+    keys, body, problems = load()
     if problems:
         print("\n".join(problems))
         sys.exit(1)
