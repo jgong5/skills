@@ -1,5 +1,10 @@
+from pathlib import Path
+
+import check_pdf
 from check_pdf import (code_lines, parse_pdffonts, wrapped_lines, broken_xrefs,
                        pages, sample_pages)
+
+SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "asm-tutorial"
 
 MD = """\
 ## 1. Overview
@@ -109,3 +114,10 @@ def test_sample_pages_table_detection_skips_fenced_code():
     page_texts = ["Title\n", "lane 0   lane 1\n", "Constant   Value\nwave       64\n"]
     samples = sample_pages(md, page_texts)
     assert samples["table"] == 3
+
+
+def test_imported_check_pdf_is_this_skills_copy():
+    # skills/implementation-study/ and skills/architecture-study/ each ship a
+    # check_pdf.py with some of the same public names, imported by bare module
+    # name. A cached copy from either would make these tests silently green.
+    assert Path(check_pdf.__file__).resolve() == SKILL_DIR / "check_pdf.py"
