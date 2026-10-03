@@ -37,8 +37,9 @@ Each suite's `conftest.py` puts its own skill directory on `sys.path`, so tests
 import the scripts by bare module name (`import check_pdf`). There is no
 package install step and no test runner config.
 
-Three skills ship a `check_pdf.py` and two ship a `make_pdf.py`, all under
-those same bare names, so every conftest also evicts a cached module whose
+`asm-tutorial`, `implementation-study` and `architecture-study` each ship a
+`check_pdf.py` and a `make_pdf.py`, all under those same bare names, so every
+conftest also evicts a cached module whose
 `__file__` is not its own -- otherwise the suite that collects first
 (`tests/architecture_study/`, alphabetically) would hand its copies to the
 others, and the failure can be silently green rather than loud. Each suite
@@ -99,7 +100,7 @@ the rest: every installed skill's description costs context in every session.
   own command wrapper -- never a bare `python3` -- because the toolchain may be
   containerized.
 
-### asm-tutorial: a four-phase pipeline with cross-file contracts
+### asm-tutorial: a phased pipeline with cross-file contracts
 
 `SKILL.md` is the spine; each phase has its own reference doc and, mostly, its
 own script: Analyze (`analysis.md`, `annotate_asm.py`) -> Write (`writing.md`)
@@ -129,7 +130,7 @@ MFMA-cost or occupancy claims. Adding an architecture means sourcing the
 constant, cross-checking it against a real listing, documenting the arithmetic
 in `cdna-facts.md`, *then* adding the `ARCH` entry.
 
-### code-study: two deliberate forks, one discipline
+### code-study: deliberate forks, one discipline
 
 `implementation-study` studies one algorithm (`path/to/file:symbol`);
 `architecture-study` studies a whole system (a directory). Both run a phased
@@ -145,10 +146,11 @@ and say so in the commit message.
 
 What differs beyond scope:
 
-- `architecture-study` has six phases (Survey -> Trace -> Weigh -> Write ->
-  Render -> Verify) and a **fixed seven-section spine** matched verbatim by
-  `check_pdf.py`'s `SPINE`. `implementation-study` has five phases and a
-  five-section spine enforced only by prose.
+- `architecture-study` runs Survey -> Trace -> Weigh -> Write -> Render ->
+  Verify, and its **fixed section spine** is matched verbatim by
+  `check_pdf.py`'s `SPINE`. `implementation-study` runs Analyze ->
+  Investigate -> Write -> Render -> Verify, and its section spine is enforced
+  only by prose.
 - `architecture-study` runs nothing -- no experiments, no `measure:` evidence
   class. A claim needing a benchmark becomes one of its closing questions.
   `implementation-study` runs approved experiments and has `experiments.md`.
@@ -176,7 +178,7 @@ Its cross-file couplings, all pinned by `tests/architecture_study/`:
 
 ### pr-review-kit: separate review helpers, publish last
 
-Three complementary skills: `pr-explain` is a read-only briefing that traces
+Complementary skills: `pr-explain` is a read-only briefing that traces
 blast radius beyond the diff; `pr-review-draft` delegates the review to *your
 project's* `pr-review` skill and adds GitHub pending-review submission; and
 `pr-review-dossier` builds a printable PDF case file with form fields, then

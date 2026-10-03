@@ -16,7 +16,7 @@ Claude Code skills for reviewing pull requests **context-first**: understand the
 change's blast radius before reading a line of it, keep the review private until
 you have judged every comment, and publish only on an explicit say-so.
 
-The three skills are complementary, and each works alone.
+The skills are complementary, and each works alone.
 
 | Skill | Invocation | What it does |
 | --- | --- | --- |
@@ -50,8 +50,8 @@ with `claude plugin list`, or by typing `/pr-review-draft` and seeing it resolve
 
 ### Requirements
 
-- **[`gh`](https://cli.github.com/), authenticated** (`gh auth login`) -- all
-  three skills read PRs through it, and `pr-review-draft` writes through it.
+- **[`gh`](https://cli.github.com/), authenticated** (`gh auth login`) -- every
+  skill in this bundle reads PRs through it, and `pr-review-draft` writes through it.
 - **A `pr-review` skill**, for `pr-review-draft` only. This kit deliberately does
   not ship one. `pr-review-draft` is a wrapper that adds draft submission and
   publication safety; the review standards themselves belong to your
@@ -157,7 +157,7 @@ one skill. That is a property of `asm-tutorial`, not a rule for this repo.
 
 ## code-study
 
-Two skills for reading code you did not write and turning what you learned into
+Skills for reading code you did not write and turning what you learned into
 a verified PDF. `implementation-study` zooms in on one algorithm;
 `architecture-study` zooms out to a whole system. Both are user-invoked only,
 both are language-agnostic, and both enforce the same rule: every substantive
@@ -175,7 +175,7 @@ a gap.
 Turns one algorithm implementation into a diagram-first study document and a
 verified PDF: what it computes, where it sits, why each choice was made rather
 than the alternatives it beat, and what would have to be true for a different
-choice to win. Three inline-SVG views form the visual backbone -- implementation
+choice to win. Required inline-SVG views form the visual backbone -- implementation
 structure, execution/data/state flow, and the decision landscape -- with
 additional state, layout, lifecycle, concurrency, or algorithm-stage figures
 when the implementation needs them. Prose interprets those visuals instead of
@@ -192,13 +192,13 @@ when the file is the unit. Anything vaguer (a bare symbol name, a directory,
 "the queue implementation") is not a resolved entry point, and the skill asks
 rather than guessing.
 
-Five phases run in order, each reading only its own reference doc:
+Its phases run in order, each reading only its own reference doc:
 
 | Phase | What it does |
 | --- | --- |
 | Analyze | Resolves the boundary, the contract, and the caller map; opens the comprehension ledger; records the integrity baseline the last phase checks against. |
 | Investigate | Turns the ledger into a decision inventory -- the implementation's choices, their realistic alternatives, and the trade-off between them. Proposes an experiment only when a trade-off cannot be settled by reasoning. |
-| Write | Turns the ledger and the inventories into a diagram-first study: a fixed five-section spine, three required inline-SVG views, supplemental visuals where relationships beat enumeration, refined pseudocode for each key algorithm, a middle shaped by the code, decision blocks, and back matter. Discovers nothing new. |
+| Write | Turns the ledger and the inventories into a diagram-first study: a fixed section spine, the required inline-SVG views, supplemental visuals where relationships beat enumeration, refined pseudocode for each key algorithm, a middle shaped by the code, decision blocks, and back matter. Discovers nothing new. |
 | Render | Turns the markdown and vector figures into a PDF through pandoc and headless Chrome, classifying crowded diagrams and overlong code before touching the stylesheet. |
 | Verify | The gate: mechanical PDF and SVG-survival checks, a mechanical evidence check, rasterized inspection of every figure page, and a manual read-through, with every finding routed back to the phase that caused it. |
 
@@ -249,24 +249,24 @@ The argument is a directory -- the working directory when omitted. A single
 file is not an architecture, and the skill says so and points at
 `/implementation-study` instead.
 
-Seven fixed sections answer the same seven questions every time, checked
-verbatim, so a reader who has read one report can navigate any other. Four
-inline-SVG views form the backbone -- system decomposition, contract map,
+Fixed sections answer the same questions every time, checked verbatim, so a
+reader who has read one report can navigate any other. Required inline-SVG
+views form the backbone -- system decomposition, contract map,
 execution lifecycle, and trade-off landscape -- with blocking-path,
 alternative-paradigm, state, layout, memory-lifetime, and concurrency figures
 where they beat a paragraph. Every abbreviation is spelled out and footnoted
 at its first use, once, and the checker enforces that too.
 
-Six phases run in order, each reading only its own reference doc:
+Its phases run in order, each reading only its own reference doc:
 
 | Phase | What it does |
 | --- | --- |
 | Survey | Records the integrity baseline, declares the boundary, and builds the component and contract inventories. The boundary is exactly the files that were opened and read -- a component named but never read is reported as a boundary edge, not described. |
 | Trace | Follows one concrete execution end to end, recording state mutations, ownership transfers, allocations, seam crossings, and every point where it blocks. |
 | Weigh | Turns the inventories into decisions, realistic alternatives, priced trade-offs, alternative paradigms, and the open questions the report closes on. |
-| Write | Turns the four inventories into the seven-section report: the boundary block, the four required views, decision blocks, footnoted abbreviations, and the generated evidence ledger. Discovers nothing new. |
+| Write | Turns the inventories into the fixed-section report: the boundary block, the required views, decision blocks, footnoted abbreviations, and the generated evidence ledger. Discovers nothing new. |
 | Render | Turns markdown and vector figures into a PDF through pandoc and headless Chrome, classifying crowded diagrams and overlong code before touching the stylesheet. |
-| Verify | The gate: mechanical PDF and evidence checks, rasterized inspection of every sample page, and six read-through sweeps, with every finding routed back to the phase that caused it. |
+| Verify | The gate: mechanical PDF and evidence checks, rasterized inspection of every sample page, and the read-through sweeps, with every finding routed back to the phase that caused it. |
 
 Outputs land beside the code under the same rules as `implementation-study`:
 `<stem>_architecture.md`, `<stem>_architecture.notes.md`, the non-git
@@ -458,10 +458,10 @@ skills/
   asm-tutorial/          # SKILL.md + analysis.md, writing.md, rendering.md,
                          # verification.md, cdna-facts.md, annotate_asm.py,
                          # make_pdf.py, check_pdf.py, tutorial.css
-  implementation-study/  # SKILL.md + five phase docs, experiments.md,
+  implementation-study/  # SKILL.md + phase docs, experiments.md,
                          # make_pdf.py, check_pdf.py, check_evidence.py,
                          # tutorial.css
-  architecture-study/    # SKILL.md + six phase docs, paradigms.md,
+  architecture-study/    # SKILL.md + phase docs, paradigms.md,
                          # diagrams.md, make_pdf.py, check_pdf.py,
                          # check_evidence.py, tutorial.css
   kernel-perf/           # SKILL.md + ablation.md, modelling.md,
