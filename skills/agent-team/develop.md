@@ -27,8 +27,9 @@ it is set. Apply whatever the overlay body says a fresh tree needs.
 
 Work under the `ponytail` skill at level `full` (`/ponytail full`) when it is
 installed. Stay inside the brief's file set; record any change outside it
-under Decided in the Dev record. Track lines against the brief's estimate:
-past about 2x, stop and escalate (`rules.md`).
+under Decided in the Dev record. Track your non-test lines against the brief's
+code estimate; at the overrun `rules.md` (Escalations) sets, stop and
+escalate.
 
 ## 4. Pass the gates
 

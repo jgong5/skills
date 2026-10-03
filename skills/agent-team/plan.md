@@ -22,8 +22,9 @@ module it lands in and the interfaces it implements and consumes.
   file are one task, or are ordered by `Depends on`.
 - **Decompose a task estimated above `<split_loc>` lines, tests included, or
   with three or more deliverables** into sub-tasks, each its own issue with
-  its own brief, before anyone claims it. Estimate effort in lines of code:
-  lines are what a reviewer reads and what a developer can check against.
+  its own brief, before anyone claims it. Estimate effort in lines
+  (`rules.md`, Escalations, says how they are counted): lines are what a
+  reviewer reads and what a developer can check against.
   Wall-clock appears only for machine time with a measured basis.
 - An umbrella issue that only groups sub-tasks still carries a named result,
   or names the sub-task that carries it.
@@ -42,7 +43,7 @@ Follow `gh-prose` (kind `brief`). Every brief has:
 - **Named result** -- the one result the task must show, chosen now. A
   developer choosing it afterwards can always find one that passed; that is
   the case this rule forbids.
-- **Effort** -- an estimate in lines, tests included.
+- **Effort** -- code lines and test lines, estimated separately.
 - **Depends on** -- one `Depends on #N` line per predecessor, and links to
   their issues. Omit the lines for a root task.
 

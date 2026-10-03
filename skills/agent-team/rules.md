@@ -26,7 +26,7 @@ away on landing and a file in the tree goes stale.
 
 | Section | Written by | Lives in | Contains |
 |---|---|---|---|
-| Brief | the planner | the issue body | what to build; the interfaces it implements and consumes; its file set; exit criteria; the named result; effort in lines; `Depends on #N` lines |
+| Brief | the planner | the issue body | what to build; the interfaces it implements and consumes; its file set; exit criteria; the named result; effort in code lines and test lines; `Depends on #N` lines |
 | Dev record | the developer | the PR body | what was found, what was decided that the design did not cover, what surprised it, what was left undone |
 | Review record | the reviewer | the PR verdict comment | what was checked, what was accepted with reservation, what the next task in this area should watch |
 | Handoff | both | a closing comment on the issue | what a successor needs that is not in the code |
@@ -72,8 +72,11 @@ An escalation is anything that needs an owner ruling before work continues;
 anything an agent can fix without one is a finding, and the owner is never
 asked about findings. Escalate, in addition to the cases above, when:
 
-- a task overruns its line estimate by more than about 2x -- the estimate
-  was wrong, and more effort will not fix a mis-cut task;
+- a task's non-test lines exceed twice its code estimate and exceed that
+  estimate by more than 20 lines -- the estimate was wrong, and more effort
+  will not fix a mis-cut task. A line count, here and in every estimate, is
+  lines added plus lines deleted, as `git diff --numstat` reports them
+  against the task's base; test lines are those in test files;
 - the review loop hits its stop (`review.md`);
 - the only fix is a force-push (a secret or large binary pushed by mistake).
 
