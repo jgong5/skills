@@ -1,5 +1,8 @@
 from pathlib import Path
 
+import check_evidence
+import check_pdf
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SKILL_DIR = REPO_ROOT / "skills" / "implementation-study"
 README = REPO_ROOT / "README.md"
@@ -194,8 +197,6 @@ def test_pseudocode_contract_is_documented_across_phases():
 def test_pseudocode_contract_matches_the_checker():
     # Ties the prose's grammar and step limit to the compiled patterns, so a
     # change to either end without the other fails here.
-    import check_pdf
-
     text = (SKILL_DIR / "pseudocode.md").read_text()
     for name in ("PSEUDOCODE_FENCE_RE", "PSEUDOCODE_HEADER_RE",
                  "PSEUDOCODE_MAX_STEPS"):
@@ -209,8 +210,6 @@ def test_pseudocode_worked_example_satisfies_the_checker():
     # The copyable example is what an author imitates, so it must pass the
     # same check their study will. Scoped to the worked-example section: the
     # grammar snippets above it are templates with `<name>` placeholders.
-    import check_pdf
-
     text = (SKILL_DIR / "pseudocode.md").read_text()
     example = text.split("## A worked example", 1)[1].split("## Evidence", 1)[0]
     assert "```pseudocode" in example
@@ -218,8 +217,6 @@ def test_pseudocode_worked_example_satisfies_the_checker():
 
 
 def test_diagram_contract_matches_checker_roles():
-    import check_pdf
-
     text = (SKILL_DIR / "diagrams.md").read_text()
     for role in check_pdf.REQUIRED_DIAGRAMS:
         assert f'data-diagram="{role}"' in text
@@ -268,9 +265,6 @@ def test_writing_quotes_the_live_checker_regexes():
     # future edit to either check_pdf.py or check_evidence.py that changes
     # HEADING_RE, XREF_RE, or ENTRY_PREFIX_RE without updating writing.md
     # fails here instead of only being caught by a human reviewer.
-    import check_evidence
-    import check_pdf
-
     text = (SKILL_DIR / "writing.md").read_text()
     assert check_pdf.HEADING_RE.pattern in text
     assert check_pdf.XREF_RE.pattern in text
@@ -396,7 +390,6 @@ def test_docs_state_the_gitignore_blind_spot_without_promising_a_scan():
 
     # And so did the checker's own docstring, where the next reader of the
     # code will look first.
-    import check_evidence
     docstring = _normalize(check_evidence.check_git_integrity.__doc__)
     assert ".gitignore" in docstring
     assert "__pycache__" in docstring
