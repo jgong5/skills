@@ -21,6 +21,9 @@ def make_pr(comments=(), reviews=(), labels=(), closes=(), state="OPEN", head=HE
     }
 
 
+ROUND = comment("2026-01-05T00:00:00Z", "Round 2 pushed c0ffee1.")
+
+
 @pytest.fixture
 def fake_gh(monkeypatch):
     """Serve `gh pr view` from .pr and `gh issue view N` from .issues[N]."""
@@ -47,14 +50,15 @@ def test_an_approve_naming_the_head_means_land(fake_gh):
 
 
 def test_a_head_past_the_approval_needs_a_delta_review(fake_gh):
-    fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "APPROVE @ 1111111.", "rev")])
+    fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "APPROVE @ 1111111.", "rev"), ROUND])
     s = pr_state.state(7)
     assert s["turn"] == "reviewer"
     assert "delta review needed" in s["holds"][0]
 
 
 def test_a_head_past_a_request_changes_needs_the_whole_head_reviewed(fake_gh):
-    fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "REQUEST CHANGES @ 1111111: 1 blocking.", "rev")])
+    fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "REQUEST CHANGES @ 1111111: 1 blocking.", "rev"),
+                          ROUND])
     s = pr_state.state(7)
     assert s["turn"] == "reviewer"
     assert s["holds"][0].endswith("review the whole head")
@@ -100,8 +104,9 @@ def test_an_issue_named_by_a_delivering_verb_in_the_body_holds_it_too(fake_gh):
 
 
 def test_no_verdict_or_a_verdict_without_a_sha_is_the_reviewers_turn(fake_gh):
+    fake_gh.pr = make_pr([ROUND])
     assert pr_state.state(7)["holds"] == ["no verdict yet"]
-    fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "APPROVE.", "rev")])
+    fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "APPROVE.", "rev"), ROUND])
     s = pr_state.state(7)
     assert s["holds"] == ["the last verdict names no sha"] and s["turn"] == "reviewer"
 
@@ -112,3 +117,19 @@ def test_a_pending_review_is_not_in_the_thread(fake_gh):
                          reviews=[{"submittedAt": None, "author": {"login": "rev"},
                                    "body": "REQUEST CHANGES @ c0ffee1: 1 blocking."}])
     assert pr_state.state(7)["turn"] == "land"
+
+
+def test_a_pushed_head_is_the_reviewers_turn_only_once_a_round_comment_names_it(fake_gh):
+    rc = comment("2026-01-02T00:00:00Z", "REQUEST CHANGES @ 1111111: 1 blocking.", "rev")
+    for before in ([], [rc]):
+        # A comment naming an older head does not announce this one.
+        fake_gh.pr = make_pr(before + [comment("2026-01-03T00:00:00Z", "Round 1 pushed 1111111.")])
+        s = pr_state.state(7)
+        assert s["turn"] == "developer"
+        assert s["holds"][-1].endswith("no round comment")
+        fake_gh.pr["comments"].append(ROUND)
+        s = pr_state.state(7)
+        assert s["turn"] == "reviewer" and not any("round comment" in h for h in s["holds"])
+    # Nor does one posted before the last verdict.
+    fake_gh.pr = make_pr([ROUND, comment("2026-01-06T00:00:00Z", "REQUEST CHANGES @ 1111111.", "rev")])
+    assert pr_state.state(7)["turn"] == "developer"

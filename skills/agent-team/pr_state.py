@@ -7,7 +7,9 @@ Prints JSON: the last thread entry, the last verdict and the head it names,
 the holds on landing, and whose turn it is (`land`, `developer`, `reviewer`,
 or `held`). A verdict is a comment or review whose first line opens with
 APPROVE or REQUEST CHANGES (markdown emphasis allowed) and names the head it
-covers as a sha, as in `APPROVE @ 1a2b3c4.`
+covers as a sha, as in `APPROVE @ 1a2b3c4.` A head the last verdict does
+not cover is the reviewer's turn only once a later comment names it, as the
+round comment `Round <k> pushed <sha>.` does; until then it is the developer's.
 """
 
 import argparse
@@ -81,12 +83,17 @@ def state(number, repo=None):
         holds.append(f"the last verdict covers {verdict['sha']}, head is {head[:12]}: {need}")
     elif verdict["verdict"] != "APPROVE":
         holds.append(f"the last verdict is REQUEST CHANGES @ {verdict['sha']}")
+    since = entries[entries.index(verdicts[-1]) + 1:] if verdicts else entries
+    announced = any(kind == "comment" and any(head.startswith(s) for s in SHA.findall(line))
+                    for _, kind, _, line in since)
+    if not covers and not announced:
+        holds.append(f"head {head[:12]} has no round comment")
     if pr["state"] != "OPEN" or any(LABEL in h for h in holds):
         turn = "held"
     elif covers:
         turn = "land" if verdict["verdict"] == "APPROVE" else "developer"
     else:
-        turn = "reviewer"
+        turn = "reviewer" if announced else "developer"
     last = entries[-1] if entries else None
     return {
         "pr": pr["number"], "state": pr["state"], "head": head, "base": pr["baseRefName"],
