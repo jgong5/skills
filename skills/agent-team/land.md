@@ -95,4 +95,5 @@ do not stack.
 - When a parent lands, GitHub retargets a linked child itself. An unlinked
   child (a fork arm, or a chain never linked) gets its base patched
   (`gh api -X PATCH repos/<repo>/pulls/<child> -f base=<integration_branch>`)
-  and the new tip merged into it, so its diff shows only its own changes.
+  and the new tip merged into it, so its diff shows only its own changes,
+  then gets the round comment that `rules.md` (Branches) requires.

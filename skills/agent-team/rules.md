@@ -96,8 +96,9 @@ amend or merge, even after a passed review. Exceptions:
    including patching the base via REST just before the push when the PR is
    an unlinked stacked child whose parent landed (`land.md`). The merge keeps
    every change from both sides; where it cannot, commit nothing
-   and name the conflicting file and symbol in a PR comment. A PR comment
-   lists each resolved file, and the label allows one delta review of them.
+   and name the conflicting file and symbol in a PR comment. The round
+   comment (Branches) lists each resolved file, and the label allows one
+   delta review of them.
 3. Reading, for `status`.
 
 Only the owner removes the label. Without it, automation is on by default:
@@ -134,6 +135,9 @@ Update a branch only when it conflicts, needs code landed since, or is an
 unlinked stacked child whose parent landed (`land.md`) -- a moved tip alone
 needs no update, the tree check covers it -- and then by merging a freshly
 fetched `<remote>/<integration_branch>`, or the parent's head, into it.
+Whoever pushes the update then comments `Round <k> pushed <sha>.` on the PR,
+listing each file the merge resolved: until a comment names the new head,
+`pr_state.py` reads it as the developer's turn, not the delta reviewer's.
 
 ## What gets published
 
