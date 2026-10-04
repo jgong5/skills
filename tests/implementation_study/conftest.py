@@ -8,7 +8,8 @@ sys.path.insert(0, str(SKILL_DIR))
 # scripts by bare module name (see the repo's top-level CLAUDE.md). That
 # breaks when skills ship a same-named script -- skills/architecture-study/,
 # skills/asm-tutorial/ and skills/implementation-study/ each have a
-# check_pdf.py and a make_pdf.py. A whole-suite run caches architecture-study's
+# check_pdf.py and a make_pdf.py, and architecture-study shares this skill's
+# check_evidence.py name too. A whole-suite run caches architecture-study's
 # copy under the bare name first (its suite sorts ahead of the others), then
 # asm-tutorial's suite replaces it with its own. Evict any such module from the
 # cache before this skill's own tests run, so `from check_pdf import ...` here
