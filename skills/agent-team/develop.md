@@ -14,7 +14,8 @@ Read `<design_entry>` first, then `rules.md`, the issue's body and comments,
 and the handoff comments of the issues it depends on. Check delivery
 (`rules.md`). Unless the orchestrator says it already claimed the issue,
 claim it: assign it (`gh issue edit <n> --add-assignee @me`) and comment
-`Claimed: worktree <path>, branch <branch>.`
+`Claimed: branch task-<n>.` It names the branch only: when the orchestrator
+claims, no worktree exists yet, so a path would be false.
 
 ## 2. Set up the tree
 

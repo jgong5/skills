@@ -32,7 +32,8 @@ away on landing and a file in the tree goes stale.
 | Handoff | both | a closing comment on the issue | what a successor needs that is not in the code |
 
 - **A finding not fixed in the PR that found it gets an issue.** The PR body
-  will not survive the squash.
+  will not survive the squash. A pre-existing defect a review happens to see
+  is not such a finding; `review.md` (Check) says when it gets an issue.
 - **Check delivery before claiming or briefing an issue.** Read its comments,
   not only its body, and look for an open PR that names it in its title or
   with a delivering verb (closes, fixes, resolves, addresses, implements).

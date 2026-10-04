@@ -86,8 +86,8 @@ alone. It also runs under `/loop`.
    `reviewer` and that has no agent of yours running on it.
 4. **Develop.** Dispatch the PR's developer for each PR whose turn is
    `developer`. Then, while fewer than `<max_tasks>` tasks are in flight,
-   claim the next claimable issue (assignee plus a `Claimed: ...` comment)
-   and dispatch a developer for it. Claim before dispatching, so a
+   claim the next claimable issue (`develop.md`, Read and claim) and
+   dispatch a developer for it. Claim before dispatching, so a
    concurrent session cannot take the same issue.
 
 When a pass lands nothing and dispatches nothing, wait for a running agent to
