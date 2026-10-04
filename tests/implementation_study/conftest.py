@@ -8,7 +8,8 @@ sys.path.insert(0, str(SKILL_DIR))
 # scripts by bare module name (see the repo's top-level CLAUDE.md). That
 # breaks when skills ship a same-named script -- skills/architecture-study/,
 # skills/asm-tutorial/ and skills/implementation-study/ each have a
-# check_pdf.py and a make_pdf.py. A whole-suite run caches architecture-study's
+# check_pdf.py and a make_pdf.py, and architecture-study shares this skill's
+# check_evidence.py name too. A whole-suite run caches architecture-study's
 # copy under the bare name first (its suite sorts ahead of the others), then
 # asm-tutorial's suite replaces it with its own. Evict any such module from the
 # cache before this skill's own tests run, so `from check_pdf import ...` here
@@ -38,9 +39,13 @@ sys.path.insert(0, str(SKILL_DIR))
 # test_check_pdf.py and test_make_pdf.py only guarantee which copy THIS suite
 # imports. Every other suite whose skill ships a same-named script runs the
 # same eviction in its own conftest, which is what keeps a whole-`tests/` run
-# correct no matter which directory collects first. Both explicit-directory
-# cases above stay unsupported: there, both conftests load before any test
-# module is imported, so nothing is cached yet for either eviction to catch.
+# correct no matter which directory collects first -- but only for imports
+# that run at collection. An `import check_pdf` inside a test function runs
+# after every suite has collected, so it gets whichever copy the suite that
+# collected last left cached. Import this skill's scripts at module level
+# only. Both explicit-directory cases above stay unsupported: there, both
+# conftests load before any test module is imported, so nothing is cached yet
+# for either eviction to catch.
 # Run the whole `tests/` directory, or one suite at a time.
 for script in SKILL_DIR.glob("*.py"):
     cached = sys.modules.get(script.stem)

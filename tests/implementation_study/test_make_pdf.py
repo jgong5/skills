@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import check_pdf
 import make_pdf
 
 SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "implementation-study"
@@ -54,8 +55,6 @@ def test_renders_a_tiny_markdown_to_pdf(tmp_path):
 
 def test_generated_evidence_ledger_survives_pdf_extraction(tmp_path):
     import subprocess
-
-    import check_pdf
 
     md = tmp_path / "evidence.md"
     md.write_text("""\
