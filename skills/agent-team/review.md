@@ -29,7 +29,11 @@ the developer's tree, and run `<import_check>` there when it is set.
   over-engineering; post its findings like any others.
 
 Approving is gate 4. A finding is blocking when the task cannot land without
-its fix; say which findings block.
+its fix; say which findings block. **A review blocks only on what the PR's
+change gets wrong or its brief requires.** A pre-existing defect you happen
+to see goes under `Watch next:` in one line, and gets an issue only when it
+would make a reader or a test reach a wrong conclusion: otherwise each
+review finds an older neighbour and the pool keeps growing.
 
 ## 3. Delta review
 
