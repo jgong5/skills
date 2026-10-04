@@ -18,7 +18,6 @@ def test_imported_check_evidence_is_this_skills_copy():
     # skills/implementation-study/ ships its own check_evidence.py under the
     # same bare module name; the two are deliberately separate copies.
     assert Path(check_evidence.__file__).resolve() == SKILL_DIR / "check_evidence.py"
-    assert "architecture study" in check_evidence.__doc__
 
 
 def test_parse_ledger_accepts_the_two_classes_this_skill_uses():

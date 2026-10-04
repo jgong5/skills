@@ -29,8 +29,8 @@ SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "implementation-stu
 
 
 def test_imported_check_evidence_is_this_skills_copy():
-    # skills/architecture-study/ ships a check_evidence.py that defines every
-    # name imported above, so a cached copy of it would keep this suite green.
+    # skills/architecture-study/ ships its own check_evidence.py under the same
+    # bare module name; this checks which of the two copies was imported.
     assert Path(check_evidence.__file__).resolve() == SKILL_DIR / "check_evidence.py"
 
 

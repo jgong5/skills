@@ -40,7 +40,7 @@ package install step and no test runner config.
 `asm-tutorial`, `implementation-study` and `architecture-study` each ship a
 `check_pdf.py` and a `make_pdf.py`, all under those same bare names, so each
 of their suites' conftests also evicts a cached module whose
-`__file__` is not its own -- otherwise the suite that collects first
+`__file__` is not its own -- otherwise the first of those suites to collect
 (`tests/architecture_study/`, alphabetically) would hand its copies to the
 others, and the failure can be silently green rather than loud. Each suite
 asserts the provenance of what it imported for the same reason. Run the whole
