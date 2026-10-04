@@ -37,12 +37,11 @@ sys.path.insert(0, str(SKILL_DIR))
 # provenance assertions in this suite's test_check_evidence.py,
 # test_check_pdf.py and test_make_pdf.py only guarantee which copy THIS suite
 # imports. Every other suite whose skill ships a same-named script runs the
-# same eviction in its own conftest, which
-# is what keeps a whole-`tests/` run correct no matter which directory
-# collects first. The explicit-two-directories case above stays unsupported:
-# there, both conftests load before any test module is imported, so nothing is
-# cached yet for either eviction to catch. Run the whole `tests/` directory, or
-# one suite at a time.
+# same eviction in its own conftest, which is what keeps a whole-`tests/` run
+# correct no matter which directory collects first. Both explicit-directory
+# cases above stay unsupported: there, both conftests load before any test
+# module is imported, so nothing is cached yet for either eviction to catch.
+# Run the whole `tests/` directory, or one suite at a time.
 for script in SKILL_DIR.glob("*.py"):
     cached = sys.modules.get(script.stem)
     if cached is not None and Path(getattr(cached, "__file__", "")).resolve() != script.resolve():
