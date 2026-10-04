@@ -1,3 +1,4 @@
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -100,3 +101,11 @@ def test_the_script_takes_no_path(tmp_path, monkeypatch):
     r = subprocess.run([sys.executable, overlay.__file__, ".claude/agent-team.md"],
                        capture_output=True, text=True)
     assert r.returncode == 1 and "takes no arguments" in r.stderr
+
+
+def test_the_script_prints_prose_tests(tmp_path, monkeypatch):
+    globs = "tests/*/test_skill_md.py, tests/*/test_reference_docs.py"
+    repo_with(tmp_path, monkeypatch, GOOD.replace("max_tasks: 3", f"prose_tests: {globs}"))
+    r = subprocess.run([sys.executable, overlay.__file__], capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout
+    assert json.loads(r.stdout)["prose_tests"] == globs

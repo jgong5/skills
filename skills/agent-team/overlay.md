@@ -24,6 +24,7 @@ default.
 | `max_tasks` | no | `5` | Tasks in flight; agents in flight are at most twice this. |
 | `split_loc` | no | `1000` | A task estimated above this many lines, tests included, is decomposed. |
 | `task_label` | no | -- | When set, only open issues with this label are in the pool; when absent, every open issue in `repo` is. |
+| `prose_tests` | no | -- | Test files that pin prose by design (comma-separated globs, relative to the repository root); "Prose is not a test subject" (`rules.md`) does not apply to them. |
 
 ## Drafting a missing or broken overlay
 

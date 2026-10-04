@@ -156,6 +156,8 @@ fetched `<remote>/<integration_branch>`, or the parent's head, into it.
   verdict is a behaviour test. Where a fact must stay in step with code, the code or
   a checked-in data file holds it and the doc says where. An existing test
   that reads prose and goes red on a doc fix is deleted, not satisfied.
+  Exempt: test files matching `<prose_tests>`, which the project keeps to
+  pin prose by design; this rule does not apply to them.
 - **Write nothing that goes stale on its own**, in docs, code, briefs, issues
   or PR text:
   - Cite code by path and symbol, never by line number. Exceptions: an

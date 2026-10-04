@@ -17,7 +17,7 @@ DEFAULT_PATH = ".claude/agent-team.md"
 REQUIRED = ("repo", "integration_branch", "gate_task", "design_entry")
 DEFAULTS = {"publish_language": "English", "max_tasks": "5", "split_loc": "1000"}
 OPTIONAL = ("remote", "never_touch", "gate_wave", "new_tests_dir", "import_check",
-            "worktree_root", "task_label")
+            "worktree_root", "task_label", "prose_tests")
 INTEGER = ("max_tasks", "split_loc")
 KEYS = REQUIRED + OPTIONAL + tuple(DEFAULTS)
 
