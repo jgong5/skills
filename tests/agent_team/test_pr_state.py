@@ -133,3 +133,19 @@ def test_a_pushed_head_is_the_reviewers_turn_only_once_a_round_comment_names_it(
     # Nor does one posted before the last verdict.
     fake_gh.pr = make_pr([ROUND, comment("2026-01-06T00:00:00Z", "REQUEST CHANGES @ 1111111.", "rev")])
     assert pr_state.state(7)["turn"] == "developer"
+
+
+def test_hold_landing_holds_only_the_land_turn(fake_gh):
+    approved = [comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")]
+    fake_gh.pr = make_pr(approved, labels=["hold landing"])
+    s = pr_state.state(7)
+    assert s["turn"] == "held" and s["holds"] == ["hold landing on the PR"]
+    fake_gh.pr, fake_gh.issues = make_pr(approved, closes=[4]), {4: ["hold landing"]}
+    s = pr_state.state(7)
+    assert s["turn"] == "held" and s["holds"] == ["hold landing on issue #4, which this PR delivers"]
+    # Developer and reviewer turns go on under it.
+    fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "REQUEST CHANGES @ c0ffee1.", "rev")],
+                         labels=["hold landing"])
+    assert pr_state.state(7)["turn"] == "developer"
+    fake_gh.pr = make_pr([ROUND], labels=["hold landing"])
+    assert pr_state.state(7)["turn"] == "reviewer"

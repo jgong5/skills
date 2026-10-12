@@ -13,6 +13,9 @@ These are the landing preconditions, and the only holds:
 2. An APPROVE naming each head being landed.
 3. The tree check: what lands on the current tip is exactly the tree that was
    approved, or the batch tree that was gated.
+4. No `hold landing` on the PR or on an issue it closes. It holds landing and
+   nothing else -- development and review go on -- and whoever applied it
+   removes it.
 
 A hold names the one that is unmet. **Any other rule violation seen in an
 approved PR is landed and filed as an issue, not held**: the review loop is
