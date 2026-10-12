@@ -18,6 +18,7 @@ import re
 import subprocess
 
 LABEL = "need human"
+HOLD = "hold landing"  # holds landing only; development and review go on
 # GitHub links closing keywords only on PRs into the default branch, so the
 # body is read too, with every verb rules.md counts as delivering.
 DELIVERS = re.compile(r"(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|address(?:es|ed)?|"
@@ -59,14 +60,12 @@ def state(number, repo=None):
     holds = []
     if pr["state"] != "OPEN":
         holds.append(f"PR is {pr['state']}")
-    if LABEL in {l["name"] for l in pr["labels"]}:
-        holds.append(f"{LABEL} on the PR")
+    holds += [f"{name} on the PR" for name in (LABEL, HOLD) if name in {l["name"] for l in pr["labels"]}]
     issues = {i["number"] for i in pr["closingIssuesReferences"]}
     issues |= {int(n) for n in DELIVERS.findall(pr.get("body") or "")}
     for n in sorted(issues):
-        labels = json.loads(gh(["issue", "view", str(n), "--json", "labels", *r]))["labels"]
-        if LABEL in {l["name"] for l in labels}:
-            holds.append(f"{LABEL} on issue #{n}, which this PR delivers")
+        labels = {l["name"] for l in json.loads(gh(["issue", "view", str(n), "--json", "labels", *r]))["labels"]}
+        holds += [f"{name} on issue #{n}, which this PR delivers" for name in (LABEL, HOLD) if name in labels]
     verdict = None
     if verdicts:
         at, _, author, line = verdicts[-1]
@@ -91,7 +90,8 @@ def state(number, repo=None):
     if pr["state"] != "OPEN" or any(LABEL in h for h in holds):
         turn = "held"
     elif covers:
-        turn = "land" if verdict["verdict"] == "APPROVE" else "developer"
+        turn = "developer" if verdict["verdict"] != "APPROVE" else (
+            "held" if any(HOLD in h for h in holds) else "land")
     else:
         turn = "reviewer" if announced else "developer"
     last = entries[-1] if entries else None
