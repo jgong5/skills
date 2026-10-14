@@ -132,13 +132,14 @@ def test_a_moved_tip_that_conflicts_is_refused(repo, fake_gh, monkeypatch):
     assert fake_gh.puts() == []
 
 
-def test_a_stacked_child_needs_its_parents_reviewed_head_as_merge_base(repo, fake_gh, monkeypatch):
+def test_a_stacked_child_is_checked_by_the_merge_github_does_not_a_merge_base(
+        repo, fake_gh, monkeypatch):
     parent = branch_with(repo, ("f", "b"))
     fake_gh.head = branch_with(repo, ("f", "c"), start=parent)
     repo.land_on_tip(("f", "b"))  # the parent, landed squashed: same tree, new commit
-    assert run(monkeypatch) == 4  # the false conflict the plain form reports
-    assert run(monkeypatch, "--merge-base", parent) == 0
-    assert "commit_title=Add the thing (#7)" in fake_gh.puts()[0]
+    assert run(monkeypatch) == 4  # GitHub's merge conflicts, and ignores any merge base
+    assert run(monkeypatch, "--merge-base", parent) == 4
+    assert fake_gh.puts() == []
 
 
 def test_a_gated_batch_tree_lands_where_the_reviewed_tree_would_not(repo, fake_gh, monkeypatch):
@@ -247,3 +248,53 @@ def test_a_pr_labeled_land_as_merge_lands_as_a_merge_whose_second_parent_is_its_
     assert parents == ([repo.base, fake_gh.head] if merged else [repo.base])
     assert git(repo.work, "rev-parse", "origin/dev^{tree}") == git(
         repo.work, "rev-parse", fake_gh.head + "^{tree}")
+
+
+def test_a_rebased_child_cut_before_its_parents_last_round_lands_given_the_parents_head(
+        repo, fake_gh, monkeypatch):
+    round1 = branch_with(repo, ("g", "1"))
+    parent = branch_with(repo, ("g", "2"), start=round1)
+    approved = branch_with(repo, ("h", "1"), start=round1)
+    tip = repo.land_on_tip(("g", "2"))  # the parent's last round, landed squashed
+    pr = {"number": 7, "state": "OPEN", "body": "", "baseRefName": "dev", "labels": [],
+          "reviews": [], "closingIssuesReferences": [], "title": "Add the thing",
+          "comments": [{"createdAt": "2026-01-02T00:00:00Z", "author": {"login": "rev"},
+                        "body": f"APPROVE @ {approved[:7]}."}]}
+    pr["headRefOid"] = branch_with(repo, ("h", "1"), start=tip)  # GitHub's rebase
+    pr["commits"] = [{"committedDate": "2026-01-03T00:00:00Z", "oid": pr["headRefOid"]}]
+    monkeypatch.setattr(pr_state, "state", REAL_STATE)
+    monkeypatch.setattr(pr_state, "gh", lambda args, check=True: json.dumps(pr) if args[:2] == [
+        "pr", "view"] else fake_gh(args, check))
+    # Based on the parent's head itself, the approved sha would undo the parent's last round.
+    assert run(monkeypatch, "--expect-tree", pr["headRefOid"] + "^{tree}", "--merge-base", parent) == 0
+    assert f"sha={pr['headRefOid']}" in fake_gh.puts()[0]
+
+
+def test_a_base_update_lands_on_its_parents_approval_only_with_the_gated_tree(
+        repo, fake_gh, monkeypatch):
+    approved = branch_with(repo, ("g", "1"), ("h", "1"))
+    tip = repo.land_on_tip(("g", "2"))  # GitHub's merge of `approved` conflicts
+    gated = branch_with(repo, ("h", "1"), start=tip)  # the batch resolved it: g=2, h=1
+    pr = {"number": 7, "state": "OPEN", "body": "", "baseRefName": "dev", "labels": [],
+          "reviews": [], "closingIssuesReferences": [], "title": "Add the thing",
+          "comments": [{"createdAt": "2026-01-02T00:00:00Z", "author": {"login": "rev"},
+                        "body": f"APPROVE @ {approved[:7]}."}]}
+    monkeypatch.setattr(pr_state, "state", REAL_STATE)
+    monkeypatch.setattr(pr_state, "gh", lambda args, check=True: json.dumps(pr) if args[:2] == [
+        "pr", "view"] else fake_gh(args, check))
+
+    def push(tree, *parents):
+        head = git(repo.work, "commit-tree", tree, *[a for p in parents for a in ("-p", p)],
+                   "-m", "Merge dev")
+        repo.pr(head)
+        pr["headRefOid"] = head
+        pr["commits"] = [{"committedDate": "2026-01-03T00:00:00Z", "oid": head}]
+
+    push(gated + "^{tree}", tip, approved)  # parents the wrong way round
+    assert run(monkeypatch, "--expect-tree", gated + "^{tree}") == 3
+    push(approved + "^{tree}", approved, tip)  # a tree other than the gated one
+    assert run(monkeypatch, "--expect-tree", gated + "^{tree}") == 3
+    assert fake_gh.puts() == []
+    push(gated + "^{tree}", approved, tip)
+    assert run(monkeypatch, "--expect-tree", gated + "^{tree}") == 0
+    assert f"sha={pr['headRefOid']}" in fake_gh.puts()[0]

@@ -27,7 +27,7 @@ DELIVERS = re.compile(r"(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|address(?
                       r"implement(?:s|ed)?)\s+#(\d+)")
 VERDICT = re.compile(r"(APPROVE|REQUEST CHANGES)\b")
 SHA = re.compile(r"\b[0-9a-f]{7,40}\b")
-FIELDS = "number,state,body,headRefOid,baseRefName,labels,comments,reviews,commits,closingIssuesReferences"
+FIELDS = "number,state,body,headRefOid,headRefName,baseRefName,labels,comments,reviews,commits,closingIssuesReferences"
 
 
 def gh(args, check=True):
@@ -99,7 +99,8 @@ def state(number, repo=None, equivalent=None):
         turn = "reviewer" if announced else "developer"
     last = entries[-1] if entries else None
     return {
-        "pr": pr["number"], "state": pr["state"], "head": head, "base": pr["baseRefName"],
+        "pr": pr["number"], "state": pr["state"], "head": head, "branch": pr.get("headRefName"),
+        "base": pr["baseRefName"],
         "last_entry": last and dict(zip(("at", "kind", "author", "line"), last)),
         "verdict": verdict, "verdicts": len(verdicts), "holds": holds, "turn": turn,
     }
