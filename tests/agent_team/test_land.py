@@ -208,6 +208,8 @@ def test_a_rebased_child_lands_on_its_old_approval_only_if_its_content_is_unchan
     pr["headRefOid"] = branch_with(repo, ("g", "c"), ("h", "x"), start=tip)
     pr["commits"] = [{"committedDate": "2026-01-03T00:00:00Z", "oid": pr["headRefOid"]}]
     assert run(monkeypatch, *land_args) == 3
+    # Nor does a gated tree that is the changed head's own: the approved sha must land as it too.
+    assert run(monkeypatch, "--expect-tree", pr["headRefOid"] + "^{tree}", "--merge-base", parent) == 3
     assert fake_gh.puts() == []
 
     # The same rebase with the content unchanged lands, at the head it checked.
