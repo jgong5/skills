@@ -103,6 +103,10 @@ One background agent per role per task, so at most `2 x <max_tasks>` agents
 run. Review throughput, not the DAG, is what caps concurrency. Give each
 agent no prose of your own about how to work; hand it:
 
+- as the prompt's first line, the run-location constraints the project's
+  local instructions state (`CLAUDE.local.md`, say), quoted verbatim: an
+  agent runs commands before it reads its docs. Send any change to them to
+  every running agent at once;
 - its role doc: `<skill-dir>/develop.md` or `<skill-dir>/review.md`, which
   points it at `rules.md`;
 - the issue number (developer) or PR number (reviewer);
