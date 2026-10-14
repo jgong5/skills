@@ -129,7 +129,8 @@ silently resolves against instead of its own.
 **PR branches only gain commits: no force-push, no rebase, no amend.** Answer
 review findings with new commits. That keeps GitHub's incremental review and
 the delta review (`review.md`) intact, and the branch lands squashed, so its
-merge commits never reach `<integration_branch>`.
+merge commits never reach `<integration_branch>` -- unless it is labeled
+`land as merge` (`land.md`), because its history is the point.
 
 Update a branch only when it conflicts, needs code landed since, or is an
 unlinked stacked child whose parent landed (`land.md`) -- a moved tip alone

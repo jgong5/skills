@@ -217,3 +217,33 @@ def test_a_rebased_child_lands_on_its_old_approval_only_if_its_content_is_unchan
     pr["commits"] = [{"committedDate": "2026-01-03T00:00:00Z", "oid": pr["headRefOid"]}]
     assert run(monkeypatch, *land_args) == 0
     assert f"sha={pr['headRefOid']}" in fake_gh.puts()[0]
+
+
+@pytest.mark.parametrize("labels, merged", [(["land as merge"], True), ([], False)])
+def test_a_pr_labeled_land_as_merge_lands_as_a_merge_whose_second_parent_is_its_head(
+        repo, fake_gh, monkeypatch, labels, merged):
+    fake_gh.head = branch_with(repo, ("g", "new"))
+
+    def github(args, check=True):
+        """The PR carries `labels`; a PUT lands the sha the way its merge_method asks."""
+        if args[:2] == ["pr", "view"]:
+            return json.dumps({"title": "Add the thing", "labels": [{"name": n} for n in labels]})
+        if args[:3] != ["api", "-X", "PUT"]:
+            return fake_gh(args, check)
+        sha = next(a[4:] for a in args if a.startswith("sha="))
+        git(repo.work, "checkout", "-q", "-B", "landed", "origin/dev")
+        if "merge_method=merge" in args:
+            git(repo.work, "merge", "-q", "--no-ff", "-m", "landed", sha)
+        else:
+            assert "merge_method=squash" in args
+            git(repo.work, "merge", "-q", "--squash", sha)
+            git(repo.work, "commit", "-qm", "landed")
+        git(repo.work, "push", "-q", "origin", "landed:dev")
+        return json.dumps({"status": "merged"})
+
+    monkeypatch.setattr(pr_state, "gh", github)
+    assert run(monkeypatch) == 0
+    parents = git(repo.work, "log", "-1", "--format=%P", "origin/dev").split()
+    assert parents == ([repo.base, fake_gh.head] if merged else [repo.base])
+    assert git(repo.work, "rev-parse", "origin/dev^{tree}") == git(
+        repo.work, "rev-parse", fake_gh.head + "^{tree}")
