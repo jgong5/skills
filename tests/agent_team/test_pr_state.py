@@ -149,3 +149,15 @@ def test_hold_landing_holds_only_the_land_turn(fake_gh):
     assert pr_state.state(7)["turn"] == "developer"
     fake_gh.pr = make_pr([ROUND], labels=["hold landing"])
     assert pr_state.state(7)["turn"] == "reviewer"
+
+
+def test_an_approve_at_another_sha_covers_the_head_only_when_the_caller_says_so(fake_gh):
+    asked = []
+    fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "APPROVE @ 1111111.", "rev")])
+    s = pr_state.state(7, equivalent=lambda sha, head: asked.append((sha, head)) or True)
+    assert s["turn"] == "land" and s["holds"] == [] and asked == [("1111111", HEAD)]
+    s = pr_state.state(7, equivalent=lambda sha, head: False)
+    assert s["turn"] == "developer" and "delta review needed" in s["holds"][0]
+    # A REQUEST CHANGES at another sha is never carried forward.
+    fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "REQUEST CHANGES @ 1111111.", "rev"), ROUND])
+    assert pr_state.state(7, equivalent=lambda sha, head: True)["turn"] == "reviewer"

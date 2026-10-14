@@ -10,6 +10,8 @@ APPROVE or REQUEST CHANGES (markdown emphasis allowed) and names the head it
 covers as a sha, as in `APPROVE @ 1a2b3c4.` A head the last verdict does
 not cover is the reviewer's turn only once a later comment names it, as the
 round comment `Round <k> pushed <sha>.` does; until then it is the developer's.
+A caller may pass `equivalent(sha, head)` to let an APPROVE at another sha
+cover the head; land.py does under --expect-tree.
 """
 
 import argparse
@@ -51,7 +53,7 @@ def thread(pr):
     return sorted(entries)
 
 
-def state(number, repo=None):
+def state(number, repo=None, equivalent=None):
     r = ["-R", repo] if repo else []
     pr = json.loads(gh(["pr", "view", str(number), "--json", FIELDS, *r]))
     head = pr["headRefOid"]
@@ -72,7 +74,8 @@ def state(number, repo=None):
         sha = SHA.search(line)
         verdict = {"verdict": VERDICT.match(line).group(1), "sha": sha and sha.group(0),
                    "author": author, "at": at, "line": line}
-    covers = bool(verdict and verdict["sha"] and head.startswith(verdict["sha"]))
+    covers = bool(verdict and verdict["sha"] and (head.startswith(verdict["sha"]) or (
+        equivalent and verdict["verdict"] == "APPROVE" and equivalent(verdict["sha"], head))))
     if not verdict:
         holds.append("no verdict yet")
     elif not verdict["sha"]:

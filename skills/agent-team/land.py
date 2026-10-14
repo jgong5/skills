@@ -8,8 +8,10 @@ reports; refuse a PR not based on the integration branch (land the one below
 it first); compute the tree that would land on the current tip and refuse
 unless it is the reviewed head's tree (or --expect-tree, a batch's gated
 tree at this PR's place in it); squash through merge-async with the
-reviewed sha; poll until merged. Exit 0 merged, 2 overlay problem, 3 hold,
-4 tree differs or conflicts, 5 merge failed.
+checked head sha; poll until merged. Under --expect-tree an APPROVE at
+another sha covers the head when both would land as that tree. Exit 0
+merged, 2 overlay problem, 3 hold, 4 tree differs or conflicts, 5 merge
+failed.
 """
 
 import argparse
@@ -88,12 +90,17 @@ def main():
     keys, _, problems = overlay.load()
     if problems:
         stop(2, "\n".join(problems))
-    s = pr_state.state(a.pr, keys["repo"])
+    check = lambda sha: tree_check(keys["remote"], keys["integration_branch"], a.pr, sha,
+                                   a.merge_base, a.expect_tree)
+    # The gated tree, not the PR's own review, licenses a batch landing: a linked
+    # child GitHub rebased onto its parent's squash has a new head, same content.
+    same = a.expect_tree and (lambda sha, head: not check(sha) and not check(head))
+    s = pr_state.state(a.pr, keys["repo"], equivalent=same)
     if s["holds"]:
         stop(3, "hold: " + "; ".join(s["holds"]))
     if s["base"] != keys["integration_branch"]:
         stop(3, f"hold: based on {s['base']}, not {keys['integration_branch']}: land the PR below first")
-    why = tree_check(keys["remote"], keys["integration_branch"], a.pr, s["head"], a.merge_base, a.expect_tree)
+    why = check(s["head"])
     if why:
         stop(4, why)
     title = json.loads(pr_state.gh(

@@ -9,6 +9,8 @@ import pytest
 import land
 import pr_state
 
+REAL_STATE = pr_state.state
+
 OVERLAY = """---
 repo: me/proj
 integration_branch: dev
@@ -86,7 +88,7 @@ def fake_gh(monkeypatch):
 
     fake = Fake()
     monkeypatch.setattr(pr_state, "gh", fake)
-    monkeypatch.setattr(pr_state, "state", lambda n, repo=None: {
+    monkeypatch.setattr(pr_state, "state", lambda n, repo=None, equivalent=None: {
         "holds": fake.holds, "base": fake.base, "head": fake.head})
     return fake
 
@@ -185,3 +187,31 @@ def test_the_overlay_path_is_not_an_option(repo, fake_gh, monkeypatch, capsys):
     assert run(monkeypatch, "--overlay", ".claude/agent-team.md") == 2
     assert "unrecognized arguments: --overlay" in capsys.readouterr().err
     assert fake_gh.puts() == []
+
+
+def test_a_rebased_child_lands_on_its_old_approval_only_if_its_content_is_unchanged(
+        repo, fake_gh, monkeypatch):
+    parent = branch_with(repo, ("f", "b"))
+    approved = branch_with(repo, ("g", "c"), start=parent)
+    batch_tree = approved + "^{tree}"  # the tip was the batch's base: merging is a fast-forward
+    tip = repo.land_on_tip(("f", "b"))  # the parent, landed squashed
+    pr = {"number": 7, "state": "OPEN", "body": "", "baseRefName": "dev", "labels": [],
+          "reviews": [], "closingIssuesReferences": [], "title": "Add the thing",
+          "comments": [{"createdAt": "2026-01-02T00:00:00Z", "author": {"login": "rev"},
+                        "body": f"APPROVE @ {approved[:7]}."}]}
+    monkeypatch.setattr(pr_state, "state", REAL_STATE)
+    monkeypatch.setattr(pr_state, "gh", lambda args, check=True: json.dumps(pr) if args[:2] == [
+        "pr", "view"] else fake_gh(args, check))
+    land_args = ("--expect-tree", batch_tree, "--merge-base", parent)
+
+    # GitHub rebased the linked child onto the squash commit: new head, new content.
+    pr["headRefOid"] = branch_with(repo, ("g", "c"), ("h", "x"), start=tip)
+    pr["commits"] = [{"committedDate": "2026-01-03T00:00:00Z", "oid": pr["headRefOid"]}]
+    assert run(monkeypatch, *land_args) == 3
+    assert fake_gh.puts() == []
+
+    # The same rebase with the content unchanged lands, at the head it checked.
+    pr["headRefOid"] = branch_with(repo, ("g", "c"), start=tip)
+    pr["commits"] = [{"committedDate": "2026-01-03T00:00:00Z", "oid": pr["headRefOid"]}]
+    assert run(monkeypatch, *land_args) == 0
+    assert f"sha={pr['headRefOid']}" in fake_gh.puts()[0]

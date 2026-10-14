@@ -10,7 +10,8 @@ These are the landing preconditions, and the only holds:
 
 1. No `need human` on the PR, on any PR below it in its stack, or on an issue
    it closes.
-2. An APPROVE naming each head being landed.
+2. An APPROVE naming each head being landed, or, in a batch, an APPROVE
+   at another sha that lands as the same gated tree (Land a batch).
 3. The tree check: what lands on the current tip is exactly the tree that was
    approved, or the batch tree that was gated.
 4. No `hold landing` on the PR or on an issue it closes. It holds landing and
@@ -52,6 +53,15 @@ tree must be gated, but once, not once per PR:
 2. Run `<gate_task>` on the final tree. Red is a finding: land nothing from
    the batch, and bisect it by gating smaller prefixes.
 3. Land each PR in order with `--expect-tree <its recorded tree>`.
+
+The batch tree, not a PR's own review of its head, is what licenses the
+landing. When a linked parent lands, GitHub rebases the child onto the
+squash commit: a new head with the same content, which no verdict names.
+Under `--expect-tree`, `land.py` accepts the APPROVE at the old sha when
+merging it onto the tip and merging the new head onto the tip both give
+the recorded tree; a rebase that changed the content is still held for a
+delta review. The old sha must be in the local object store, which step 1's
+merge ensures.
 
 A conflict while merging the batch sends that PR back to its developer
 (merge the tip into the branch, `rules.md` Branches), followed by a delta
