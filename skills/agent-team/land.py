@@ -8,7 +8,8 @@ reports; refuse a PR not based on the integration branch (land the one below
 it first); compute the tree that would land on the current tip and refuse
 unless it is the reviewed head's tree (or --expect-tree, a batch's gated
 tree at this PR's place in it); squash through merge-async with the
-checked head sha; poll until merged. Under --expect-tree an APPROVE at
+checked head sha -- or, for a PR labeled `land as merge`, merge it as a
+two-parent merge commit; poll until merged. Under --expect-tree an APPROVE at
 another sha covers the head when both would land as that tree. Exit 0
 merged, 2 overlay problem, 3 hold, 4 tree differs or conflicts, 5 merge
 failed.
@@ -24,6 +25,7 @@ import overlay
 import pr_state
 
 TIMEOUT = 900  # seconds GitHub gets to report the merge
+AS_MERGE = "land as merge"  # keeps the branch's history, such as an upstream merge
 
 
 def git(*args):
@@ -54,10 +56,10 @@ def tree_check(remote, branch, number, head, merge_base=None, expect=None):
     return None
 
 
-def merge(repo, number, head, title, message_file):
-    """Squash through merge-async and poll; returns the final status object."""
+def merge(repo, number, head, title, message_file, method="squash"):
+    """Merge through merge-async and poll; returns the final status object."""
     base = f"repos/{repo}/pulls/{number}/merge-async"
-    out = pr_state.gh(["api", "-X", "PUT", base, "-f", "merge_method=squash",
+    out = pr_state.gh(["api", "-X", "PUT", base, "-f", f"merge_method={method}",
                        "-f", "merge_action=direct_merge", "-f", f"sha={head}",
                        "-f", f"commit_title={title}", "-F", f"commit_message=@{message_file}"],
                       check=False)
@@ -103,11 +105,13 @@ def main():
     why = check(s["head"])
     if why:
         stop(4, why)
-    title = json.loads(pr_state.gh(
-        ["pr", "view", str(a.pr), "-R", keys["repo"], "--json", "title"]))["title"]
+    pr = json.loads(pr_state.gh(
+        ["pr", "view", str(a.pr), "-R", keys["repo"], "--json", "title,labels"]))
+    title = pr["title"]
+    method = "merge" if AS_MERGE in {l["name"] for l in pr.get("labels", [])} else "squash"
     if not title.endswith(f" (#{a.pr})"):
         title += f" (#{a.pr})"  # GitHub does not add it on this endpoint
-    res = merge(keys["repo"], a.pr, s["head"], title, a.message_file)
+    res = merge(keys["repo"], a.pr, s["head"], title, a.message_file, method)
     print(json.dumps(res, indent=1))
     sys.exit(0 if res.get("status") == "merged" else 5)
 

@@ -41,6 +41,14 @@ instead, or a timeout -- is a finding to diagnose, never to retry blind. For a s
 `--merge-base <parent's approved head>`: the parent landed as a new squash
 commit, and without it the plain merge reports conflicts that do not exist.
 
+A PR labeled `land as merge` lands as a two-parent merge commit instead,
+whose second parent is the approved head, under the same holds, tree check
+and `--expect-tree`; the message file becomes the merge commit's message.
+Use it only for a branch whose history must survive landing, such as a merge
+of an upstream repository: squashed, the upstream commit stops being an
+ancestor, so the next upstream merge conflicts on everything since and `git
+log` loses the upstream history.
+
 ## Land a batch
 
 Every landing moves the tip, so the next approved PR's tree check fails even

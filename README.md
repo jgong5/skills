@@ -389,7 +389,8 @@ after you approve. The full key table is in
   remove it. A repository named in `never_touch` is never written to.
 - **Nothing is rewritten.** PR branches only gain commits -- no force-push,
   rebase or amend -- and nothing is pushed to the integration branch except
-  by a squash landing of an approved head.
+  by landing an approved head: squashed, or as a merge commit when the PR
+  is labeled `land as merge`.
 - **`plan` publishes nothing until you approve** the task graph and its
   briefs.
 
