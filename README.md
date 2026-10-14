@@ -469,7 +469,7 @@ skills/
                          # bank_model.py, probe_roofline.py
   agent-team/            # SKILL.md + rules.md, overlay.md, plan.md,
                          # develop.md, review.md, land.md, overlay.py,
-                         # pr_state.py, land.py
+                         # pr_state.py, land.py, batch.py
   gh-prose/              # SKILL.md + lint_gh_prose.py
 tests/
   asm_tutorial/          # pytest suite for asm-tutorial's scripts
