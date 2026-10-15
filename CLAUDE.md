@@ -10,7 +10,8 @@ reference docs it reads on demand, plus a few Python scripts the skill shells
 out to. Bundles ship from one marketplace entry -- `pr-review-kit`
 (`pr-explain`, `pr-review-draft`, `pr-review-dossier`), `amd-gpu`
 (`asm-tutorial`, `kernel-perf`), `code-study` (`implementation-study`,
-`architecture-study`), and `agent-team` (`agent-team`, `gh-prose`).
+`architecture-study`), `agent-team` (`agent-team`, `gh-prose`), and
+`auto-grilling` (`auto-grilling`).
 `README.md` is the user-facing documentation for every bundle; keep it in
 sync when a bundle's skills, requirements, or install story change.
 
@@ -89,9 +90,10 @@ the rest: every installed skill's description costs context in every session.
   concrete phrasings and states where the skill degrades.
 - `disable-model-invocation: true` marks a skill as user-invoked only
   (`/pr-review-draft`, `/pr-review-dossier`, `/implementation-study`,
-  `/architecture-study`, `/agent-team`); its description becomes human-facing
-  rather than a trigger, and costs no context. `pr-explain`, `asm-tutorial`,
-  `kernel-perf`, and `gh-prose` omit it and fire automatically.
+  `/architecture-study`, `/agent-team`, `/auto-grilling`); its description
+  becomes human-facing rather than a trigger, and costs no context.
+  `pr-explain`, `asm-tutorial`, `kernel-perf`, and `gh-prose` omit it and
+  fire automatically.
 - Companion `.md` files (`analysis.md`, `writing.md`, `render.md`,
   `diagrams.md`, ...) are read on demand, one per phase or topic, to keep the
   always-loaded `SKILL.md` small.
@@ -221,6 +223,16 @@ Both skills test **behaviour only** -- no test reads their prose -- because
 repo's own suites for those skills follow the rule they ship. `land.py` is
 tested against real temporary git repositories with `gh` replaced by a
 recording fake; the merge-async endpoint itself has no offline test.
+
+### auto-grilling: a rewrite, not a wrapper
+
+`auto-grilling` is a single `SKILL.md` with no script and no tests. It
+rewrites Matt Pocock's MIT-licensed `grilling` instead of invoking it,
+because that skill's "wait for my answer" lines contradict a run that never
+stops; the credit and license link sit at the top of `SKILL.md`. Its
+`.grill.md` summary is shaped to be the design document `/agent-team plan`
+takes (`skills/agent-team/plan.md`), so a change to what `plan` needs from
+its input belongs in that summary too.
 
 ## Conventions
 

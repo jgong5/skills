@@ -9,6 +9,7 @@ section for what it does and how to install it.
 | [`amd-gpu`](#amd-gpu) | `kernel-perf`, `asm-tutorial` | Find a CDNA kernel's bottleneck by ablation; turn its assembly into a verified PDF tutorial |
 | [`code-study`](#code-study) | `implementation-study`, `architecture-study` | Turn code you did not write into a diagram-first, evidence-grounded, verified PDF study -- one algorithm, or a whole system's architecture |
 | [`agent-team`](#agent-team) | `agent-team`, `gh-prose` | Run developer and reviewer agents over a GitHub issue pool, from brief to squash landing, with the owner ruling only on escalations |
+| [`auto-grilling`](#auto-grilling) | `auto-grilling` | Grill a plan to completion without stopping: each question answered with its recommended answer and logged, then one final action menu |
 
 ## pr-review-kit
 
@@ -422,6 +423,50 @@ claude plugin install agent-team@jgong5
 `agent-team` is **user-invoked only**: an autonomous team that pushes and
 lands is not something to start by mentioning a PR.
 
+## auto-grilling
+
+Grilling without the waiting. `/auto-grilling <plan text | file path>`
+walks every branch of a plan's decision tree, but answers each question
+itself with its recommended answer instead of putting it to you, and runs
+to completion. Each decision -- answer, reason, strongest rejected
+alternative, confidence, the decisions it depends on -- is appended to a
+`<topic>.grill.md` and echoed as one chat line. Answers resting on a
+preference or a fact the environment cannot reveal are tagged `low` and
+shown at the end.
+
+The run stops once, at a numbered menu: write a design document, write the
+code in this session, run `/agent-team plan` with the `.grill.md` as its
+design document, revise a decision, or end. Revising a decision pins your
+answer and re-derives only the decisions that depend on it.
+
+Adapted from Matt Pocock's
+[`grilling`](https://github.com/mattpocock/skills/tree/170ad48655825783d0193e850e31a9aac957bb95/skills/productivity/grilling)
+(MIT).
+
+### Install
+
+```
+/plugin marketplace add jgong5/skills
+/plugin install auto-grilling@jgong5
+```
+
+Or from your shell:
+
+```bash
+claude plugin marketplace add jgong5/skills
+claude plugin install auto-grilling@jgong5
+```
+
+### Requirements
+
+- Nothing beyond Claude Code: the skill ships no script.
+- The `/agent-team plan` menu item appears only when the project has a
+  GitHub remote, `gh` is authenticated, and the `agent-team` bundle is
+  installed.
+
+`auto-grilling` is **user-invoked only**: a run that makes forty decisions
+on your behalf is not something to start by mentioning a plan.
+
 ## Update
 
 ```
@@ -429,7 +474,8 @@ lands is not something to start by mentioning a PR.
 /plugin update <bundle>@jgong5
 ```
 
-where `<bundle>` is `pr-review-kit`, `amd-gpu`, `code-study`, or `agent-team`.
+where `<bundle>` is `pr-review-kit`, `amd-gpu`, `code-study`, `agent-team`,
+or `auto-grilling`.
 Same commands work as `claude plugin ...` from the shell. Updates apply on
 restart.
 
@@ -471,6 +517,7 @@ skills/
                          # develop.md, review.md, land.md, overlay.py,
                          # pr_state.py, land.py, batch.py
   gh-prose/              # SKILL.md + lint_gh_prose.py
+  auto-grilling/         # SKILL.md
 tests/
   asm_tutorial/          # pytest suite for asm-tutorial's scripts
   kernel_perf/           # pytest suite for the bank model and the probe

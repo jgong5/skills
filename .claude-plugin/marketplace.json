@@ -89,6 +89,23 @@
         "./skills/agent-team",
         "./skills/gh-prose"
       ]
+    },
+    {
+      "name": "auto-grilling",
+      "source": "./",
+      "version": "0.1.0",
+      "description": "Grill a plan without stopping: every question answered with its recommended answer, every decision logged with its strongest rejected alternative and a confidence, then one final menu to write a document, write code, hand off to /agent-team plan, revise, or end.",
+      "category": "productivity",
+      "keywords": [
+        "planning",
+        "design-review",
+        "decision-log",
+        "grilling",
+        "interview"
+      ],
+      "skills": [
+        "./skills/auto-grilling"
+      ]
     }
   ]
 }
