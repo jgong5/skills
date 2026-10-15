@@ -12,12 +12,14 @@ branch of its decision tree, resolving dependencies one decision at a time
 going until the tree is done. The user is asked exactly once, at the end.
 
 Adapted from Matt Pocock's
-[`grilling`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling)
-skill, MIT licensed ([license](https://github.com/mattpocock/skills/blob/main/LICENSE),
-Copyright (c) 2026 Matt Pocock). This is a rewrite, not a wrapper: `grilling`
-says to ask one question at a time and wait for the user's answer to each,
-and those lines contradict a run that never waits. Invoking it and
-overriding them would leave two instructions fighting in one context.
+[`grilling`](https://github.com/mattpocock/skills/tree/170ad48655825783d0193e850e31a9aac957bb95/skills/productivity/grilling)
+skill as of commit `170ad48`, MIT licensed
+([license](https://github.com/mattpocock/skills/blob/170ad48655825783d0193e850e31a9aac957bb95/LICENSE),
+Copyright (c) 2026 Matt Pocock). This is a rewrite, not a wrapper:
+`grilling` says to ask one question at a time and wait for the user's
+answer to each, and those lines contradict a run that never waits.
+Invoking it and overriding them would leave two instructions fighting in
+one context.
 
 ## Input
 
@@ -120,8 +122,12 @@ Then wait -- this is the one stop.
 
 Recommend `/agent-team plan` for a GitHub project with a large change
 (about 300 lines or more, or several modules); writing code here for a
-small change; a document when no code changes. Offer `/agent-team plan` at
-all only when all three hold, because otherwise it fails on its first step:
+small change; a document when no code changes. Each is the cheapest
+route that still fits: a change too big for one session needs the task
+cuts and per-task review `/agent-team plan` gives, a small one would only
+pay that overhead, and a plan with no code needs only its record. Offer
+`/agent-team plan` at all only when all three hold, because otherwise it
+fails on its first step:
 
 - `git remote -v` shows a GitHub remote;
 - `gh auth status` succeeds;
@@ -146,7 +152,8 @@ the file and treat every entry whose answer changed as named.
    invalidated and re-derived in place under its own number; new branches
    it opens are appended. Decisions outside that set are kept as they are,
    because nothing they rest on changed.
-3. The 40-question cap restarts for this pass.
+3. The 40-question cap restarts for this pass: a revision is a new pass
+   over a smaller tree, and the cap bounds one pass, not the whole plan.
 4. Rewrite the summary, then show the menu again, with the `human`
    decisions listed as their own group above the `low` ones.
 

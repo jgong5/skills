@@ -91,8 +91,9 @@ the rest: every installed skill's description costs context in every session.
 - `disable-model-invocation: true` marks a skill as user-invoked only
   (`/pr-review-draft`, `/pr-review-dossier`, `/implementation-study`,
   `/architecture-study`, `/agent-team`, `/auto-grilling`); its description
-  becomes human-facing rather than a trigger, and costs no context. `pr-explain`, `asm-tutorial`,
-  `kernel-perf`, and `gh-prose` omit it and fire automatically.
+  becomes human-facing rather than a trigger, and costs no context.
+  `pr-explain`, `asm-tutorial`, `kernel-perf`, and `gh-prose` omit it and
+  fire automatically.
 - Companion `.md` files (`analysis.md`, `writing.md`, `render.md`,
   `diagrams.md`, ...) are read on demand, one per phase or topic, to keep the
   always-loaded `SKILL.md` small.

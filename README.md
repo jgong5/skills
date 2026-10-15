@@ -440,9 +440,8 @@ design document, revise a decision, or end. Revising a decision pins your
 answer and re-derives only the decisions that depend on it.
 
 Adapted from Matt Pocock's
-[`grilling`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling)
-(MIT), rewritten rather than wrapped because its "wait for my answer" rule
-is the one this skill removes.
+[`grilling`](https://github.com/mattpocock/skills/tree/170ad48655825783d0193e850e31a9aac957bb95/skills/productivity/grilling)
+(MIT).
 
 ### Install
 
