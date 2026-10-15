@@ -28,11 +28,12 @@ PATTERNS = {
 }
 
 
-def visible(text):
+def visible(text, keep_lines=False):
     """Text outside <details> and fenced code: where budgets apply.
 
-    Each stripped block leaves its newlines behind, so line numbers stay the file's."""
-    keep = lambda m: "\n" * m.group(0).count("\n")
+    keep_lines leaves each stripped block's newlines behind, so line numbers
+    stay the file's; whole-text checks need the blocks deleted outright."""
+    keep = (lambda m: "\n" * m.group(0).count("\n")) if keep_lines else ""
     text = re.sub(r"<details>.*?</details>", keep, text, flags=re.S)
     return re.sub(r"^```.*?^```", keep, text, flags=re.S | re.M)
 
@@ -53,7 +54,7 @@ def lint(text, kind):
     verdict = r"[\s#>*_]*(APPROVE|REQUEST CHANGES)\b.*\b[0-9a-f]{7,40}\b"
     if kind == "review" and not re.match(verdict, first):
         hits.append(f"first line is no verdict naming its head sha: {first[:60]!r}")
-    for n, line in enumerate(lines, 1):
+    for n, line in enumerate(visible(text, keep_lines=True).splitlines(), 1):
         line = re.sub(r"\[[^\]]*\]\([^)]*\)", "", line)  # a linked ref is fine
         for name, pat in PATTERNS.items():
             if name == "round history in body" and kind in ("comment", "review"):
