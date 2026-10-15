@@ -14,6 +14,7 @@ Render the deck to a PDF with LibreOffice, then each page to an image with
 poppler's `pdftoppm`:
 
     soffice --headless --convert-to pdf --outdir <out> <out>/<stem>.pptx
+    mkdir -p <out>/render
     pdftoppm -r 110 -png <out>/<stem>.pdf <out>/render/slide
 
 The binary may be installed as `libreoffice` rather than `soffice`. Before

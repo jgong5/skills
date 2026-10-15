@@ -39,9 +39,12 @@ directory's absolute path, `<skill-dir>/deckkit.js`. The header comment of
 - Code goes through `code()` with `cite: 'path: symbol'` and, where the
   slide points at specific lines, `hl`. The excerpt is verbatim from the
   pinned commit, with `...` elisions only.
+- `write()` gets `path.join(__dirname, '<stem>.pptx')`, not a bare file
+  name: a relative name resolves against the shell's working directory, and
+  a run started from the repository would write the deck into it.
 
-Run `node <out>/build.js`; it writes `<stem>.pptx` and prints every
-warning.
+Run `cd <out> && node build.js`; it writes `<out>/<stem>.pptx` and prints
+every warning.
 
 ## Notes
 
