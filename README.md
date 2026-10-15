@@ -7,7 +7,7 @@ section for what it does and how to install it.
 | --- | --- | --- |
 | [`pr-review-kit`](#pr-review-kit) | `pr-explain`, `pr-review-draft`, `pr-review-dossier` | Context-first pull-request review |
 | [`amd-gpu`](#amd-gpu) | `kernel-perf`, `asm-tutorial` | Find a CDNA kernel's bottleneck by ablation; turn its assembly into a verified PDF tutorial |
-| [`code-study`](#code-study) | `implementation-study`, `architecture-study` | Turn code you did not write into a diagram-first, evidence-grounded, verified PDF study -- one algorithm, or a whole system's architecture |
+| [`code-study`](#code-study) | `implementation-study`, `architecture-study`, `tutorial-deck` | Turn code you did not write into a diagram-first, evidence-grounded, verified PDF study -- one algorithm, or a whole system's architecture -- or a verified PPTX tutorial on one topic |
 | [`agent-team`](#agent-team) | `agent-team`, `gh-prose` | Run developer and reviewer agents over a GitHub issue pool, from brief to squash landing, with the owner ruling only on escalations |
 | [`auto-grilling`](#auto-grilling) | `auto-grilling` | Grill a plan to completion without stopping: each question answered with its recommended answer and logged, then one final action menu |
 
@@ -159,17 +159,19 @@ one skill. That is a property of `asm-tutorial`, not a rule for this repo.
 ## code-study
 
 Skills for reading code you did not write and turning what you learned into
-a verified PDF. `implementation-study` zooms in on one algorithm;
-`architecture-study` zooms out to a whole system. Both are user-invoked only,
-both are language-agnostic, and both enforce the same rule: every substantive
-claim is cited to a line of the code, derived from something already cited,
-measured by an approved experiment, or omitted -- nothing is estimated to fill
-a gap.
+a verified document. `implementation-study` zooms in on one algorithm and
+`architecture-study` zooms out to a whole system, each as a PDF;
+`tutorial-deck` teaches one topic of a repository as a slide deck. All three
+are user-invoked only, all are language-agnostic, and all enforce the same
+rule: every substantive claim is cited to the code, derived from something
+already cited, measured by an approved experiment, or omitted -- nothing is
+estimated to fill a gap.
 
 | Skill | Invocation | What it produces |
 | --- | --- | --- |
 | `implementation-study` | `/implementation-study path/to/file.py:symbol` | A study of one algorithm: what it computes, where it sits, how it departs from the canonical form, and why each choice beat its alternatives. |
 | `architecture-study` | `/architecture-study path/to/system` | A review of a system's design: the paradigms its structure witnesses, its contracts and seams, one traced execution, its trade-offs, where it blocks, and what a different design would buy. |
+| `tutorial-deck` | `/tutorial-deck path/to/repo "topic"` | A PPTX tutorial for developers who will read and change the topic's code: failure before mechanism, one example followed throughout, every citation pinned to one commit. |
 
 ### implementation-study
 
@@ -286,25 +288,51 @@ Unlike `implementation-study`, this skill runs nothing at all -- no
 experiments, no test suite, no service. A claim that needs a benchmark before
 it is credible is reported as a question, not implied to have been measured.
 
+### tutorial-deck
+
+Turns a repository and a topic into a slide deck for developers who are new
+to the topic's theory and must read and modify its code. One commit is
+pinned and printed in every footer; code is cited as `path: symbol`, never by
+line, and every excerpt is verbatim.
+
+```
+/tutorial-deck path/to/repo "request scheduling"
+```
+
+Its phases run in order, each reading only its own reference doc:
+
+| Phase | What it does |
+| --- | --- |
+| Survey | Pins the commit and reads the code, design docs and issues for the topic only: concepts, mechanisms, design decisions with what they rejected, real incidents, runnable cores. |
+| Interview | Asks one decision per question, each with a recommended answer grounded in the survey -- the output directory first, then audience, scope, length, main line, and the rest. Facts are looked up, never asked. Ends in a plan you confirm. |
+| Outline | One line per slide, self-checked against the deck's numbered hard rules (failure first, one point per slide, terms explained where they first appear, ...). The hardest concept's step-through numbers come from an approved replay of the real code. You confirm the outline. |
+| Build | Writes `build.js` on the bundled `deckkit.js`, which warns at build time about wrapped titles, unreadable code, estimated overflow, missing notes, and minutes off the plan. Every warning is fixed before rendering. |
+| Verify | Renders through LibreOffice and poppler, then three independent reviewers -- fact-check, visual layout, narrative as a newcomer -- none given the author's reasoning. Each finding is spot-checked before it is fixed; at most three rounds. |
+| Revise | Only on your feedback: grouped, answered from the code, proposed, and edited only once you confirm. |
+
+Everything lands in one new directory, `<stem>_deck/` by default: the
+survey, plan and outline, `build.js`, the replay under `demo/`, the `.pptx`,
+its PDF render and page images, and the review record under `reviews/`.
+
 ### Safety model
 
 - **The repository under study is read-only.** Each skill writes only inside
-  its own output paths above, and its final phase checks that mechanically: a
-  clean `git status` against the baseline the first phase recorded, or a file
-  snapshot comparison when the repository is not a git work tree. A phase
-  that wants to reformat or "just quickly fix" something in the code under
-  study has left the skill's scope. The git check covers what `git status`
+  its own output paths above. The two study skills' final phase checks that
+  mechanically: a clean `git status` against the baseline the first phase
+  recorded, or a file snapshot comparison when the repository is not a git
+  work tree. A phase that wants to reformat or "just quickly fix" something
+  in the code under study has left the skill's scope. The git check covers what `git status`
   covers -- no tracked file changed, and nothing untracked appeared outside
   the output directory -- which does not extend to paths `.gitignore`
   excludes. That gap is closed by prevention rather than by a claim: an
   experiment must run with its language's cache and artifact writes
   suppressed (`PYTHONDONTWRITEBYTECODE=1` and the per-language equivalents),
   as part of the wrapper command, so those writes never happen.
-- **Experiments run only with explicit approval**, and only in
-  `implementation-study`; `architecture-study` executes nothing. Each one is proposed as a
-  single plan line naming the claim it supports, the script, what it
-  measures, and its bounds; nothing is written or run until you approve that
-  exact line. A declined experiment is recorded as declined, and the claim it
+- **Experiments run only with explicit approval**, in `implementation-study`
+  and as `tutorial-deck`'s replay; `architecture-study` executes nothing.
+  Each one is proposed as a single plan line naming the claim it supports,
+  the script, what it measures, and its bounds; nothing is written or run
+  until you approve that exact line. A declined experiment is recorded as declined, and the claim it
   would have supported is derived from what is already known or dropped.
 - **An experiment executes code from the repository under study, and this
   skill adds no sandbox** beyond not writing outside the experiment
@@ -333,16 +361,28 @@ claude plugin install code-study@jgong5
 - `google-chrome-stable` (or another Chromium-family binary)
 - `poppler-utils` (`pdftotext`, `pdffonts`, `pdftoppm`, `pdfinfo`)
 
-Same dependency set as `asm-tutorial`, and for the same reason: a dense
-technical document needs pandoc's markdown handling, a real print stylesheet,
-and poppler to check what actually came out.
+The two study skills share `asm-tutorial`'s dependency set, for the same
+reason: a dense technical document needs pandoc's markdown handling, a real
+print stylesheet, and poppler to check what actually came out.
 
-Both skills are **user-invoked only** -- neither fires on its own, because a
+`tutorial-deck` needs none of those but poppler. It needs:
+
+- Node and npm, with network access: each deck installs its own pinned
+  `pptxgenjs`
+- LibreOffice (`soffice`), to render the deck for the visual review
+- `poppler-utils` (`pdftoppm`)
+
+Without LibreOffice or poppler it still builds and runs the fact-check and
+narrative reviews, and says the visual review was skipped. Without Node it
+stops.
+
+All three skills are **user-invoked only** -- none fires on its own, because a
 study is a deliberate, expensive act, not something to start by mentioning a
-file. Both are language-agnostic: nothing in either pipeline assumes Python.
-Both stop rather than studying generated, vendored, or minified code
-(`vendor/`, `third_party/`, `node_modules/`, `*.min.*`, or a "do not edit"
-header) -- code nobody hand-wrote has no design decisions to recover.
+file. All are language-agnostic: nothing in any pipeline assumes Python.
+The two study skills stop rather than studying generated, vendored, or
+minified code (`vendor/`, `third_party/`, `node_modules/`, `*.min.*`, or a
+"do not edit" header) -- code nobody hand-wrote has no design decisions to
+recover.
 
 ## agent-team
 
@@ -511,6 +551,8 @@ skills/
   architecture-study/    # SKILL.md + phase docs, paradigms.md,
                          # diagrams.md, make_pdf.py, check_pdf.py,
                          # check_evidence.py, tutorial.css
+  tutorial-deck/         # SKILL.md + phase docs, teaching.md (the hard
+                         # rules), deckkit.js
   kernel-perf/           # SKILL.md + ablation.md, modelling.md,
                          # bank_model.py, probe_roofline.py
   agent-team/            # SKILL.md + rules.md, overlay.md, plan.md,
@@ -525,6 +567,7 @@ tests/
                          # and reference docs
   architecture_study/    # pytest suite for architecture-study's scripts
                          # and reference docs
+  tutorial_deck/         # pytest suite for deckkit.js and the reference docs
   agent_team/            # pytest suite for agent-team's scripts
   gh_prose/              # pytest suite for the lint, over real samples
 ```
