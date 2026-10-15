@@ -35,6 +35,11 @@ def test_a_hit_below_a_stripped_block_reports_its_file_line(block):
     assert lint_gh_prose.lint(text, "pr") == ["line 6: private ref (link it or say it): '\u00a7'"]
 
 
+def test_a_details_tag_in_inline_code_hides_nothing():
+    text = "Closes #1.\nThe `<details>` block.\nsee \u00a7 3\n<details>x</details>\n"
+    assert lint_gh_prose.lint(text, "pr") == ["line 3: private ref (link it or say it): '\u00a7'"]
+
+
 def test_a_block_opened_mid_list_item_does_not_split_the_list():
     text = "Closes #1.\n- a\n- b\n- c <details>\nx\n</details>\n- d\n- e\n- f\n- g\n"
     assert lint_gh_prose.lint(text, "pr") == ["list/table of 7 lines, max 5 items"]
