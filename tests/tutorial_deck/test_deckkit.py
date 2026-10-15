@@ -3,10 +3,11 @@ import os
 import re
 import subprocess
 import zipfile
+from pathlib import Path
 
 import pytest
 
-from conftest import DECKKIT
+DECKKIT = Path(__file__).resolve().parents[2] / "skills" / "tutorial-deck" / "deckkit.js"
 
 # One deck covering every helper. Slides whose comment names a warning kind
 # must raise exactly that warning; every other slide must raise none.
