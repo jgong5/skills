@@ -52,9 +52,11 @@ For each question, in dependency order:
    - the answer rests on a factual assumption you could not verify.
    Two levels, because a finer scale invites arguing over the scale; the
    only question at the end is "should the user look at this one?".
-4. **Record it**: append the entry to `.grill.md` at once, and echo one line
-   in chat, `Q7 [high] B: <reason>` -- number, confidence, the answer in a
-   few words, the reason. Appending as you go means an interrupted run
+4. **Record it before the next question**: append the entry to `.grill.md`
+   with its own edit, and echo one line in chat, `Q7 [high] B: <reason>` --
+   number, confidence, the answer in a few words, the reason. Create the
+   file, header and all, before the first question; never batch entries
+   into one write at the end. Appending as you go means an interrupted run
    leaves a usable log, and the chat line lets the user watch the run
    without reading the file.
 
