@@ -33,8 +33,10 @@ def visible(text, keep_lines=False):
 
     keep_lines leaves each stripped block's newlines behind, so line numbers
     stay the file's; whole-text checks need the blocks deleted outright."""
-    keep = (lambda m: "\n" * m.group(0).count("\n")) if keep_lines else ""
-    text = re.sub(r"<details>.*?</details>", keep, text, flags=re.S)
+    keep = lambda m: "\n" * m.group(0).count("\n") if keep_lines else ""
+    # An inline code span matches first and stays, so a tag quoted in one opens no block.
+    strip = lambda m: m.group(0) if m.group(0)[0] == "`" else keep(m)
+    text = re.sub(r"`[^`\n]*`|<details>.*?</details>", strip, text, flags=re.S)
     return re.sub(r"^```.*?^```", keep, text, flags=re.S | re.M)
 
 
