@@ -28,8 +28,13 @@ build-time checks this phase depends on.
 ## Write `build.js`
 
 `build.js` lives in the output directory and requires deckkit by the skill
-directory's absolute path, `<skill-dir>/deckkit.js`. The header comment of
-`deckkit.js` shows the calls; read it rather than a copy here.
+directory's absolute path, `<skill-dir>/deckkit.js`. If the project's
+command wrapper cannot reach `<skill-dir>` (a container mount boundary),
+copy `<skill-dir>/deckkit.js` into the output directory and require the
+copy instead, `require('./deckkit.js')`: it is the only file from the skill
+directory that a command loads, and it still finds `pptxgenjs` in the
+output directory's `node_modules`. The header comment of `deckkit.js` shows
+the calls; read it rather than a copy here.
 
 - `deck()` takes the title, the pin from `survey.md` as `pin` (printed in
   every footer), `plan.md`'s length as `minutes`, and `plan.md`'s fonts.
