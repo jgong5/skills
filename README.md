@@ -161,11 +161,11 @@ one skill. That is a property of `asm-tutorial`, not a rule for this repo.
 Skills for reading code you did not write and turning what you learned into
 a verified document. `implementation-study` zooms in on one algorithm and
 `architecture-study` zooms out to a whole system, each as a PDF;
-`tutorial-deck` teaches one topic of a repository as a slide deck. All three
-are user-invoked only, all are language-agnostic, and all enforce the same
-rule: every substantive claim is cited to the code, derived from something
-already cited, measured by an approved experiment, or omitted -- nothing is
-estimated to fill a gap.
+`tutorial-deck` teaches one topic of a repository as a slide deck. Every
+skill in this bundle is user-invoked only, is language-agnostic, and enforces
+the same rule: every substantive claim is cited to the code, derived from
+something already cited, measured by an approved experiment, or omitted --
+nothing is estimated to fill a gap.
 
 | Skill | Invocation | What it produces |
 | --- | --- | --- |
@@ -317,23 +317,25 @@ its PDF render and page images, and the review record under `reviews/`.
 ### Safety model
 
 - **The repository under study is read-only.** Each skill writes only inside
-  its own output paths above. The two study skills' final phase checks that
-  mechanically: a clean `git status` against the baseline the first phase
-  recorded, or a file snapshot comparison when the repository is not a git
-  work tree. A phase that wants to reformat or "just quickly fix" something
-  in the code under study has left the skill's scope. The git check covers what `git status`
-  covers -- no tracked file changed, and nothing untracked appeared outside
-  the output directory -- which does not extend to paths `.gitignore`
-  excludes. That gap is closed by prevention rather than by a claim: an
-  experiment must run with its language's cache and artifact writes
-  suppressed (`PYTHONDONTWRITEBYTECODE=1` and the per-language equivalents),
-  as part of the wrapper command, so those writes never happen.
+  its own output paths above. The final phase of `implementation-study` and
+  `architecture-study` checks that mechanically: a clean `git status` against
+  the baseline the first phase recorded, or a file snapshot comparison when
+  the repository is not a git work tree. A phase that wants to reformat or
+  "just quickly fix" something in the code under study has left the skill's
+  scope. The git check covers what `git status` covers -- no tracked file
+  changed, and nothing untracked appeared outside the output directory --
+  which does not extend to paths `.gitignore` excludes. That gap is closed by
+  prevention rather than by a claim: an experiment must run with its
+  language's cache and artifact writes suppressed (`PYTHONDONTWRITEBYTECODE=1`
+  and the per-language equivalents), as part of the wrapper command, so those
+  writes never happen.
 - **Experiments run only with explicit approval**, in `implementation-study`
   and as `tutorial-deck`'s replay; `architecture-study` executes nothing.
   Each one is proposed as a single plan line naming the claim it supports,
   the script, what it measures, and its bounds; nothing is written or run
-  until you approve that exact line. A declined experiment is recorded as declined, and the claim it
-  would have supported is derived from what is already known or dropped.
+  until you approve that exact line. A declined experiment is recorded as
+  declined, and the claim it would have supported is derived from what is
+  already known or dropped.
 - **An experiment executes code from the repository under study, and this
   skill adds no sandbox** beyond not writing outside the experiment
   directory: no container, no restricted interpreter, no network isolation.
@@ -361,9 +363,10 @@ claude plugin install code-study@jgong5
 - `google-chrome-stable` (or another Chromium-family binary)
 - `poppler-utils` (`pdftotext`, `pdffonts`, `pdftoppm`, `pdfinfo`)
 
-The two study skills share `asm-tutorial`'s dependency set, for the same
-reason: a dense technical document needs pandoc's markdown handling, a real
-print stylesheet, and poppler to check what actually came out.
+`implementation-study` and `architecture-study` share `asm-tutorial`'s
+dependency set, for the same reason: a dense technical document needs
+pandoc's markdown handling, a real print stylesheet, and poppler to check what
+actually came out.
 
 `tutorial-deck` needs none of those but poppler. It needs:
 
@@ -376,13 +379,13 @@ Without LibreOffice or poppler it still builds and runs the fact-check and
 narrative reviews, and says the visual review was skipped. Without Node it
 stops.
 
-All three skills are **user-invoked only** -- none fires on its own, because a
-study is a deliberate, expensive act, not something to start by mentioning a
-file. All are language-agnostic: nothing in any pipeline assumes Python.
-The two study skills stop rather than studying generated, vendored, or
-minified code (`vendor/`, `third_party/`, `node_modules/`, `*.min.*`, or a
-"do not edit" header) -- code nobody hand-wrote has no design decisions to
-recover.
+Every skill in this bundle is **user-invoked only** -- none fires on its own,
+because a study is a deliberate, expensive act, not something to start by
+mentioning a file. All are language-agnostic: nothing in any pipeline assumes
+Python. `implementation-study` and `architecture-study` stop rather than
+studying generated, vendored, or minified code (`vendor/`, `third_party/`,
+`node_modules/`, `*.min.*`, or a "do not edit" header) -- code nobody
+hand-wrote has no design decisions to recover.
 
 ## agent-team
 

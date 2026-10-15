@@ -10,8 +10,8 @@ reference docs it reads on demand, plus a few Python scripts the skill shells
 out to. Bundles ship from one marketplace entry -- `pr-review-kit`
 (`pr-explain`, `pr-review-draft`, `pr-review-dossier`), `amd-gpu`
 (`asm-tutorial`, `kernel-perf`), `code-study` (`implementation-study`,
-`architecture-study`, `tutorial-deck`), `agent-team` (`agent-team`, `gh-prose`), and
-`auto-grilling` (`auto-grilling`).
+`architecture-study`, `tutorial-deck`), `agent-team` (`agent-team`,
+`gh-prose`), and `auto-grilling` (`auto-grilling`).
 `README.md` is the user-facing documentation for every bundle; keep it in
 sync when a bundle's skills, requirements, or install story change.
 
@@ -209,7 +209,8 @@ failure it prevents -- has no text pattern for a script to match, and the
 author cannot see it, because the author reads every slide already holding
 the reasoning. So no reviewer is given that reasoning.
 
-Its cross-file couplings, pinned by `tests/tutorial_deck/test_reference_docs.py`:
+Its cross-file couplings, pinned by
+`tests/tutorial_deck/test_reference_docs.py`:
 
 - `interviewing.md`'s decision checklist and its `plan.md` template list the
   same items in the same order.
@@ -280,9 +281,10 @@ its input belongs in that summary too.
 
 - **Every tracked file is ASCII.** Use `--` for dashes, straight quotes. Tests
   enforce this for `asm-tutorial`'s, `implementation-study`'s,
-  `architecture-study`'s, and `tutorial-deck`'s docs; the rest of the repo follows it too. The one
-  exception is `tests/gh_prose/samples/bad/`: real GitHub text kept verbatim
-  because its em dashes and CJK are what the lint must catch.
+  `architecture-study`'s, and `tutorial-deck`'s docs; the rest of the repo
+  follows it too. The one exception is `tests/gh_prose/samples/bad/`: real
+  GitHub text kept verbatim because its em dashes and CJK are what the lint
+  must catch.
 - Prose in skills explains *why* a mechanism exists, not just what it does --
   the "Why this pipeline and not something simpler" sections are load-bearing,
   because a future editor who does not know why Chrome is driven over CDP
