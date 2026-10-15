@@ -52,8 +52,8 @@
     {
       "name": "code-study",
       "source": "./",
-      "version": "0.6.0",
-      "description": "Turn code you did not write into a diagram-first verified PDF study: one algorithm implementation, or a whole system's architecture. Every claim is cited, derived, or measured, and every figure is inline vector SVG.",
+      "version": "0.7.0",
+      "description": "Turn code you did not write into a diagram-first verified PDF study -- one algorithm implementation, or a whole system's architecture -- or into a verified PPTX tutorial on one topic. Every claim is cited, derived, or measured.",
       "category": "engineering",
       "keywords": [
         "algorithm",
@@ -63,11 +63,14 @@
         "documentation",
         "tutorial",
         "pdf",
+        "pptx",
+        "slides",
         "code-explanation"
       ],
       "skills": [
         "./skills/implementation-study",
-        "./skills/architecture-study"
+        "./skills/architecture-study",
+        "./skills/tutorial-deck"
       ]
     },
     {

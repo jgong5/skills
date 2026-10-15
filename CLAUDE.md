@@ -10,7 +10,7 @@ reference docs it reads on demand, plus a few Python scripts the skill shells
 out to. Bundles ship from one marketplace entry -- `pr-review-kit`
 (`pr-explain`, `pr-review-draft`, `pr-review-dossier`), `amd-gpu`
 (`asm-tutorial`, `kernel-perf`), `code-study` (`implementation-study`,
-`architecture-study`), `agent-team` (`agent-team`, `gh-prose`), and
+`architecture-study`, `tutorial-deck`), `agent-team` (`agent-team`, `gh-prose`), and
 `auto-grilling` (`auto-grilling`).
 `README.md` is the user-facing documentation for every bundle; keep it in
 sync when a bundle's skills, requirements, or install story change.
@@ -57,6 +57,9 @@ binary, `poppler-utils`, and the `websockets` package actually present. A
 missing Chrome is the usual failure, and it is the one most likely to need a
 reinstall step recorded in `CLAUDE.local.md`.
 
+`tests/tutorial_deck/test_deckkit.py` builds a real deck: it needs Node, and
+npm with network access to install `pptxgenjs`.
+
 Before pushing a manifest change, run both from the repository root:
 
 ```bash
@@ -90,10 +93,10 @@ the rest: every installed skill's description costs context in every session.
   concrete phrasings and states where the skill degrades.
 - `disable-model-invocation: true` marks a skill as user-invoked only
   (`/pr-review-draft`, `/pr-review-dossier`, `/implementation-study`,
-  `/architecture-study`, `/agent-team`, `/auto-grilling`); its description
-  becomes human-facing rather than a trigger, and costs no context.
-  `pr-explain`, `asm-tutorial`, `kernel-perf`, and `gh-prose` omit it and
-  fire automatically.
+  `/architecture-study`, `/tutorial-deck`, `/agent-team`, `/auto-grilling`);
+  its description becomes human-facing rather than a trigger, and costs no
+  context. `pr-explain`, `asm-tutorial`, `kernel-perf`, and `gh-prose` omit
+  it and fire automatically.
 - Companion `.md` files (`analysis.md`, `writing.md`, `render.md`,
   `diagrams.md`, ...) are read on demand, one per phase or topic, to keep the
   always-loaded `SKILL.md` small.
@@ -178,6 +181,45 @@ Its cross-file couplings, all pinned by `tests/architecture_study/`:
   element-qualified selector stops applying across that upgrade and the
   chapter renders untitled with no error anywhere.
 
+### tutorial-deck: a deck, on Node, checked by independent reviewers
+
+`tutorial-deck` turns a repository and a topic into a PPTX tutorial: Survey
+-> Interview -> Outline -> Build -> Verify, then Revise only on the owner's
+feedback. It is not a third fork of the study skills -- it ships no
+`make_pdf.py` or `check_evidence.py`, and its evidence is `path: symbol`
+citations at one pinned commit, not a ledger. It shares one file with
+`implementation-study`: the replay for the hardest concept runs under
+`<skill-dir>/../implementation-study/experiments.md`, by relative path, so
+the two must ship in the same bundle.
+
+It is the first skill here to depend on Node, because `deckkit.js`, the
+helper library every deck's `build.js` requires, drives `pptxgenjs`, a Node
+library. A deck is built by code rather than drawn because a build can warn
+about what is measurable (a wrapped title, code too small to read, minutes
+off the plan) before anyone looks, and its native shapes stay editable and
+extractable as text. Each deck installs `pptxgenjs`, pinned, into its own
+output directory, because the repository under study is read-only and the
+skill directory belongs to the plugin.
+
+It is also the first document-producing skill whose Verify phase dispatches
+independent reviewer agents (fact-check, visual, narrative) rather than
+running a checker script plus the author's read-through. What a tutorial
+gets wrong -- a term used before it is taught, a mechanism shown before the
+failure it prevents -- has no text pattern for a script to match, and the
+author cannot see it, because the author reads every slide already holding
+the reasoning. So no reviewer is given that reasoning.
+
+Its cross-file couplings, pinned by `tests/tutorial_deck/test_reference_docs.py`:
+
+- `interviewing.md`'s decision checklist and its `plan.md` template list the
+  same items in the same order.
+- `teaching.md`'s `## R<n>.` rule IDs are the ones `outlining.md`'s
+  self-check walks and `verification.md`'s narrative brief cites. IDs are
+  permanent: add at the end, never renumber.
+- Every `LIMITS` entry in `deckkit.js` is restated, with its value, in
+  `building.md`'s thresholds table. The test reads `LIMITS` by pattern, one
+  `key: number,` per line, because the gate has no Node.
+
 ### pr-review-kit: separate review helpers, publish last
 
 Complementary skills: `pr-explain` is a read-only briefing that traces
@@ -237,8 +279,8 @@ its input belongs in that summary too.
 ## Conventions
 
 - **Every tracked file is ASCII.** Use `--` for dashes, straight quotes. Tests
-  enforce this for `asm-tutorial`'s, `implementation-study`'s, and
-  `architecture-study`'s docs; the rest of the repo follows it too. The one
+  enforce this for `asm-tutorial`'s, `implementation-study`'s,
+  `architecture-study`'s, and `tutorial-deck`'s docs; the rest of the repo follows it too. The one
   exception is `tests/gh_prose/samples/bad/`: real GitHub text kept verbatim
   because its em dashes and CJK are what the lint must catch.
 - Prose in skills explains *why* a mechanism exists, not just what it does --
