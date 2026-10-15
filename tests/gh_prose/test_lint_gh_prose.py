@@ -27,3 +27,9 @@ def test_a_claim_comment_states_its_state():
 def test_a_review_verdict_names_the_head_it_covers():
     assert lint_gh_prose.lint("REQUEST CHANGES: 1 blocking.", "review")
     assert lint_gh_prose.lint("**APPROVE** @ c0ffee1.", "review") == []
+
+
+@pytest.mark.parametrize("block", ["<details>\na\nb\n</details>", "```\na\nb\n```"])
+def test_a_hit_below_a_stripped_block_reports_its_file_line(block):
+    text = f"Closes #1.\n{block}\nsee \u00a7 3\n"
+    assert lint_gh_prose.lint(text, "pr") == ["line 6: private ref (link it or say it): '\u00a7'"]

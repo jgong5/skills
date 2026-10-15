@@ -29,9 +29,12 @@ PATTERNS = {
 
 
 def visible(text):
-    """Text outside <details> and fenced code: where budgets apply."""
-    text = re.sub(r"<details>.*?</details>", "", text, flags=re.S)
-    return re.sub(r"^```.*?^```", "", text, flags=re.S | re.M)
+    """Text outside <details> and fenced code: where budgets apply.
+
+    Each stripped block leaves its newlines behind, so line numbers stay the file's."""
+    keep = lambda m: "\n" * m.group(0).count("\n")
+    text = re.sub(r"<details>.*?</details>", keep, text, flags=re.S)
+    return re.sub(r"^```.*?^```", keep, text, flags=re.S | re.M)
 
 
 def lint(text, kind):
