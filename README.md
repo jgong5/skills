@@ -604,7 +604,8 @@ Bundle names prefix their skills (`<bundle>:<skill>`), so keep them short.
 
 ```bash
 claude plugin validate .
-( export CLAUDE_CONFIG_DIR=$(mktemp -d)   # empty config: only this tree is installed
+( CLAUDE_CONFIG_DIR=$(mktemp -d) || exit  # empty config: only this tree is installed
+  export CLAUDE_CONFIG_DIR
   claude plugin marketplace add ./        # `./`, not `.`, which add rejects
   claude plugin install <bundle>@jgong5
   claude plugin details <bundle>          # version and skill count must match the manifest
