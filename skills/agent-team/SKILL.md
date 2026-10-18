@@ -1,6 +1,6 @@
 ---
 name: agent-team
-description: Runs a team of developer and reviewer agents over a GitHub issue pool -- plan briefs, develop, review to APPROVE, land squashed -- under standing rules and a per-project overlay. User-invoked: /agent-team plan|run|status.
+description: Runs a team of developer and reviewer agents over a GitHub issue pool -- plan briefs, develop, review to APPROVE, land squashed -- under standing rules and a per-project overlay. User-invoked: /agent-team plan|run|status, run and status taking an optional scope.
 disable-model-invocation: true
 ---
 
@@ -41,17 +41,36 @@ APPROVE mean something.
    not, say so once in your first report; developers and reviewers then skip
    them.
 
+## Scope
+
+`run` and `status` take an optional free-text argument naming issues,
+labels and PRs. It has no fixed syntax: read it as the owner wrote it.
+Resolve it again every pass, so an issue that gains a named label joins.
+
+- **No argument** means the whole pool: every open issue in `<repo>`,
+  restricted to `<task_label>` when set.
+- **An in-scope issue belongs to this session** only when it has no
+  assignee or its assignees include the current `gh` user (`gh api user`).
+  One assigned to someone else leaves the scope unless the argument says to
+  keep it. Sessions on one machine usually share a `gh` login, so assignees
+  separate people and the scope separates sessions.
+- **PRs follow issues.** A run acts only on PRs that deliver an in-scope
+  issue (`rules.md`, Check delivery), plus PRs the argument names, which
+  are not assignee-checked. This holds with no argument too: a PR that
+  delivers no pool issue is not acted on.
+- **A dependency outside the scope is another session's work**: never
+  claimed or advanced, only waited for.
+
 ## status
 
-Read-only; changes nothing on GitHub or disk. Report:
+Read-only; changes nothing on GitHub or disk. Report, within the scope:
 
-- every open PR in `<repo>`: its `pr_state.py` turn and holds;
-- the pool (`run`, step 1): claimable, in progress, needing a brief, blocked
-  and on what;
+- every open PR: its `pr_state.py` turn and holds;
+- every open issue, classified as in `run`, step 1, with what blocks it;
 - every `need human` item and the ruling it waits on.
 
-**Done when** every open PR and every open pool issue appears exactly once,
-and the first line says whether anything blocks.
+**Done when** every open in-scope PR and issue appears exactly once, and
+the first line says whether anything blocks.
 
 ## plan
 
@@ -66,8 +85,7 @@ alone. It also runs under `/loop`.
 
 ### One pass
 
-1. **Read the pool**: open issues in `<repo>`, restricted to `<task_label>`
-   when set. For each, read its comments and its `Depends on #N` lines and
+1. **Read the pool**: the open issues in scope (Scope). For each, read its comments and its `Depends on #N` lines and
    check delivery (`rules.md`). Classify it:
    - **held** -- `need human` on it;
    - **in progress** -- a `Claimed` comment, or an open PR that delivers it;
@@ -78,7 +96,7 @@ alone. It also runs under `/loop`.
    - **blocked** -- a dependency is still open; a dependency on a missing
      issue, or a cycle, is a finding to report;
    - **claimable** -- none of the above.
-2. **Land.** For every open PR, run `python3 <skill-dir>/pr_state.py <pr>
+2. **Land.** For every open PR in scope, run `python3 <skill-dir>/pr_state.py <pr>
    --repo <repo>`. Land each PR whose turn is `land` and whose base is
    `<integration_branch>`, per `land.md`; a stacked child waits for the PR
    below it.
@@ -97,10 +115,36 @@ and continue the pass. Never block a run on an interactive question: a
 `run` never waits on the owner while unheld work remains.
 
 When a pass lands nothing and dispatches nothing, wait for a running agent to
-finish, then pass again. **Done when** a pass changes nothing and no agent of
-yours is running. Then run `<gate_wave>` if anything landed (`land.md`) and
-give the final report: what landed, what is held and on which hold, what
-waits on the owner.
+finish, then pass again.
+
+### The quiet pass
+
+A **quiet pass** lands nothing, dispatches nothing, and finds no agent of
+yours running. It ends the invocation: one `/agent-team run` prompt, typed
+by the owner or fired by a check, so the run stays stateless across checks.
+
+1. If this invocation landed anything, run `<gate_wave>` (`land.md`, After
+   landing).
+2. If any in-scope issue is open, whatever its class -- held and needing a
+   brief included -- give an interim report and schedule a check an hour
+   out. Otherwise give the final report -- what landed, what is held and on
+   which hold, what waits on the owner -- and end.
+
+The interim report follows `rules.md` (Talking to the owner): whether
+anything blocks; each open in-scope issue, its class and what it waits on;
+when the next check fires.
+
+The check is a one-shot (non-recurring) `CronCreate` whose prompt is
+`/agent-team run <argument>`, the original argument verbatim. Under `/loop`
+with no interval, call `ScheduleWakeup` at 3600 seconds instead; under
+`/loop` with an interval, schedule nothing, because the loop returns on
+its own. Before scheduling, run `CronList` and add nothing if the same
+prompt is already pending. A check lives only in the session that scheduled
+it and fires only while that session is idle: closing the session ends the
+wait, and a busy session delays it.
+
+**Done when** a quiet pass finds no open in-scope issue and gives the final
+report.
 
 ### Dispatching
 

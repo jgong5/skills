@@ -399,7 +399,7 @@ it.
 
 | Skill | Invocation | What it does |
 | --- | --- | --- |
-| `agent-team` | `/agent-team plan`, `/agent-team run`, `/agent-team status` | `plan` turns a design document, a goal, or existing issues into briefed issues linked by `Depends on #N`, and publishes them after you approve. `run` drives the pool: claim, develop, review, land, until nothing moves. `status` reports PR turns, holds, and what waits on you. |
+| `agent-team` | `/agent-team plan`, `/agent-team run [scope]`, `/agent-team status [scope]` | `plan` turns a design document, a goal, or existing issues into briefed issues linked by `Depends on #N`, and publishes them after you approve. `run` drives the pool: claim, develop, review, land; while an issue in its scope is open, it checks again an hour later instead of ending. `status` reports PR turns, holds, and what waits on you. A scope names issues, labels or PRs, so sessions can split the pool; with none, the whole pool is in scope. |
 | `gh-prose` | automatic when writing GitHub text, or ask for it | Style rules and a lint for issues, PR bodies, comments and review records: state and ask first, each fact once, evidence folded. |
 
 Why this shape: every rule in it came from a run that went wrong. The task

@@ -115,8 +115,9 @@ review of the resolution.
 - Close any umbrella issue whose sub-tasks have all landed, with a handoff.
 - An issue that depended on this one may now be claimable; the next `run`
   pass picks it up.
-- When a `run` has landed anything and `<gate_wave>` is set, run it once on
-  the new tip before the final report. It is judged as a delta: if it is
+- When a `run` invocation (`SKILL.md`, The quiet pass) has landed anything
+  and `<gate_wave>` is set, run it once on the new tip before each
+  quiet-pass report. It is judged as a delta: if it is
   red, run it on the tip from before this run's first landing, and file
   each failure that is new as a finding issue.
 
