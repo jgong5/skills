@@ -28,6 +28,7 @@ import pr_state
 
 TIMEOUT = 900  # seconds GitHub gets to report the merge
 AS_MERGE = "land as merge"  # keeps the branch's history, such as an upstream merge
+TIP = "refs/agent-team/tip"  # the fetched integration tip; any other fetch overwrites FETCH_HEAD
 
 
 def git(*args):
@@ -42,10 +43,10 @@ def stop(code, msg):
 
 def fetch_tip(remote, branch, number):
     """The integration branch's tip, fetched with the PR's head; exits 4 if the fetch fails."""
-    rc, out = git("fetch", "-q", remote, f"refs/heads/{branch}", f"refs/pull/{number}/head")
+    rc, out = git("fetch", "-q", remote, f"+refs/heads/{branch}:{TIP}", f"refs/pull/{number}/head")
     if rc:
         stop(4, f"fetch failed: {out}")
-    return git("rev-parse", "FETCH_HEAD")[1]
+    return git("rev-parse", TIP)[1]
 
 
 def tree_check(tip, sha, merge_base=None, expect=None):

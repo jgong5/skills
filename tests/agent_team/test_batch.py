@@ -207,3 +207,26 @@ def test_merge_refuses_a_pr_whose_base_nothing_before_it_lands(gh, capsys):
         batch.main(["merge", "2", "--record", "rec.json"])
     assert e.value.code == 3
     assert "task-1" in capsys.readouterr().out
+
+
+def test_merge_starts_from_the_tip_when_another_fetch_follows_its_own(gh, monkeypatch):
+    w = gh.work
+    tip = commit(w, ("f", "a"))
+    git(w, "push", "-q", "origin", "dev")
+    open_pr(gh, 1, "dev", commit(w, ("x", "1")))
+    git(w, "checkout", "-q", "-B", "other", tip)
+    git(w, "push", "-q", "origin", commit(w, ("o", "1")) + ":refs/heads/other")
+    real = batch.git
+
+    def git_then_fetch_other(*args):
+        """Another command in the same worktree fetches right after batch.py's fetch."""
+        out = real(*args)
+        if args[0] == "fetch":
+            real("fetch", "-q", "origin", "refs/heads/other")
+        return out
+
+    monkeypatch.setattr(batch, "git", git_then_fetch_other)
+    batch.main(["merge", "1", "--record", "rec.json"])
+    rec = json.loads((w / "rec.json").read_text())
+    assert rec["tip"] == tip
+    assert git(w, "ls-tree", "--name-only", "-r", rec["commit"]).split() == ["f", "x"]
