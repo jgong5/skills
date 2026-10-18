@@ -48,11 +48,11 @@ def merge(keys, prs, record):
             if s["turn"] != "land"]
     if held:
         stop(3, "hold:\n" + "\n".join(held))
-    rc, out = git("fetch", "-q", keys["remote"], f"refs/heads/{branch}",
+    rc, out = git("fetch", "-q", keys["remote"], f"+refs/heads/{branch}:{land.TIP}",
                   *[f"refs/pull/{n}/head" for n in prs])
     if rc:
         stop(4, f"fetch failed: {out}")
-    tip = commit = git("rev-parse", "FETCH_HEAD")[1]
+    tip = commit = git("rev-parse", land.TIP)[1]
     bases, rows = {branch}, []
     for s in states:
         if s["base"] not in bases:

@@ -298,3 +298,23 @@ def test_a_base_update_lands_on_its_parents_approval_only_with_the_gated_tree(
     push(gated + "^{tree}", approved, tip)
     assert run(monkeypatch, "--expect-tree", gated + "^{tree}") == 0
     assert f"sha={pr['headRefOid']}" in fake_gh.puts()[0]
+
+
+def test_a_fetch_after_the_tip_fetch_does_not_change_the_tip(repo, fake_gh, monkeypatch):
+    fake_gh.head = branch_with(repo, ("g", "new"))
+    git(repo.work, "checkout", "-q", "-B", "other", repo.base)
+    other = commit(repo.work, "h", "other")
+    git(repo.work, "push", "-q", "origin", "other")
+    real = land.git
+
+    def git_then_fetch_other(*args):
+        """Another command in the same worktree fetches right after each of land.py's fetches."""
+        out = real(*args)
+        if args[0] == "fetch":
+            real("fetch", "-q", "origin", "refs/heads/other")
+        return out
+
+    monkeypatch.setattr(land, "git", git_then_fetch_other)
+    assert land.fetch_tip("origin", "dev", 7) == repo.base
+    assert real("rev-parse", "FETCH_HEAD")[1] == other
+    assert run(monkeypatch) == 0
