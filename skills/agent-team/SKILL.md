@@ -85,19 +85,20 @@ alone. It also runs under `/loop`.
 
 ### One pass
 
-1. **Read the pool**: the open issues in scope (Scope). For each, read its comments and its `Depends on #N` lines and
-   check delivery (`rules.md`). Classify it:
+1. **Read the pool**: the open issues in scope (Scope). For each, read its
+   comments and its `Depends on #N` lines and check delivery (`rules.md`).
+   Classify it:
    - **held** -- `need human` on it;
    - **in progress** -- a `Claimed` comment, or an open PR that delivers it;
    - **needs a brief** -- the brief lacks a file set, exit criteria, a
      named result or an effort estimate, or estimates above `<split_loc>`
-     lines without being decomposed (`plan.md`). Never write the brief here: that is `plan`'s
-     job, and it ends in owner review;
+     lines without being decomposed (`plan.md`). Never write the brief here:
+     that is `plan`'s job, and it ends in owner review;
    - **blocked** -- a dependency is still open; a dependency on a missing
      issue, or a cycle, is a finding to report;
    - **claimable** -- none of the above.
-2. **Land.** For every open PR in scope, run `python3 <skill-dir>/pr_state.py <pr>
-   --repo <repo>`. Land each PR whose turn is `land` and whose base is
+2. **Land.** For every open PR in scope, run `python3 <skill-dir>/pr_state.py
+   <pr> --repo <repo>`. Land each PR whose turn is `land` and whose base is
    `<integration_branch>`, per `land.md`; a stacked child waits for the PR
    below it.
 3. **Review.** Dispatch a reviewer (below) for each PR whose turn is
