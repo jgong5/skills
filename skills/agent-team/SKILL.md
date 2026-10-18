@@ -91,6 +91,11 @@ alone. It also runs under `/loop`.
    Claim before dispatching, so a concurrent session cannot take the same
    issue.
 
+**An escalation holds its item, never the run.** Post the ruling request
+with `need human` (`rules.md`, Escalations), name it in your next report,
+and continue the pass. Never block a run on an interactive question: a
+`run` never waits on the owner while unheld work remains.
+
 When a pass lands nothing and dispatches nothing, wait for a running agent to
 finish, then pass again. **Done when** a pass changes nothing and no agent of
 yours is running. Then run `<gate_wave>` if anything landed (`land.md`) and

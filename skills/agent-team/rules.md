@@ -15,7 +15,8 @@ contradicts these rules, these rules win.
   sentence worth writing.
 - Report PR and issue state, never local worktree state: the owner reads
   GitHub, not your disk.
-- Quote the context a decision needs; stop only for an escalation (below).
+- Quote the context a decision needs. An escalation (below) stops its item,
+  not the session: a `run` never waits on the owner while unheld work remains.
 
 ## The task record
 
