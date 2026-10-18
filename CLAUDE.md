@@ -64,12 +64,19 @@ Before pushing a manifest change, run both from the repository root:
 
 ```bash
 claude plugin validate .
-claude plugin details <bundle>     # skill count must match the manifest
+( export CLAUDE_CONFIG_DIR=$(mktemp -d)   # empty config: only this tree is installed
+  claude plugin marketplace add ./        # `./`, not `.`, which add rejects
+  claude plugin install <bundle>@jgong5
+  claude plugin details <bundle>          # version and skill count must match the manifest
+  rm -rf "$CLAUDE_CONFIG_DIR" )
 ```
 
 `validate` checks schema only -- it accepts a `skills` entry pointing at a
 directory that does not exist, and such a skill is dropped *silently* at
-install time. `details` is the only thing that catches that typo.
+install time. `details` is the only thing that catches that typo, but it reads
+the *installed* marketplace, not the working tree: run bare, it reports
+whatever you last installed, on any branch. The scratch `CLAUDE_CONFIG_DIR`
+makes this tree the only installed copy.
 
 ## Architecture
 
