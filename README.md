@@ -604,13 +604,19 @@ Bundle names prefix their skills (`<bundle>:<skill>`), so keep them short.
 
 ```bash
 claude plugin validate .
-claude plugin details <bundle>    # skill count must match the manifest
+( export CLAUDE_CONFIG_DIR=$(mktemp -d)   # empty config: only this tree is installed
+  claude plugin marketplace add ./        # `./`, not `.`, which add rejects
+  claude plugin install <bundle>@jgong5
+  claude plugin details <bundle>          # version and skill count must match the manifest
+  rm -rf "$CLAUDE_CONFIG_DIR" )
 ```
 
 Run both. `validate` checks the schema only -- it accepts a `skills` entry
 pointing at a directory that does not exist, and such a skill is then dropped
 *silently* at install time, with no error and no warning. The inventory printed
-by `details` is the only thing that catches a typo there.
+by `details` is the only thing that catches a typo there. `details` reads the
+*installed* marketplace, not your working tree, hence the empty scratch
+`CLAUDE_CONFIG_DIR`: run bare, it reports whatever you last installed.
 
 ## License
 
