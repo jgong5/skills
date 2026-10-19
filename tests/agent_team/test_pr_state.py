@@ -161,3 +161,20 @@ def test_an_approve_at_another_sha_covers_the_head_only_when_the_caller_says_so(
     # A REQUEST CHANGES at another sha is never carried forward.
     fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "REQUEST CHANGES @ 1111111.", "rev"), ROUND])
     assert pr_state.state(7, equivalent=lambda sha, head: True)["turn"] == "reviewer"
+
+
+def test_a_ruling_restarts_the_verdict_count(fake_gh):
+    rc = [comment(f"2026-01-0{d}T00:00:00Z", f"REQUEST CHANGES @ 111111{d}: 1 blocking.", "rev")
+          for d in (2, 3, 4)]
+    ruling = comment("2026-01-06T00:00:00Z", "**Ruling:** (a) keep the cut.", "owner")
+    last = comment("2026-01-07T00:00:00Z", "REQUEST CHANGES @ c0ffee1: 1 blocking.", "rev")
+    fake_gh.pr = make_pr(rc + [last])
+    before = pr_state.state(7)
+    assert before["verdicts"] == 4
+    fake_gh.pr = make_pr(rc + [ruling, last])
+    s = pr_state.state(7)
+    assert s["verdicts"] == 1 and s["verdict"] == before["verdict"]
+    # A REQUEST CHANGES before the ruling still makes it the developer's turn.
+    fake_gh.pr = make_pr(rc[:2] + [comment("2026-01-04T00:00:00Z", "REQUEST CHANGES @ c0ffee1.", "rev"), ruling])
+    s = pr_state.state(7)
+    assert s["verdicts"] == 0 and s["verdict"]["sha"] == "c0ffee1" and s["turn"] == "developer"
