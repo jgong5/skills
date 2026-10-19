@@ -102,8 +102,16 @@ amend or merge, even after a passed review. Exceptions:
    delta review of them.
 3. Reading, for `status`.
 
-Only the owner removes the label. Without it, automation is on by default:
-agents act with no opt-in.
+Only the owner removes the label, by hand or through `/agent-team verdict`
+(`verdict.md`). Without it, automation is on by default: agents act with no
+opt-in.
+
+**The owner's answer is a Ruling**: a comment whose first line opens with
+plain `Ruling:`. Only the owner rules; an agent posts a Ruling only through
+`verdict`, on the owner's word, because every agent posts as one account and
+nothing on GitHub can tell the two apart. A Ruling binds every role on its
+item, ahead of the brief and of any earlier agent's note. Stop counts --
+the review loop's verdicts and cycles (`review.md`) -- restart after it.
 
 ## Trees and worktrees
 
@@ -131,7 +139,9 @@ silently resolves against instead of its own.
 review findings with new commits. That keeps GitHub's incremental review and
 the delta review (`review.md`) intact, and the branch lands squashed, so its
 merge commits never reach `<integration_branch>` -- unless it is labeled
-`land as merge` (`land.md`), because its history is the point.
+`land as merge` (`land.md`), because its history is the point. A Ruling may
+allow one force-push; the next review then covers the whole head (`review.md`,
+Delta review).
 
 Update a branch only when it conflicts, needs code landed since, or is an
 unlinked stacked child whose parent landed (`land.md`) -- a moved tip alone

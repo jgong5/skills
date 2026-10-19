@@ -395,11 +395,11 @@ task in its own worktree and PR; reviewer agents review every head until
 APPROVE; the orchestrating agent lands approved PRs squashed onto your
 integration branch. You are asked only when an agent escalates, through a
 `need human` label that stops all automation on that item until you remove
-it.
+it, by hand or by ruling with `/agent-team verdict`.
 
 | Skill | Invocation | What it does |
 | --- | --- | --- |
-| `agent-team` | `/agent-team plan`, `/agent-team run [scope]`, `/agent-team status [scope]` | `plan` turns a design document, a goal, or existing issues into briefed issues linked by `Depends on #N`, and publishes them after you approve. `run` drives the pool: claim, develop, review, land; while an issue in its scope is open, it checks again an hour later instead of ending. `status` reports PR turns, holds, and what waits on you. A scope names issues, labels or PRs, so sessions can split the pool; with none, the whole pool is in scope. |
+| `agent-team` | `/agent-team plan`, `/agent-team run [scope]`, `/agent-team status [scope]`, `/agent-team verdict [text]` | `plan` turns a design document, a goal, or existing issues into briefed issues linked by `Depends on #N`, and publishes them after you approve. `run` drives the pool: claim, develop, review, land; while an issue in its scope is open, it checks again an hour later instead of ending. `status` reports PR turns, holds, and what waits on you. `verdict` posts your ruling on held items, makes the issue changes it calls for, removes `need human`, and tells the running sessions to pass again. A scope names issues, labels or PRs, so sessions can split the pool; with none, the whole pool is in scope. |
 | `gh-prose` | automatic when writing GitHub text, or ask for it | Style rules and a lint for issues, PR bodies, comments and review records: state and ask first, each fact once, evidence folded. |
 
 Why this shape: every rule in it came from a run that went wrong. The task
@@ -430,9 +430,10 @@ after you approve. The full key table is in
   Point `repo` at a fork or a repository where that is acceptable.
 - **`need human` is the brake.** An agent applies it the moment it
   escalates, and it stops all agent action on that issue or PR; only you
-  remove it. A repository named in `never_touch` is never written to.
+  remove it, by hand or with `/agent-team verdict`. A repository named in
+  `never_touch` is never written to.
 - **Nothing is rewritten.** PR branches only gain commits -- no force-push,
-  rebase or amend -- and nothing is pushed to the integration branch except
+  rebase or amend, unless your ruling allows one force-push -- and nothing is pushed to the integration branch except
   by landing an approved head: squashed, or as a merge commit when the PR
   is labeled `land as merge`.
 - **`plan` publishes nothing until you approve** the task graph and its
@@ -559,8 +560,8 @@ skills/
   kernel-perf/           # SKILL.md + ablation.md, modelling.md,
                          # bank_model.py, probe_roofline.py
   agent-team/            # SKILL.md + rules.md, overlay.md, plan.md,
-                         # develop.md, review.md, land.md, overlay.py,
-                         # pr_state.py, land.py, batch.py
+                         # develop.md, review.md, land.md, verdict.md,
+                         # overlay.py, pr_state.py, land.py, batch.py
   gh-prose/              # SKILL.md + lint_gh_prose.py
   auto-grilling/         # SKILL.md
 tests/
