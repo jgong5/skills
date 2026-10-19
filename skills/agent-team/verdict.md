@@ -50,7 +50,8 @@ actions step 3 will take -- and confirmed once.
    close carries its handoff comment, an opened issue a brief (`plan.md`,
    step 3).
 4. **Leave git work to the developer.** No commit, push or merge here; the
-   PR's developer acts on the Ruling at the next pass.
+   next pass acts on the Ruling through whichever role `pr_state.py` gives
+   the turn.
 5. **Unlabel every member** last, so no run sees an item unheld before
    its ruling is on GitHub.
 6. **Tell the runs.** `SendMessage` each peer session in `ListAgents` whose

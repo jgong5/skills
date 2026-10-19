@@ -11,8 +11,10 @@ covers as a sha, as in `APPROVE @ 1a2b3c4.` A head the last verdict does
 not cover is the reviewer's turn only once a later comment names it, as the
 round comment `Round <k> pushed <sha>.` does; until then it is the developer's.
 `verdicts` counts only the verdicts after the last entry whose first line
-opens with `Ruling:`, so an owner ruling restarts the count; the last verdict,
-holds and turn still read the whole thread.
+opens with `Ruling:`, so an owner ruling restarts the count; the last verdict
+and holds still read the whole thread. A REQUEST CHANGES that covers the head
+is the developer's turn, unless a Ruling follows it: then the reviewer posts a
+fresh verdict under the ruling, since the ruling may leave nothing to push.
 A caller may pass `equivalent(sha, head)` to let an APPROVE at another sha
 cover the head; land.py does under --expect-tree.
 """
@@ -89,16 +91,18 @@ def state(number, repo=None, equivalent=None):
         holds.append(f"the last verdict covers {verdict['sha']}, head is {head[:12]}: {need}")
     elif verdict["verdict"] != "APPROVE":
         holds.append(f"the last verdict is REQUEST CHANGES @ {verdict['sha']}")
-    since = entries[entries.index(verdicts[-1]) + 1:] if verdicts else entries
+    last_verdict = entries.index(verdicts[-1]) if verdicts else -1
+    since = entries[last_verdict + 1:]
     announced = any(kind == "comment" and any(head.startswith(s) for s in SHA.findall(line))
                     for _, kind, _, line in since)
     if not covers and not announced:
         holds.append(f"head {head[:12]} has no round comment")
     if pr["state"] != "OPEN" or any(LABEL in h for h in holds):
         turn = "held"
+    elif covers and verdict["verdict"] == "APPROVE":
+        turn = "held" if any(HOLD in h for h in holds) else "land"
     elif covers:
-        turn = "developer" if verdict["verdict"] != "APPROVE" else (
-            "held" if any(HOLD in h for h in holds) else "land")
+        turn = "reviewer" if ruled > last_verdict else "developer"
     else:
         turn = "reviewer" if announced else "developer"
     last = entries[-1] if entries else None
