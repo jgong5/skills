@@ -20,8 +20,9 @@ guessing.
 ## Rules
 
 1. **First line: state, then the ask.** `Closes #N. Ready for review. No blocking issues.` /
-   `Needs owner ruling: <question>.` / `APPROVE @ <sha>.` /
-   `REQUEST CHANGES @ <sha>: <n> blocking.` / `Round N pushed <sha>.`
+   `Needs owner ruling: <question>.` / `Ruling: (b). <why>.` /
+   `APPROVE @ <sha>.` / `REQUEST CHANGES @ <sha>: <n> blocking.` /
+   `Round N pushed <sha>.`
 2. **Each fact once.** Do not restate the title, the diff, the issue or another comment; link it.
 3. **Results, not process.** Commit and result, not how the tree was staged or verified.
 4. **Current state, not history.** Rewrite the PR body in place each round;
@@ -47,6 +48,9 @@ named result; effort; depends on.
 **Ruling request**: the question; the conflict in 2-3 sentences; options
 (a)-(c) with their cost, one line each; your recommendation in one clause;
 branch and PR state.
+
+**Ruling**: the decision; one sentence why; `Brief updated: <parts>.` when
+the ruling changed the issue body.
 
 **PR body**
 ```
