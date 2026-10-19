@@ -10,6 +10,9 @@ APPROVE or REQUEST CHANGES (markdown emphasis allowed) and names the head it
 covers as a sha, as in `APPROVE @ 1a2b3c4.` A head the last verdict does
 not cover is the reviewer's turn only once a later comment names it, as the
 round comment `Round <k> pushed <sha>.` does; until then it is the developer's.
+`verdicts` counts only the verdicts after the last entry whose first line
+opens with `Ruling:`, so an owner ruling restarts the count; the last verdict,
+holds and turn still read the whole thread.
 A caller may pass `equivalent(sha, head)` to let an APPROVE at another sha
 cover the head; land.py does under --expect-tree.
 """
@@ -59,6 +62,7 @@ def state(number, repo=None, equivalent=None):
     head = pr["headRefOid"]
     entries = thread(pr)
     verdicts = [e for e in entries if e[1] != "commit" and VERDICT.match(e[3])]
+    ruled = max((i for i, e in enumerate(entries) if e[3].startswith("Ruling:")), default=-1)
     holds = []
     if pr["state"] != "OPEN":
         holds.append(f"PR is {pr['state']}")
@@ -102,7 +106,8 @@ def state(number, repo=None, equivalent=None):
         "pr": pr["number"], "state": pr["state"], "head": head, "branch": pr.get("headRefName"),
         "base": pr["baseRefName"],
         "last_entry": last and dict(zip(("at", "kind", "author", "line"), last)),
-        "verdict": verdict, "verdicts": len(verdicts), "holds": holds, "turn": turn,
+        "verdict": verdict, "verdicts": sum(e in verdicts for e in entries[ruled + 1:]),
+        "holds": holds, "turn": turn,
     }
 
 
