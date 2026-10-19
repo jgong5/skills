@@ -174,7 +174,18 @@ def test_a_ruling_restarts_the_verdict_count(fake_gh):
     fake_gh.pr = make_pr(rc + [ruling, last])
     s = pr_state.state(7)
     assert s["verdicts"] == 1 and s["verdict"] == before["verdict"]
-    # A REQUEST CHANGES before the ruling still makes it the developer's turn.
+    # A REQUEST CHANGES before the ruling is still the last verdict.
     fake_gh.pr = make_pr(rc[:2] + [comment("2026-01-04T00:00:00Z", "REQUEST CHANGES @ c0ffee1.", "rev"), ruling])
     s = pr_state.state(7)
-    assert s["verdicts"] == 0 and s["verdict"]["sha"] == "c0ffee1" and s["turn"] == "developer"
+    assert s["verdicts"] == 0 and s["verdict"]["sha"] == "c0ffee1"
+
+
+def test_a_ruling_after_request_changes_is_the_reviewers_turn(fake_gh):
+    # The ruling may leave nothing to push, so a fresh verdict under it comes first.
+    rc = comment("2026-01-02T00:00:00Z", "REQUEST CHANGES @ c0ffee1: 1 blocking.", "rev")
+    ruling = comment("2026-01-03T00:00:00Z", "Ruling: (a) accept as is.", "owner")
+    fake_gh.pr = make_pr([rc, ruling])
+    s = pr_state.state(7)
+    assert s["turn"] == "reviewer" and s["verdicts"] == 0
+    fake_gh.pr = make_pr([dict(ruling, createdAt="2026-01-01T12:00:00Z"), rc])
+    assert pr_state.state(7)["turn"] == "developer"
