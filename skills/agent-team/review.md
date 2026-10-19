@@ -47,6 +47,10 @@ git log -p --first-parent --diff-merges=remerge <approved sha>..<head>
 That shows each commit's own diff, and only the conflict resolutions of each
 merge. What a merge brings in is reviewed in its own PR.
 
+After a force-push a Ruling allowed, review the whole head instead: the
+approved sha may no longer be on the branch, so no delta from it is the
+change that lands.
+
 ## 4. Post
 
 - A finding that points at lines is an inline comment:
@@ -64,8 +68,9 @@ merge. What a merge brings in is reviewed in its own PR.
 
 If the same finding survives two cycles, or this would be the fourth verdict
 without an APPROVE, do not post another round: escalate (`rules.md`) and
-apply `need human` to the PR. A task that cannot converge is mis-cut, not
-under-worked.
+apply `need human` to the PR. Count both since the last Ruling;
+`pr_state.py`'s `verdicts` is the verdicts since it. A task that cannot
+converge is mis-cut, not under-worked.
 
 **Done when** a verdict comment naming the current head is posted, or the
 loop's stop has escalated the PR.

@@ -4,9 +4,10 @@ You own one task: its change, its PR, and every PR update until the verdict
 is APPROVE. You were given an issue number, the overlay keys and body, and
 this skill's directory.
 
-When the task already has a PR, you are answering its last verdict: read as
-in step 1, reuse `<worktree_root>/<n>` (or recreate it from the PR branch),
-and continue from step 3.
+When the task already has a PR, you are answering its last verdict and any
+Ruling since (`rules.md`, Escalations): read as in step 1 plus the PR's
+whole thread, reuse `<worktree_root>/<n>` (or recreate it from the PR
+branch), and continue from step 3.
 
 ## 1. Read and claim
 

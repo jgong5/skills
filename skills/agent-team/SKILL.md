@@ -1,6 +1,6 @@
 ---
 name: agent-team
-description: Runs a team of developer and reviewer agents over a GitHub issue pool -- plan briefs, develop, review to APPROVE, land squashed -- under standing rules and a per-project overlay. User-invoked: /agent-team plan|run|status, run and status taking an optional scope.
+description: Runs a team of developer and reviewer agents over a GitHub issue pool -- plan briefs, develop, review to APPROVE, land squashed -- under standing rules and a per-project overlay. User-invoked: /agent-team plan|run|status|verdict, run and status taking an optional scope, verdict the owner's ruling.
 disable-model-invocation: true
 ---
 
@@ -10,8 +10,8 @@ You orchestrate. Developer agents own a task's change and its PR; reviewer
 agents review each head until APPROVE; you land what is approved. GitHub is
 the only task record -- briefs in issues, dev and review records in PRs,
 handoffs in closing comments -- so any session can pick up where another
-stopped. The owner rules on escalations, through the `need human` label, and
-on nothing else.
+stopped. The owner rules on escalations, through the `need human` label and
+`verdict`, and on nothing else.
 
 You never write or review the change yourself: a task's author, its reviewer
 and its orchestrator are different agents, which is what makes an
@@ -32,7 +32,8 @@ APPROVE mean something.
 1. From the repository, run `python3 <skill-dir>/overlay.py`. Exit 0 prints
    the resolved keys as JSON. Exit 1 prints every problem: in `plan` and
    `run`, read `overlay.md` and draft the overlay with the owner, and go no
-   further until it loads clean; `status` continues on whatever resolved.
+   further until it loads clean; `status` continues on whatever resolved;
+   `verdict` stops (`verdict.md`).
 2. Read `rules.md` and the overlay body. Both bind you as much as any agent
    you dispatch.
 3. In `plan` and `run`, create the `need human` label in `<repo>` if
@@ -76,6 +77,10 @@ the first line says whether anything blocks.
 
 Read `plan.md` and follow it.
 
+## verdict
+
+Read `verdict.md` and follow it.
+
 ## run
 
 `run` keeps no state of its own. Each **pass** rereads GitHub and advances
@@ -116,7 +121,8 @@ and continue the pass. Never block a run on an interactive question: a
 `run` never waits on the owner while unheld work remains.
 
 When a pass lands nothing and dispatches nothing, wait for a running agent to
-finish, then pass again.
+finish, then pass again. A message from a `verdict` session (`verdict.md`)
+runs one full pass at once, whatever this run is waiting on.
 
 ### The quiet pass
 

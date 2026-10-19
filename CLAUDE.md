@@ -255,8 +255,9 @@ that is a property of that one skill, not a rule for the repo.
 agents (ATOM Compass's `AI_DEV_RULES.md`); every project-specific value moved
 into a per-project overlay, `<repo>/.claude/agent-team.md`, parsed by
 `overlay.py`. `SKILL.md` is the orchestrator's spine (`plan`, `run`,
-`status`); `rules.md` binds every role; `plan.md`, `develop.md`, `review.md`
-and `land.md` are per-role docs handed to dispatched agents. It ships no
+`status`, `verdict`); `rules.md` binds every role; `plan.md`, `develop.md`,
+`review.md` and `land.md` are per-role docs handed to dispatched agents, and
+`verdict.md` is the owner's mode for answering escalations. It ships no
 prompt templates on purpose: a dispatched agent gets its role doc, the issue
 and the overlay, so nothing stored can drift from the brief.
 
@@ -267,6 +268,9 @@ PR's turn from its thread. Contracts that span files:
   `pr_state.py`'s `VERDICT`/`SHA`, `review.md`'s Post step, and `gh-prose`'s
   rule 1 must agree; `lint_gh_prose.py`'s `STATE` must accept each state line
   the docs prescribe, including the `Claimed:` comment.
+- A Ruling's first line opens with plain `Ruling:`. `pr_state.py`'s
+  `verdicts` restarts there, `lint_gh_prose.py`'s `STATE` accepts it, and
+  `verdict.md` posts it; a bold `**Ruling**:` restarts nothing.
 - `land.py`'s exit codes are what `land.md` branches on.
 
 Both skills test **behaviour only** -- no test reads their prose -- because
