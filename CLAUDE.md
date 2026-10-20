@@ -269,9 +269,12 @@ PR's turn from its thread. Contracts that span files:
   `pr_state.py`'s `VERDICT`/`SHA`, `review.md`'s Post step, and `gh-prose`'s
   rule 1 must agree; `lint_gh_prose.py`'s `STATE` must accept each state line
   the docs prescribe, including the `Claimed:` comment.
-- A Ruling's first line opens with plain `Ruling:`. `pr_state.py`'s
-  `verdicts` restarts there, `lint_gh_prose.py`'s `STATE` accepts it, and
-  `verdict.md` posts it; a bold `**Ruling**:` restarts nothing.
+- A Ruling's first line opens with plain `Ruling:`, and the note `verdict.md`
+  posts on each item it affects opens with `Ruling on #N affects this:`.
+  `pr_state.py`'s `RULING` matches both: either one after the last verdict
+  holds landing and sends a covered head back to the reviewer. Only `Ruling:`
+  restarts `verdicts`. `lint_gh_prose.py`'s `STATE` accepts both; a bold
+  `**Ruling**:` matches neither.
 - `land.py`'s exit codes are what `land.md` branches on.
 
 Both skills test **behaviour only** -- no test reads their prose -- because

@@ -13,8 +13,10 @@ round comment `Round <k> pushed <sha>.` does; until then it is the developer's.
 `verdicts` counts only the verdicts after the last entry whose first line
 opens with `Ruling:`, so an owner ruling restarts the count; the last verdict
 and holds still read the whole thread. A REQUEST CHANGES that covers the head
-is the developer's turn, unless a Ruling follows it: then the reviewer posts a
-fresh verdict under the ruling, since the ruling may leave nothing to push.
+is the developer's turn. Any entry after the last verdict whose first line opens
+with `Ruling:` or `Ruling on #N affects this:` holds landing and makes a covered
+head the reviewer's turn, even under an APPROVE: the ruling may have changed the
+brief, or left nothing to push, so a fresh verdict under it comes first.
 A caller may pass `equivalent(sha, head)` to let an APPROVE at another sha
 cover the head; land.py does under --expect-tree.
 """
@@ -32,6 +34,7 @@ DELIVERS = re.compile(r"(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|address(?
                       r"implement(?:s|ed)?)\s+#(\d+)")
 VERDICT = re.compile(r"(APPROVE|REQUEST CHANGES)\b")
 SHA = re.compile(r"\b[0-9a-f]{7,40}\b")
+RULING = re.compile(r"Ruling(:| on #\d+ affects this:)")
 FIELDS = "number,state,body,headRefOid,headRefName,baseRefName,labels,comments,reviews,commits,closingIssuesReferences"
 
 
@@ -95,14 +98,17 @@ def state(number, repo=None, equivalent=None):
     since = entries[last_verdict + 1:]
     announced = any(kind == "comment" and any(head.startswith(s) for s in SHA.findall(line))
                     for _, kind, _, line in since)
+    ruled_since = any(kind != "commit" and RULING.match(line) for _, kind, _, line in since)
+    if ruled_since:
+        holds.append("a ruling follows the last verdict")
     if not covers and not announced:
         holds.append(f"head {head[:12]} has no round comment")
     if pr["state"] != "OPEN" or any(LABEL in h for h in holds):
         turn = "held"
-    elif covers and verdict["verdict"] == "APPROVE":
+    elif covers and verdict["verdict"] == "APPROVE" and not ruled_since:
         turn = "held" if any(HOLD in h for h in holds) else "land"
     elif covers:
-        turn = "reviewer" if ruled > last_verdict else "developer"
+        turn = "reviewer" if ruled_since else "developer"
     else:
         turn = "reviewer" if announced else "developer"
     last = entries[-1] if entries else None

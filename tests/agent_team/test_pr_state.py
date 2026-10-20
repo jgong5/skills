@@ -189,3 +189,19 @@ def test_a_ruling_after_request_changes_is_the_reviewers_turn(fake_gh):
     assert s["turn"] == "reviewer" and s["verdicts"] == 0
     fake_gh.pr = make_pr([dict(ruling, createdAt="2026-01-01T12:00:00Z"), rc])
     assert pr_state.state(7)["turn"] == "developer"
+
+
+def test_a_ruling_after_an_approve_is_the_reviewers_turn(fake_gh):
+    # The ruling may have changed the brief the APPROVE was given against.
+    approve = comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")
+    affects = comment("2026-01-03T00:00:00Z", "Ruling on #9 affects this: it now waits for #45.", "owner")
+    fake_gh.pr = make_pr([approve, affects])
+    s = pr_state.state(7)
+    assert s["turn"] == "reviewer" and s["holds"] == ["a ruling follows the last verdict"]
+    assert s["verdicts"] == 1  # only `Ruling:` restarts the count
+    fake_gh.pr = make_pr([approve, dict(affects, body="Ruling: (a) accept as is.")])
+    s = pr_state.state(7)
+    assert s["turn"] == "reviewer" and s["verdicts"] == 0
+    fake_gh.pr = make_pr([dict(affects, createdAt="2026-01-01T12:00:00Z"), approve])
+    s = pr_state.state(7)
+    assert s["turn"] == "land" and s["holds"] == []
