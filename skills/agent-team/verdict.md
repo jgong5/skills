@@ -43,8 +43,8 @@ actions step 3 will take, there and outside it -- and confirmed once.
    restarts its `verdicts` count only at that form. Each other open member
    PR gets `Ruling: <link to it>.`, so its thread carries the ruling and its
    count restarts too. Its `Also:` line comes from item 3.
-2. **Edit the issue body** when the ruling changes the brief, and end the
-   Ruling with `Brief updated: <parts>.` A split is `plan`'s: run it now
+2. **Edit the issue body** when the ruling changes the brief, and add
+   `Brief updated: <parts>.` to the Ruling. A split is `plan`'s: run it now
    with `#N` as input, and leave the label on until it publishes the
    sub-tasks.
 3. **Close, reopen or open issues** the ruling calls for, yourself: a
@@ -58,9 +58,10 @@ actions step 3 will take, there and outside it -- and confirmed once.
    Brief updated: Depends on.
    ```
 
-   Its `Brief updated:` line follows an edit to its brief or `Depends on`
-   lines. A held one gets the comment only and keeps its label: its own
-   request still needs a ruling. Then edit the Ruling to end with `Also:`.
+   When the ruling changes its brief or `Depends on` lines, edit its body
+   and add `Brief updated: <parts>.` to the comment. A held one gets the
+   comment only and keeps its label: its own request still needs a ruling.
+   Then edit the Ruling so `Also:` is its last line.
 4. **Leave git work to the developer.** No commit, push or merge here; the
    next pass acts on the Ruling through whichever role `pr_state.py` gives
    the turn.
