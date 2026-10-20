@@ -273,8 +273,9 @@ PR's turn from its thread. Contracts that span files:
   posts on each item it affects opens with `Ruling on #N affects this:`.
   `pr_state.py`'s `RULING` matches both: either one after the last verdict
   holds landing and sends a covered head back to the reviewer. Only `Ruling:`
-  restarts `verdicts`. `lint_gh_prose.py`'s `STATE` accepts both, and a bold
-  `**Ruling**:` too, which `pr_state.py` ignores.
+  restarts `verdicts`. `lint_gh_prose.py`'s `STATE` accepts both, and its
+  `lint` rejects a first line that bolds `Ruling` (`**Ruling**:`), which
+  `pr_state.py` ignores.
 - `land.py`'s exit codes are what `land.md` branches on.
 
 Both skills test **behaviour only** -- no test reads their prose -- because
