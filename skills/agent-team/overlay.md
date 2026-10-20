@@ -8,6 +8,13 @@ as container ownership fixes or what to run after a container rebuild.
 problem; it rejects unknown keys so a typo cannot silently fall back to a
 default.
 
+`<repo>/.claude/agent-team.local.md`, when it exists, holds one checkout's
+local preferences and environment: the same shape, any key, and its keys
+override the overlay's before the required-key and default checks. Its body
+is read after the overlay's. The project's `.gitignore` keeps it out of
+version control. Each problem `overlay.py` reports from parsing either
+file names that file.
+
 | Key | Required | Default | Meaning |
 |---|---|---|---|
 | `repo` | yes | -- | `OWNER/NAME` agents write to. No default: `origin` is often an upstream agents must not touch. |
@@ -21,6 +28,7 @@ default.
 | `import_check` | no | -- | Command printing where the project's package resolves from, run in each tree. |
 | `worktree_root` | no | `<main worktree>-worktrees`, beside it | Parent of the per-task worktrees. |
 | `publish_language` | no | `English` | Language of everything published to GitHub. |
+| `conversation_language` | no | the owner's own language | Language agents use with the owner, never between agents. |
 | `max_tasks` | no | `5` | Tasks in flight; agents in flight are at most twice this. |
 | `split_loc` | no | `1000` | A task estimated above this many lines, tests included, is decomposed. |
 | `task_label` | no | -- | When set, only open issues with this label are in the pool; when absent, every open issue in `repo` is. |

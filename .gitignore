@@ -5,3 +5,4 @@ __pycache__/
 docs/superpowers/
 .claude/worktrees/
 CLAUDE.local.md
+.claude/agent-team.local.md

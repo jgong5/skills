@@ -109,3 +109,39 @@ def test_the_script_prints_prose_tests(tmp_path, monkeypatch):
     r = subprocess.run([sys.executable, overlay.__file__], capture_output=True, text=True)
     assert r.returncode == 0, r.stdout
     assert json.loads(r.stdout)["prose_tests"] == globs
+
+
+def write_local(main, text):
+    (main / ".claude" / "agent-team.local.md").write_text(text)
+
+
+def test_a_local_file_overrides_the_overlay(tmp_path, monkeypatch):
+    main = repo_with(tmp_path, monkeypatch, GOOD.replace("max_tasks: 3", "max_tasks: 5"))
+    write_local(main, "---\nmax_tasks: 2\nconversation_language: Chinese\n---\nLocal notes.\n")
+    keys, body, problems = overlay.load()
+    assert problems == []
+    assert keys["max_tasks"] == "2" and keys["conversation_language"] == "Chinese"
+    assert body.startswith("Project rules") and body.endswith("Local notes.\n")
+
+
+def test_a_required_key_set_only_locally_counts(tmp_path, monkeypatch):
+    main = repo_with(tmp_path, monkeypatch, GOOD.replace("gate_task: pytest -q && ruff check .\n", ""))
+    assert "missing required key 'gate_task'" in overlay.load()[2]
+    write_local(main, "---\ngate_task: make test\n---\n")
+    keys, _, problems = overlay.load()
+    assert problems == [] and keys["gate_task"] == "make test"
+
+
+def test_no_local_file_changes_nothing(tmp_path, monkeypatch):
+    repo_with(tmp_path, monkeypatch, GOOD)
+    keys, body, problems = overlay.load()
+    assert problems == [] and body == overlay.parse(GOOD)[1]
+    assert keys["max_tasks"] == "3" and "conversation_language" not in keys
+
+
+def test_an_unknown_local_key_names_the_local_file(tmp_path, monkeypatch):
+    main = repo_with(tmp_path, monkeypatch, GOOD)
+    write_local(main, "---\nmax_task: 2\n---\n")
+    r = subprocess.run([sys.executable, overlay.__file__], capture_output=True, text=True)
+    assert r.returncode == 1
+    assert "agent-team.local.md: line 2: unknown key 'max_task'" in r.stdout
