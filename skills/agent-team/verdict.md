@@ -27,7 +27,7 @@ its options and its recommendation.
 The decision comes from this conversation and the text; take the request's
 recommendation only when neither settles it. One item is acted on as
 decided. Several are shown first as one table -- item, decision, the
-actions step 3 will take -- and confirmed once.
+actions step 3 will take, there and outside it -- and confirmed once.
 
 ## 3. Act, per item
 
@@ -36,19 +36,32 @@ actions step 3 will take -- and confirmed once.
 
    ```
    Ruling: (a) keep the cut. Splitting moves the same lines into two reviews.
+   Also: #41 commented, #45 opened, #43 brief updated.
    ```
 
    The first line opens with plain `Ruling:`, never bold: `pr_state.py`
    restarts its `verdicts` count only at that form. Each other open member
    PR gets `Ruling: <link to it>.`, so its thread carries the ruling and its
-   count restarts too.
-2. **Edit the issue body** when the ruling changes the brief, and end the
-   Ruling with `Brief updated: <parts>.` A split is `plan`'s: run it now
+   count restarts too. Its `Also:` line comes from item 3.
+2. **Edit the issue body** when the ruling changes the brief, and add
+   `Brief updated: <parts>.` to the Ruling. A split is `plan`'s: run it now
    with `#N` as input, and leave the label on until it publishes the
    sub-tasks.
 3. **Close, reopen or open issues** the ruling calls for, yourself: a
    close carries its handoff comment, an opened issue a brief (`plan.md`,
-   step 3).
+   step 3) that links the Ruling. Each issue or PR outside the item that
+   the ruling affects gets a comment linking it, linted as `--kind comment`:
+
+   ```
+   Ruling on #38 affects this: it now waits for #45.
+   <link to the Ruling>
+   Brief updated: Depends on.
+   ```
+
+   When the ruling changes its brief or `Depends on` lines, edit its body
+   and add `Brief updated: <parts>.` to the comment. A held one gets the
+   comment only and keeps its label: its own request still needs a ruling.
+   Then edit the Ruling so `Also:` is its last line.
 4. **Leave git work to the developer.** No commit, push or merge here; the
    next pass acts on the Ruling through whichever role `pr_state.py` gives
    the turn.
@@ -56,9 +69,11 @@ actions step 3 will take -- and confirmed once.
    its ruling is on GitHub.
 6. **Tell the runs.** `SendMessage` each peer session in `ListAgents` whose
    name starts with `<repo>`'s name (the part after `/`): `Ruling posted on
-   #N in <repo>. Run one pass if your scope covers it.` When this session
+   #N in <repo>; also affects #X, #Y, and opened #Z. Run one pass if your
+   scope covers any of them.`, dropping empty parts. When this session
    has a `run` check pending (`CronList`), run one pass here as well.
 
 **Done when** every item in scope carries its Ruling, has no `need human`
-left (a split's after `plan` publishes), and every peer was messaged; report
-each Ruling's link and what changed.
+left (a split's after `plan` publishes), every item it affects has its
+comment and every peer was messaged; report each Ruling's link and what
+changed, there and outside it.
