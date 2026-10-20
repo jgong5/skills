@@ -8,7 +8,9 @@ the PR number, the overlay keys and body, and this skill's directory.
 Read `<design_entry>` first, then `rules.md`, the issue's brief, the PR body
 and its whole thread. Run `python3 <skill-dir>/pr_state.py <pr> --repo
 <repo>`. Its `head` is the sha you review. If the thread's last APPROVE named
-an older sha, this is a **delta review** (step 3).
+an older sha, this is a **delta review** (step 3). If a `Ruling:` or `Ruling
+on #N affects this:` entry follows the last verdict, review the whole head
+against the issue as it now reads, not as a delta, and post a fresh verdict.
 
 ## 2. Check
 
