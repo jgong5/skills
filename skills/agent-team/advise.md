@@ -46,9 +46,10 @@ In the conversation only, in this order:
 1. **The question and the recommendation**, one line each.
 2. **How it got stuck**: the events that led to the request, each linked.
 3. **Why it needs the owner**: the escalation rule (`rules.md`,
-   Escalations) that holds it, and whether the question still stands at
-   the current head and thread. One already answered, or one an agent
-   could settle as a finding, says so; the ruling then sends it back.
+   Escalations) that holds it, and whether the question still stands in
+   the code step 2 checked and the thread. One already answered, or one
+   an agent could settle as a finding, says so; the ruling then sends it
+   back.
 4. **The principles at stake**, each quoted with its source.
 5. **Options**, one table: the option, its cost, the principles it keeps
    or breaks, its sources. The request's options first, then any this
