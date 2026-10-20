@@ -395,11 +395,12 @@ task in its own worktree and PR; reviewer agents review every head until
 APPROVE; the orchestrating agent lands approved PRs squashed onto your
 integration branch. You are asked only when an agent escalates, through a
 `need human` label that stops all automation on that item until you remove
-it, by hand or by ruling with `/agent-team verdict`.
+it, by hand or by ruling with `/agent-team verdict`; `/agent-team advise`
+analyses a held item first and drafts that ruling.
 
 | Skill | Invocation | What it does |
 | --- | --- | --- |
-| `agent-team` | `/agent-team plan`, `/agent-team run [scope]`, `/agent-team status [scope]`, `/agent-team verdict [text]` | `plan` turns a design document, a goal, or existing issues into briefed issues linked by `Depends on #N`, and publishes them after you approve. `run` drives the pool: claim, develop, review, land; while an issue in its scope is open, it checks again an hour later instead of ending. `status` reports PR turns, holds, and what waits on you. `verdict` posts your ruling on held items, makes the issue changes it calls for, removes `need human`, and tells the running sessions to pass again. A scope names issues, labels or PRs, so sessions can split the pool; with none, the whole pool is in scope. |
+| `agent-team` | `/agent-team plan`, `/agent-team run [scope]`, `/agent-team status [scope]`, `/agent-team verdict [text]`, `/agent-team advise <url\|#N> [concern]` | `plan` turns a design document, a goal, or existing issues into briefed issues linked by `Depends on #N`, and publishes them after you approve. `run` drives the pool: claim, develop, review, land; while an issue in its scope is open, it checks again an hour later instead of ending. `status` reports PR turns, holds, and what waits on you. `verdict` posts your ruling on held items, makes the issue changes it calls for, removes `need human`, and tells the running sessions to pass again. `advise` is read-only: for one item, it answers your concern, checks the request's claims against the code and the thread, sets the options against the project's principles, and drafts a `Ruling:` for `verdict`. A scope names issues, labels or PRs, so sessions can split the pool; with none, the whole pool is in scope. |
 | `gh-prose` | automatic when writing GitHub text, or ask for it | Style rules and a lint for issues, PR bodies, comments and review records: state and ask first, each fact once, evidence folded. |
 
 Why this shape: every rule in it came from a run that went wrong. The task
@@ -561,7 +562,8 @@ skills/
                          # bank_model.py, probe_roofline.py
   agent-team/            # SKILL.md + rules.md, overlay.md, plan.md,
                          # develop.md, review.md, land.md, verdict.md,
-                         # overlay.py, pr_state.py, land.py, batch.py
+                         # advise.md, overlay.py, pr_state.py, land.py,
+                         # batch.py
   gh-prose/              # SKILL.md + lint_gh_prose.py
   auto-grilling/         # SKILL.md
 tests/

@@ -14,7 +14,8 @@ worth that.
 
 - `#N` numbers, labels or "all" in the text name the items; "all" is every
   open `need human` issue and PR in `<repo>`.
-- Otherwise it is the held item last discussed in this conversation.
+- Otherwise it is the held item last discussed in this conversation; an
+  `advise` (`advise.md`) discusses the item it analysed.
 - Ask when that is ambiguous: none discussed, or several.
 
 An **item** is an issue plus every open PR that delivers it (`rules.md`,
@@ -24,8 +25,9 @@ its options and its recommendation.
 
 ## 2. Decide
 
-The decision comes from this conversation and the text; take the request's
-recommendation only when neither settles it. One item is acted on as
+The decision comes from, in rank order: the owner's words in this
+conversation, the text, an `advise` recommendation in this conversation,
+and the request's recommendation. One item is acted on as
 decided. Several are shown first as one table -- item, decision, the
 actions step 3 will take, there and outside it -- and confirmed once.
 
