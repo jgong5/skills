@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Read a project's agent-team overlay.
 
-Usage: overlay.py   (reads .claude/agent-team.md under the work tree's root)
+Usage: overlay.py   (reads .claude/agent-team.md under the work tree's root,
+                     then .claude/agent-team.local.md beside it when present)
 
 Prints the resolved keys as JSON and exits 0, or prints every problem and
 exits 1. The keys and their meaning are documented in overlay.md.
@@ -14,10 +15,11 @@ import sys
 from pathlib import Path
 
 DEFAULT_PATH = ".claude/agent-team.md"
+LOCAL_NAME = "agent-team.local.md"
 REQUIRED = ("repo", "integration_branch", "gate_task", "design_entry")
 DEFAULTS = {"publish_language": "English", "max_tasks": "5", "split_loc": "1000"}
 OPTIONAL = ("remote", "never_touch", "gate_wave", "new_tests_dir", "import_check",
-            "worktree_root", "task_label", "prose_tests")
+            "worktree_root", "task_label", "prose_tests", "conversation_language")
 INTEGER = ("max_tasks", "split_loc")
 KEYS = REQUIRED + OPTIONAL + tuple(DEFAULTS)
 
@@ -60,14 +62,25 @@ def git(*args):
 
 
 def load(path=DEFAULT_PATH):
-    """Resolved keys, the body, and a list of problems (empty when usable)."""
+    """Resolved keys, the body, and a list of problems (empty when usable).
+
+    Keys in the local file beside the overlay override the overlay's; its
+    body follows the overlay's.
+    """
     if path == DEFAULT_PATH:
         path = Path(git("rev-parse", "--show-toplevel")) / DEFAULT_PATH
-    try:
-        text = Path(path).read_text(encoding="utf-8")
-    except OSError as e:
-        return {}, "", [f"cannot read {path}: {e.strerror}"]
-    keys, body, problems = parse(text)
+    local = Path(path).parent / LOCAL_NAME
+    keys, bodies, problems = {}, [], []
+    for p in [path] + ([local] if local.exists() else []):
+        try:
+            text = Path(p).read_text(encoding="utf-8")
+        except OSError as e:
+            return {}, "", [f"cannot read {p}: {e.strerror}"]
+        k, b, found = parse(text)
+        keys.update(k)
+        bodies.append(b)
+        problems += [f"{p}: {f}" for f in found]
+    body = "\n".join(bodies)
     problems += [f"missing required key {k!r}" for k in REQUIRED if k not in keys]
     for k, v in DEFAULTS.items():
         keys.setdefault(k, v)
