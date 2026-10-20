@@ -72,11 +72,20 @@ actions step 3 will take, there and outside it -- and confirmed once.
    the turn.
 5. **Unlabel every member** last, so no run sees an item unheld before
    its ruling is on GitHub.
-6. **Tell the runs.** `SendMessage` each peer session in `ListAgents` whose
-   name starts with `<repo>`'s name (the part after `/`): `Ruling posted on
-   #N in <repo>; also affects #X, #Y, and opened #Z. Run one pass if your
-   scope covers any of them.`, dropping empty parts. When this session
-   has a `run` check pending (`CronList`), run one pass here as well.
+6. **Tell the runs.** `SendMessage` each peer session in `ListAgents` that
+   works in this project: `Ruling posted on #N in <repo>; also affects #X,
+   #Y, and opened #Z. Run one pass if your scope covers any of them.`,
+   dropping empty parts. `ListAgents` shows no working directory; the
+   session records, `~/.claude/sessions/<pid>.json`, hold each session's
+   `name` and `cwd`, and are undocumented Claude Code internals. Find this
+   session's record by the name `ListAgents` gives it; a peer is in the
+   project when its record's `cwd` is that `cwd` or a directory under it.
+   Compare record paths only with each other, never with a path a container
+   wrapper reports: the two can differ. When the records cannot be read or
+   this session's is missing, message every peer `ListAgents` lists and say
+   so in the report: a missed run waits an hour for its check, an extra
+   message is ignored. When this session has a `run` check pending
+   (`CronList`), run one pass here as well.
 
 **Done when** every item in scope carries its Ruling, has no `need human`
 left (a split's after `plan` publishes), every item it affects has its
