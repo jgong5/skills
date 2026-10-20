@@ -111,7 +111,7 @@ review of the resolution.
   refuses that while some worktree has the branch checked out; run `git fetch
   <remote> && git merge --ff-only <remote>/<integration_branch>` in that
   worktree instead. Then
-  apply whatever the overlay body says follows a git update.
+  apply whatever the overlay and local bodies say follows a git update.
 - Close the delivered issue with a handoff comment, drawn from the Dev
   record's "left undone" and the review record's "watch next". A PR into a
   non-default branch does not close its issue on GitHub's own.
