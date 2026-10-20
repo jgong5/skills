@@ -34,8 +34,10 @@ APPROVE mean something.
    `run`, read `overlay.md` and draft the overlay with the owner, and go no
    further until it loads clean; `status` continues on whatever resolved;
    `verdict` stops (`verdict.md`).
-2. Read `rules.md` and the overlay body. Both bind you as much as any agent
-   you dispatch.
+2. Read `rules.md`, the overlay body, and then the body of
+   `.claude/agent-team.local.md` when that file exists (`overlay.md`). All
+   bind you as much as any agent you dispatch; where the two bodies
+   conflict, the local one wins.
 3. In `plan` and `run`, create the `need human` label in `<repo>` if
    `gh label list` lacks it.
 4. Note whether the `ponytail` and `ponytail-review` skills are installed. If
@@ -166,7 +168,10 @@ agent no prose of your own about how to work; hand it:
 - its role doc: `<skill-dir>/develop.md` or `<skill-dir>/review.md`, which
   points it at `rules.md`;
 - the issue number (developer) or PR number (reviewer);
-- the overlay keys as JSON and the overlay body;
+- the overlay keys as JSON, without `conversation_language`: it governs
+  only what you say to the owner, and an agent's report goes to you;
+- the overlay body, then the local body when there is one, last, and
+  winning where the two conflict;
 - `<skill-dir>`, and that `<design_entry>` is read first.
 
 The brief is written close to a prompt for exactly this reason: a prompt
