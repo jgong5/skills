@@ -3,11 +3,15 @@
 These bind every role: the orchestrator, the planner, developers and
 reviewers. `<key>` means the overlay value (`overlay.md`). The overlay's body
 adds project rules; it never relaxes one here, and a conflict between the two
-is an escalation. Where a handoff note or an earlier agent's report
+is an escalation. The local file (`overlay.md`), like the overlay body, never
+relaxes a rule here. Where a handoff note or an earlier agent's report
 contradicts these rules, these rules win.
 
 ## Talking to the owner
 
+- Talk to the owner in `<conversation_language>`, or in the owner's own
+  language when it is unset. It never governs text between agents or what is
+  published (What gets published).
 - Lead with the next action, or with the finding when asked what a task
   established. Number multi-step work, cap lists at 5, end with one concrete
   next action, keep errors matter-of-fact, skip preamble and pleasantries.
