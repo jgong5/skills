@@ -57,6 +57,8 @@ def lint(text, kind):
     first = next((l for l in lines if l.strip()), "")
     if kind not in ("issue", "brief", "inline") and not STATE.search(first):
         hits.append(f"first line states no state or ask: {first[:60]!r}")
+    if re.match(r"\s*\*\*Ruling\b", first):
+        hits.append("first line bolds Ruling, which pr_state.py ignores: open with plain 'Ruling:'")
     verdict = r"[\s#>*_]*(APPROVE|REQUEST CHANGES)\b.*\b[0-9a-f]{7,40}\b"
     if kind == "review" and not re.match(verdict, first):
         hits.append(f"first line is no verdict naming its head sha: {first[:60]!r}")

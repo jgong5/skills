@@ -53,3 +53,10 @@ def test_an_unclosed_block_of_inline_code_does_not_hang():
 def test_a_block_opened_mid_list_item_does_not_split_the_list():
     text = "Closes #1.\n- a\n- b\n- c <details>\nx\n</details>\n- d\n- e\n- f\n- g\n"
     assert lint_gh_prose.lint(text, "pr") == ["list/table of 7 lines, max 5 items"]
+
+
+@pytest.mark.parametrize("first", ["**Ruling**: (a).", "**Ruling:** (a)."])
+def test_a_bold_ruling_is_flagged(first):
+    assert lint_gh_prose.lint(first, "comment")
+    assert lint_gh_prose.lint("Ruling: (a).", "comment") == []
+    assert lint_gh_prose.lint("Ruling on #9 affects this: x.", "comment") == []
