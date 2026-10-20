@@ -35,7 +35,9 @@ command and its result) or is marked unverified.
 - No experiment, edit, commit or comment, and no dispatched agent. A
   measurement the decision needs becomes an option: measure, then rule.
 - Principles come only from `<design_entry>`, the documents it indexes,
-  and `rules.md`. A principle found nowhere there is not one.
+  `rules.md`, and the overlay body. A principle found nowhere there is not
+  one. The local body is environment fact, never a principle, so one item
+  gets the same recommendation on every checkout.
 
 ## 3. Report
 
