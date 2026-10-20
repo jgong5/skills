@@ -11,9 +11,9 @@ default.
 `<repo>/.claude/agent-team.local.md`, when it exists, holds one checkout's
 local preferences and environment: the same shape, any key, and its keys
 override the overlay's before the required-key and default checks. Its body
-is read after the overlay's. The project's `.gitignore` keeps it out of
-version control. Each problem `overlay.py` reports from parsing either
-file names that file.
+is read after the overlay's. Add `.claude/agent-team.local.md` to the
+project's `.gitignore` to keep it out of version control. Each problem
+`overlay.py` reports from parsing either file names that file.
 
 | Key | Required | Default | Meaning |
 |---|---|---|---|
