@@ -18,6 +18,9 @@ These are the landing preconditions, and the only holds:
 4. No `hold landing` on the PR or on an issue it closes. It holds landing and
    nothing else -- development and review go on -- and whoever applied it
    removes it.
+5. No entry after the last verdict whose first line opens with `Ruling:` or
+   `Ruling on #N affects this:`. The ruling may have changed the brief, so a
+   fresh verdict under it comes first.
 
 A hold names the one that is unmet. **Any other rule violation seen in an
 approved PR is landed and filed as an issue, not held**: the review loop is
