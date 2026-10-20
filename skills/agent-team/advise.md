@@ -27,8 +27,9 @@ Take the ruling request apart into its claims -- what the code does, what a
 test shows, what the brief or a principle says -- and check each against
 the code at the PR's head -- or, when the item has no PR, at a freshly
 fetched `<remote>/<integration_branch>` -- and against the thread. Every
-assertion in the report cites its source (`path: symbol`, a comment link, a
-command and its result) or is marked unverified.
+assertion in the report's Evidence part cites its source (`path: symbol`, a
+comment link, a command and its result); one left unchecked is marked
+unverified wherever the report uses it.
 
 - Run read-only commands only. Run tests, in a `git archive` snapshot of
   that code, only when the decision hinges on their result.
@@ -41,27 +42,42 @@ command and its result) or is marked unverified.
 
 ## 3. Report
 
-In the conversation only, in this order:
+In the conversation only, after the answer to the owner's concern and the
+notice that the item is not held (Scope). The owner rules from the
+overview; a history of the request, or a list of every claim checked, reads
+as a work log and buries the decision.
 
-1. **The question and the recommendation**, one line each.
-2. **How it got stuck**: the events that led to the request, each linked.
-3. **Why it needs the owner**: the escalation rule (`rules.md`,
-   Escalations) that holds it, and whether the question still stands in
-   the code step 2 checked and the thread. One already answered, or one
-   an agent could settle as a finding, says so; the ruling then sends it
-   back.
-4. **The principles at stake**, each quoted with its source.
-5. **Options**, one table: the option, its cost, the principles it keeps
-   or breaks, its sources. The request's options first, then any this
-   analysis adds, including a simpler one that keeps the same principles
-   when there is one.
-6. **The recommendation**, the fact that would change it, and a draft
-   Ruling in `<publish_language>`, in `gh-prose`'s Ruling shape, linted as
-   `--kind comment`:
+1. **Overview**, in plain words and without citations, enough to rule from
+   alone:
+   - the question;
+   - the current state: the mechanism that keeps the item stuck and the
+     change that triggered it, linked -- no timeline;
+   - the options, one sentence each: what it does, what it gains, what it
+     costs; one this analysis adds is marked new;
+   - the recommendation and why;
+   - side findings that need no ruling, when there are any, one sentence
+     each: what it is, and who can fix it or that the recommended option
+     does.
 
-   ```
-   Ruling: (c) measure the gate at the head, then keep the cut if it is green. Splitting moves the same lines into two reviews.
-   ```
+   A question that no longer stands in the code step 2 checked and the
+   thread, or that an agent could settle as a finding, is said first; the
+   recommendation is then to send it back.
+2. **Evidence**:
+   - the principles at stake, each quoted with its source;
+   - the options in one table: the option, its cost, the principles it
+     keeps or breaks, its sources. The request's options first, then any
+     this analysis adds, including a simpler one that keeps the same
+     principles when there is one. A claim of the request found wrong is
+     stated in the row of the option it bears on;
+   - the fact that would change the recommendation;
+   - a draft Ruling in `<publish_language>`, in `gh-prose`'s Ruling shape,
+     linted as `--kind comment`:
+
+     ```
+     Ruling: (c) measure the gate at the head, then keep the cut if it is green. Splitting moves the same lines into two reviews.
+     ```
+
+Step 2 checks every claim of the request; the report lists none of them.
 
 A Mermaid UML diagram goes in only where text cannot carry the structure,
 such as a dependency cycle across several items.
