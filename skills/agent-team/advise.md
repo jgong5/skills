@@ -25,12 +25,13 @@ what it may read, and `<design_entry>` where its principles come from.
 
 Take the ruling request apart into its claims -- what the code does, what a
 test shows, what the brief or a principle says -- and check each against
-the code at the PR's head and against the thread. Every assertion in the
-report cites its source (`path: symbol`, a comment link, a command and its
-result) or is marked unverified.
+the code at the PR's head -- or, when the item has no PR, at a freshly
+fetched `<remote>/<integration_branch>` -- and against the thread. Every
+assertion in the report cites its source (`path: symbol`, a comment link, a
+command and its result) or is marked unverified.
 
 - Run read-only commands only. Run tests, in a `git archive` snapshot of
-  the head, only when the decision hinges on their result.
+  that code, only when the decision hinges on their result.
 - No experiment, edit, commit or comment, and no dispatched agent. A
   measurement the decision needs becomes an option: measure, then rule.
 - Principles come only from `<design_entry>`, the documents it indexes,
@@ -64,5 +65,4 @@ such as a dependency cycle across several items.
 
 **Done when** every claim of the request is checked or marked unverified,
 every option cites its sources, and the draft Ruling lints clean. `verdict`
-then takes this recommendation when the owner's words and its text leave
-the decision open.
+then ranks this recommendation as `verdict.md` (Decide) says.
