@@ -420,7 +420,10 @@ and optional keys such as a repository agents must never touch. Its body
 holds free-text project rules. The first `plan` or `run` drafts it with
 you: it infers values from your remotes, docs and CI, runs the proposed gate
 once on the integration branch to show it is green, and writes the file only
-after you approve. The full key table is in
+after you approve. An optional `.claude/agent-team.local.md` beside it
+overrides its keys and extends its body for one checkout; add that file to
+your `.gitignore`. The `conversation_language` key sets the language agents
+use when they talk to you. The full key table is in
 [`skills/agent-team/overlay.md`](skills/agent-team/overlay.md).
 
 ### Safety model
