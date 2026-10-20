@@ -255,11 +255,12 @@ that is a property of that one skill, not a rule for the repo.
 agents (ATOM Compass's `AI_DEV_RULES.md`); every project-specific value moved
 into a per-project overlay, `<repo>/.claude/agent-team.md`, parsed by
 `overlay.py`. `SKILL.md` is the orchestrator's spine (`plan`, `run`,
-`status`, `verdict`); `rules.md` binds every role; `plan.md`, `develop.md`,
-`review.md` and `land.md` are per-role docs handed to dispatched agents, and
-`verdict.md` is the owner's mode for answering escalations. It ships no
-prompt templates on purpose: a dispatched agent gets its role doc, the issue
-and the overlay, so nothing stored can drift from the brief.
+`status`, `verdict`, `advise`); `rules.md` binds every role; `plan.md`,
+`develop.md`, `review.md` and `land.md` are per-role docs handed to
+dispatched agents, and `verdict.md` is the owner's mode for answering
+escalations, prepared by `advise.md`'s read-only analysis of one held item.
+It ships no prompt templates on purpose: a dispatched agent gets its role
+doc, the issue and the overlay, so nothing stored can drift from the brief.
 
 `run` is stateless: each pass rereads GitHub, and `pr_state.py` derives a
 PR's turn from its thread. Contracts that span files:

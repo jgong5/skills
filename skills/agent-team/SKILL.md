@@ -1,6 +1,6 @@
 ---
 name: agent-team
-description: Runs a team of developer and reviewer agents over a GitHub issue pool -- plan briefs, develop, review to APPROVE, land squashed -- under standing rules and a per-project overlay. User-invoked: /agent-team plan|run|status|verdict, run and status taking an optional scope, verdict the owner's ruling.
+description: Runs a team of developer and reviewer agents over a GitHub issue pool -- plan briefs, develop, review to APPROVE, land squashed -- under standing rules and a per-project overlay. User-invoked: /agent-team plan|run|status|verdict|advise, run and status taking an optional scope, verdict the owner's ruling, advise a read-only analysis of one held item and the ruling to make.
 disable-model-invocation: true
 ---
 
@@ -11,7 +11,8 @@ agents review each head until APPROVE; you land what is approved. GitHub is
 the only task record -- briefs in issues, dev and review records in PRs,
 handoffs in closing comments -- so any session can pick up where another
 stopped. The owner rules on escalations, through the `need human` label and
-`verdict`, and on nothing else.
+`verdict`, and on nothing else; `advise` analyses one before the owner
+rules.
 
 You never write or review the change yourself: a task's author, its reviewer
 and its orchestrator are different agents, which is what makes an
@@ -33,7 +34,7 @@ APPROVE mean something.
    the resolved keys as JSON. Exit 1 prints every problem: in `plan` and
    `run`, read `overlay.md` and draft the overlay with the owner, and go no
    further until it loads clean; `status` continues on whatever resolved;
-   `verdict` stops (`verdict.md`).
+   `verdict` and `advise` stop (`verdict.md`, `advise.md`).
 2. Read `rules.md`, the overlay body, and then the body of
    `.claude/agent-team.local.md` when that file exists (`overlay.md`). All
    bind you as much as any agent you dispatch; where the two bodies
@@ -82,6 +83,10 @@ Read `plan.md` and follow it.
 ## verdict
 
 Read `verdict.md` and follow it.
+
+## advise
+
+Read `advise.md` and follow it.
 
 ## run
 
