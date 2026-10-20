@@ -63,6 +63,9 @@ actions step 3 will take, there and outside it -- and confirmed once.
    When the ruling changes its brief or `Depends on` lines, edit its body
    and add `Brief updated: <parts>.` to the comment. A held one gets the
    comment only and keeps its label: its own request still needs a ruling.
+   An affected issue's open delivering PRs (`rules.md`, Check delivery)
+   get the comment too: `pr_state.py` reads only a PR's own thread, so
+   without it an approved PR lands against the old brief.
    Then edit the Ruling so `Also:` is its last line.
 4. **Leave git work to the developer.** No commit, push or merge here; the
    next pass acts on the Ruling through whichever role `pr_state.py` gives
