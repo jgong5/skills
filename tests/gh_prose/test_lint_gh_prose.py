@@ -60,3 +60,4 @@ def test_a_bold_ruling_is_flagged(first):
     assert lint_gh_prose.lint(first, "comment")
     assert lint_gh_prose.lint("Ruling: (a).", "comment") == []
     assert lint_gh_prose.lint("Ruling on #9 affects this: x.", "comment") == []
+    assert lint_gh_prose.lint("**Ruling request**: x.", "comment") == []
