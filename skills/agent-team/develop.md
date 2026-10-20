@@ -23,7 +23,7 @@ claims, no worktree exists yet, so a path would be false.
 Fetch `<remote>`, then `git worktree add <worktree_root>/<n> -b task-<n>
 <remote>/<integration_branch>` -- or, to stack on an unlanded parent's PR,
 from the parent's head (`land.md`, Stacking). Run `<import_check>` there when
-it is set. Apply whatever the overlay body says a fresh tree needs.
+it is set. Apply whatever the overlay and local bodies say a fresh tree needs.
 
 ## 3. Build
 
