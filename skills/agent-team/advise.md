@@ -42,10 +42,10 @@ unverified wherever the report uses it.
 
 ## 3. Report
 
-In the conversation only, in two parts, after the answer to the owner's
-concern and the notice that the item is not held (Scope). The owner rules
-from the overview; a history of the request, or a list of every claim
-checked, reads as a work log and buries the decision.
+In the conversation only, after the answer to the owner's concern and the
+notice that the item is not held (Scope). The owner rules from the
+overview; a history of the request, or a list of every claim checked, reads
+as a work log and buries the decision.
 
 1. **Overview**, in plain words and without citations, enough to rule from
    alone:
