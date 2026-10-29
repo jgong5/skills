@@ -397,8 +397,7 @@ integration branch. A person is asked only when an agent escalates,
 through a `need human` label that stops all automation on that item until
 the item's ruler removes it, by hand or by ruling with `/agent-team
 verdict`; `/agent-team advise` analyses a held item first and drafts that
-ruling. The ruler is the login the latest request names (`Needs ruling from
-@x:`), else the item's single assignee.
+ruling.
 
 | Skill | Invocation | What it does |
 | --- | --- | --- |

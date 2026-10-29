@@ -34,7 +34,8 @@ that item, and name the ruler as the one who rules on it or hands it on, or
 say it has none: the way on is the ruler's, not this session's, so suggest
 no request line or reassignment that would make it yours. An item with no
 ruler gets no Ruling: with several assignees any of them may hand it off,
-and with none it is assigned first.
+and with none this session assigns nothing; the item gets a ruler when
+someone assigns it or a request names one.
 
 **Hand-off.** When the text hands the item on ("hand to @x"), post
 `Needs ruling from @x: <link to the request>.` where the request is, linted
