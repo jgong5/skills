@@ -61,3 +61,12 @@ def test_a_bold_ruling_is_flagged(first):
     assert lint_gh_prose.lint("Ruling: (a).", "comment") == []
     assert lint_gh_prose.lint("Ruling on #9 affects this: x.", "comment") == []
     assert lint_gh_prose.lint("**Ruling request**: x.", "comment") == []
+
+
+def test_a_request_naming_its_ruler_states_its_state():
+    assert lint_gh_prose.lint("Needs ruling from @bob: keep the cut or split #38?", "comment") == []
+
+
+def test_a_ruler_without_an_at_is_no_login():
+    hits = lint_gh_prose.lint("Needs ruling from bob: keep the cut or split #38?", "comment")
+    assert hits == ["first line states no state or ask: 'Needs ruling from bob: keep the cut or split #38?'"]

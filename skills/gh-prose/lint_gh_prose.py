@@ -15,7 +15,7 @@ BUDGET = {
     "inline": 60,
 }
 STATE = re.compile(
-    r"\b(Closes|Fixes|Part of|Blocked|Claimed|Needs owner ruling|Ruling|Ready|No blocking|APPROVE|REQUEST CHANGES|Round \d+ pushed)\b"
+    r"\b(Closes|Fixes|Part of|Blocked|Claimed|Needs owner ruling|Needs ruling from @[\w-]+(?=:)|Ruling|Ready|No blocking|APPROVE|REQUEST CHANGES|Round \d+ pushed)\b"
 )
 PATTERNS = {
     "private ref (link it or say it)": r"\u00a7|\b[DPTW]\d+(\.\d+)?\b|[Pp]rinciple \d|\bthe brief\b|\b[Dd]oc \d+",

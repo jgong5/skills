@@ -20,7 +20,8 @@ guessing.
 ## Rules
 
 1. **First line: state, then the ask.** `Closes #N. Ready for review. No blocking issues.` /
-   `Needs owner ruling: <question>.` / `Ruling: (b). <why>.` /
+   `Needs owner ruling: <question>.` / `Needs ruling from @<login>: <question>.` /
+   `Ruling: (b). <why>.` /
    `APPROVE @ <sha>.` / `REQUEST CHANGES @ <sha>: <n> blocking.` /
    `Round N pushed <sha>.`
 2. **Each fact once.** Do not restate the title, the diff, the issue or another comment; link it.
