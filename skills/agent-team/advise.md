@@ -2,8 +2,9 @@
 
 `/agent-team advise <url|#N> [concern]` analyses one held item and
 recommends a ruling. It is read-only: it posts, edits, labels and
-dispatches nothing, and its whole output is in this conversation. The
-owner then rules with `verdict` (`verdict.md`).
+dispatches nothing, and its whole output is in this conversation. It runs
+for anyone; the item's ruler (`rules.md`, Escalations) then rules with
+`verdict` (`verdict.md`).
 
 ## 0. Load
 
@@ -42,9 +43,10 @@ unverified wherever the report uses it.
 
 ## 3. Report
 
-In the conversation only, after the answer to the owner's concern and the
-notice that the item is not held (Scope). The owner rules from the
-overview; a history of the request, or a list of every claim checked, reads
+In the conversation only. Its first line names the item's ruler, as
+`python3 <skill-dir>/ruler.py N --repo <repo>` prints it, or says it has
+none; then come the answer to the owner's concern and the notice that the
+item is not held (Scope). The ruler rules from the overview; a history of the request, or a list of every claim checked, reads
 as a work log and buries the decision.
 
 1. **Overview**, in plain words and without citations, enough to rule from

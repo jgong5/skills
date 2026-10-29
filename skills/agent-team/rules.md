@@ -61,8 +61,8 @@ When something does not work as expected, stop and diagnose it; a workaround
 is forbidden, the diagnosis is not. This covers a design document that
 contradicts the code, a test failing for a reason the task did not predict,
 a measurement outside its stated range, and an interface that cannot be
-built as specified. The outcome is a finding (fixable without the owner) or
-an escalation (needs an owner ruling).
+built as specified. The outcome is a finding (fixable without a ruling) or
+an escalation (needs a ruling).
 
 **When a design document and the code disagree, the kind of claim decides
 which side changes.** A description of code the project reuses and does not
@@ -74,8 +74,8 @@ design changes first.
 
 ## Escalations and `need human`
 
-An escalation is anything that needs an owner ruling before work continues;
-anything an agent can fix without one is a finding, and the owner is never
+An escalation is anything that needs a ruling before work continues;
+anything an agent can fix without one is a finding, and no ruler is ever
 asked about findings. Escalate, in addition to the cases above, when:
 
 - a task's non-test lines exceed twice its code estimate and exceed that
@@ -88,8 +88,9 @@ asked about findings. Escalate, in addition to the cases above, when:
 
 **Apply the `need human` label the moment you escalate**: a halt declared in
 prose stops nothing, because the next agent reads labels, not prose. Post the
-ruling request (`gh-prose`'s shape) on the issue or PR. When the ruling lives
-on another issue, label each PR it holds and name that issue. A PR whose body
+ruling request (`gh-prose`'s shape) on the issue or PR; on an item with no
+assignee, assign yourself first, so the item has a ruler. When the ruling
+lives on another issue, label each PR it holds and name that issue. A PR whose body
 declares an escalation without the label gets the label.
 
 The label stops all agent action on that issue or PR: no commit, review,
@@ -106,14 +107,25 @@ amend or merge, even after a passed review. Exceptions:
    delta review of them.
 3. Reading, for `status`.
 
-Only the owner removes the label, by hand or through `/agent-team verdict`
-(`verdict.md`). Without it, automation is on by default: agents act with no
-opt-in.
+**An item's ruler is the one person who rules on it.** An item is an issue
+plus every open PR that delivers it (Check delivery). A request line is a
+comment or review whose first line opens with `Needs owner ruling:` or
+`Needs ruling from @<login>:`, in any member's thread; `Ruling on #N affects
+this:` is a notice, not a request line. When the latest request line names a
+login, that login is the ruler; otherwise the single assignee of the issue
+(or of a PR that delivers none) is, and with no assignee or several the item
+has no ruler until a request names one.
+`python3 <skill-dir>/ruler.py N --repo <repo>` reads it; every role asks it
+rather than working the ruler out by hand.
 
-**The owner's answer is a Ruling**: a comment whose first line opens with
-plain `Ruling:`. Only the owner rules; an agent posts a Ruling only through
-`verdict`, on the owner's word, because every agent posts as one account and
-nothing on GitHub can tell the two apart. A Ruling binds every role on its
+Only the item's ruler removes the label, by hand or through `/agent-team
+verdict` (`verdict.md`). Without it, automation is on by default: agents
+act with no opt-in.
+
+**The ruler's answer is a Ruling**: a comment whose first line opens with
+plain `Ruling:`. Only the item's ruler rules; an agent posts a Ruling only
+through `verdict`, on the ruler's word, because every agent posts as one
+account and nothing on GitHub can tell the two apart. A Ruling binds every role on its
 item, ahead of the brief and of any earlier agent's note. Stop counts --
 the review loop's verdicts and cycles (`review.md`) -- restart after it.
 
