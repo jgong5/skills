@@ -59,6 +59,8 @@ def lint(text, kind):
         hits.append(f"first line states no state or ask: {first[:60]!r}")
     if re.match(r"\s*\*\*Ruling(\*\*|:)", first):
         hits.append("first line bolds Ruling, which pr_state.py ignores: open with plain 'Ruling:'")
+    if re.match(r"\s*\*\*Needs owner ruling\*\*", first):
+        hits.append("first line bolds Needs owner ruling, which ruler.py ignores: open with plain 'Needs owner ruling:'")
     verdict = r"[\s#>*_]*(APPROVE|REQUEST CHANGES)\b.*\b[0-9a-f]{7,40}\b"
     if kind == "review" and not re.match(verdict, first):
         hits.append(f"first line is no verdict naming its head sha: {first[:60]!r}")
