@@ -63,6 +63,12 @@ def test_a_bold_ruling_is_flagged(first):
     assert lint_gh_prose.lint("**Ruling request**: x.", "comment") == []
 
 
+def test_a_bold_needs_owner_ruling_label_is_flagged():
+    assert lint_gh_prose.lint("**Needs owner ruling**: keep the cut?", "comment")
+    assert lint_gh_prose.lint("**Needs owner ruling:** keep the cut?", "comment") == []
+    assert lint_gh_prose.lint("Needs owner ruling: keep the cut?", "comment") == []
+
+
 def test_a_request_naming_its_ruler_states_its_state():
     assert lint_gh_prose.lint("Needs ruling from @bob: keep the cut or split #38?", "comment") == []
 
