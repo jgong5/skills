@@ -150,7 +150,8 @@ The interim report follows `rules.md` (Talking to the owner): whether
 anything blocks; each open in-scope issue, its class and what it waits on;
 when the next check fires. Both reports split what waits on a ruling by
 each held item's ruler (`ruler.py`): "waits on me" when it is the current
-`gh` user, "waits on @x" otherwise.
+`gh` user, "waits on @x" when it is another login, and `no ruler: hand off
+first` when it has none.
 
 The check is a one-shot (non-recurring) `CronCreate` whose prompt is
 `/agent-team run <argument>`, the original argument verbatim. Under `/loop`
