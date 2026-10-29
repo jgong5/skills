@@ -8,7 +8,7 @@ section for what it does and how to install it.
 | [`pr-review-kit`](#pr-review-kit) | `pr-explain`, `pr-review-draft`, `pr-review-dossier` | Context-first pull-request review |
 | [`amd-gpu`](#amd-gpu) | `kernel-perf`, `asm-tutorial` | Find a CDNA kernel's bottleneck by ablation; turn its assembly into a verified PDF tutorial |
 | [`code-study`](#code-study) | `implementation-study`, `architecture-study`, `tutorial-deck` | Turn code you did not write into a diagram-first, evidence-grounded, verified PDF study -- one algorithm, or a whole system's architecture -- or a verified PPTX tutorial on one topic |
-| [`agent-team`](#agent-team) | `agent-team`, `gh-prose` | Run developer and reviewer agents over a GitHub issue pool, from brief to squash landing, with the owner ruling only on escalations |
+| [`agent-team`](#agent-team) | `agent-team`, `gh-prose` | Run developer and reviewer agents over a GitHub issue pool, from brief to squash landing, with each item's ruler ruling only on its escalations |
 | [`auto-grilling`](#auto-grilling) | `auto-grilling` | Grill a plan to completion without stopping: each question answered with its recommended answer and logged, then one final action menu |
 
 ## pr-review-kit
@@ -393,14 +393,16 @@ A standing workflow for autonomous multi-agent development on any GitHub
 repository. You write (or approve) the briefs; developer agents build each
 task in its own worktree and PR; reviewer agents review every head until
 APPROVE; the orchestrating agent lands approved PRs squashed onto your
-integration branch. You are asked only when an agent escalates, through a
-`need human` label that stops all automation on that item until you remove
-it, by hand or by ruling with `/agent-team verdict`; `/agent-team advise`
-analyses a held item first and drafts that ruling.
+integration branch. A person is asked only when an agent escalates,
+through a `need human` label that stops all automation on that item until
+the item's ruler removes it, by hand or by ruling with `/agent-team
+verdict`; `/agent-team advise` analyses a held item first and drafts that
+ruling. The ruler is the login the latest request names (`Needs ruling from
+@x:`), else the item's single assignee.
 
 | Skill | Invocation | What it does |
 | --- | --- | --- |
-| `agent-team` | `/agent-team plan`, `/agent-team run [scope]`, `/agent-team status [scope]`, `/agent-team verdict [text]`, `/agent-team advise <url\|#N> [concern]` | `plan` turns a design document, a goal, or existing issues into briefed issues linked by `Depends on #N`, and publishes them after you approve. `run` drives the pool: claim, develop, review, land; while an issue in its scope is open, it checks again an hour later instead of ending. `status` reports PR turns, holds, and what waits on you. `verdict` posts your ruling on held items, makes the issue changes it calls for, removes `need human`, and tells the running sessions to pass again. `advise` is read-only: for one item, it answers your concern and leads with an overview you can rule from alone, then gives the evidence: it checks the request's claims against the code and the thread, sets the options against the project's principles, and drafts a `Ruling:` for `verdict`. A scope names issues, labels or PRs, so sessions can split the pool; with none, the whole pool is in scope. |
+| `agent-team` | `/agent-team plan`, `/agent-team run [scope]`, `/agent-team status [scope]`, `/agent-team verdict [text]`, `/agent-team advise <url\|#N> [concern]` | `plan` turns a design document, a goal, or existing issues into briefed issues linked by `Depends on #N`, and publishes them after you approve. `run` drives the pool: claim, develop, review, land; while an issue in its scope is open, it checks again an hour later instead of ending. `status` reports PR turns, holds, and each held item's ruler. `verdict` posts your ruling on the held items you rule, refuses the others naming their ruler, or hands one to another ruler; it makes the issue changes it calls for, removes `need human`, and tells the running sessions to pass again. `advise` is read-only: for one item, it answers your concern and leads with an overview you can rule from alone, then gives the evidence: it checks the request's claims against the code and the thread, sets the options against the project's principles, and drafts a `Ruling:` for `verdict`. A scope names issues, labels or PRs, so sessions can split the pool; with none, the whole pool is in scope. |
 | `gh-prose` | automatic when writing GitHub text, or ask for it | Style rules and a lint for issues, PR bodies, comments and review records: state and ask first, each fact once, evidence folded. |
 
 Why this shape: every rule in it came from a run that went wrong. The task
@@ -433,11 +435,11 @@ use when they talk to you. The full key table is in
   land approved PRs onto its integration branch **without asking you**.
   Point `repo` at a fork or a repository where that is acceptable.
 - **`need human` is the brake.** An agent applies it the moment it
-  escalates, and it stops all agent action on that issue or PR; only you
-  remove it, by hand or with `/agent-team verdict`. A repository named in
+  escalates, and it stops all agent action on that issue or PR; only the
+  item's ruler removes it, by hand or with `/agent-team verdict`. A repository named in
   `never_touch` is never written to.
 - **Nothing is rewritten.** PR branches only gain commits -- no force-push,
-  rebase or amend, unless your ruling allows one force-push -- and nothing is pushed to the integration branch except
+  rebase or amend, unless a ruling allows one force-push -- and nothing is pushed to the integration branch except
   by landing an approved head: squashed, or as a merge commit when the PR
   is labeled `land as merge`.
 - **`plan` publishes nothing until you approve** the task graph and its
@@ -566,7 +568,7 @@ skills/
   agent-team/            # SKILL.md + rules.md, overlay.md, plan.md,
                          # develop.md, review.md, land.md, verdict.md,
                          # advise.md, overlay.py, pr_state.py, land.py,
-                         # batch.py
+                         # batch.py, ruler.py
   gh-prose/              # SKILL.md + lint_gh_prose.py
   auto-grilling/         # SKILL.md
 tests/

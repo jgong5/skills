@@ -1,6 +1,6 @@
 ---
 name: agent-team
-description: Runs a team of developer and reviewer agents over a GitHub issue pool -- plan briefs, develop, review to APPROVE, land squashed -- under standing rules and a per-project overlay. User-invoked: /agent-team plan|run|status|verdict|advise, run and status taking an optional scope, verdict the owner's ruling, advise a read-only analysis of one held item and the ruling to make.
+description: Runs a team of developer and reviewer agents over a GitHub issue pool -- plan briefs, develop, review to APPROVE, land squashed -- under standing rules and a per-project overlay. User-invoked: /agent-team plan|run|status|verdict|advise, run and status taking an optional scope, verdict the ruling of a held item's ruler, advise a read-only analysis of one held item and the ruling to make.
 disable-model-invocation: true
 ---
 
@@ -10,9 +10,9 @@ You orchestrate. Developer agents own a task's change and its PR; reviewer
 agents review each head until APPROVE; you land what is approved. GitHub is
 the only task record -- briefs in issues, dev and review records in PRs,
 handoffs in closing comments -- so any session can pick up where another
-stopped. The owner rules on escalations, through the `need human` label and
-`verdict`, and on nothing else; `advise` analyses one before the owner
-rules.
+stopped. An item's ruler (`rules.md`, Escalations) rules on its
+escalations, through the `need human` label and `verdict`, and on nothing
+else; `advise` analyses one before the ruler rules.
 
 You never write or review the change yourself: a task's author, its reviewer
 and its orchestrator are different agents, which is what makes an
@@ -71,7 +71,9 @@ Read-only; changes nothing on GitHub or disk. Report, within the scope:
 
 - every open PR: its `pr_state.py` turn and holds;
 - every open issue, classified as in `run`, step 1, with what blocks it;
-- every `need human` item and the ruling it waits on.
+- every `need human` item, the ruling it waits on, and its ruler
+  (`python3 <skill-dir>/ruler.py N --repo <repo>`), or `no ruler: hand off
+  first` when it has none.
 
 **Done when** every open in-scope PR and issue appears exactly once, and
 the first line says whether anything blocks.
@@ -142,11 +144,13 @@ by the owner or fired by a check, so the run stays stateless across checks.
 2. If any in-scope issue is open, whatever its class -- held and needing a
    brief included -- give an interim report and schedule a check an hour
    out. Otherwise give the final report -- what landed, what is held and on
-   which hold, what waits on the owner -- and end.
+   which hold, what waits on a ruling -- and end.
 
 The interim report follows `rules.md` (Talking to the owner): whether
 anything blocks; each open in-scope issue, its class and what it waits on;
-when the next check fires.
+when the next check fires. Both reports split what waits on a ruling by
+each held item's ruler (`ruler.py`): "waits on me" when it is the current
+`gh` user, "waits on @x" otherwise.
 
 The check is a one-shot (non-recurring) `CronCreate` whose prompt is
 `/agent-team run <argument>`, the original argument verbatim. Under `/loop`

@@ -257,7 +257,7 @@ into a per-project overlay, `<repo>/.claude/agent-team.md`, parsed by
 `overlay.py`. `SKILL.md` is the orchestrator's spine (`plan`, `run`,
 `status`, `verdict`, `advise`); `rules.md` binds every role; `plan.md`,
 `develop.md`, `review.md` and `land.md` are per-role docs handed to
-dispatched agents, and `verdict.md` is the owner's mode for answering
+dispatched agents, and `verdict.md` is the ruler's mode for answering
 escalations, prepared by `advise.md`'s read-only analysis of one held item.
 It ships no prompt templates on purpose: a dispatched agent gets its role
 doc, the issue and the overlay, so nothing stored can drift from the brief.
