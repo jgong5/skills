@@ -58,6 +58,10 @@ Resolve it again every pass, so an issue that gains a named label joins.
   One assigned to someone else leaves the scope unless the argument says to
   keep it. Sessions on one machine usually share a `gh` login, so assignees
   separate people and the scope separates sessions.
+- **Concurrent sessions' scopes must not overlap**, and everything in scope
+  is this session's to advance. Assignees keep two people apart; only the
+  scope keeps one person's sessions apart, and overlapping scopes dispatch
+  duplicate developers.
 - **PRs follow issues.** A run acts only on PRs that deliver an in-scope
   issue (`rules.md`, Check delivery), plus PRs the argument names, which
   are not assignee-checked. This holds with no argument too: a PR that
@@ -120,11 +124,18 @@ Every pass starts by replacing the check (The check, below).
 3. **Review.** Dispatch a reviewer (below) for each PR whose turn is
    `reviewer` and that has no agent of yours running on it.
 4. **Develop.** Dispatch the PR's developer for each PR whose turn is
-   `developer` and that has no agent of yours running on it. Then, while
-   fewer than `<max_tasks>` tasks are in flight, claim the next claimable
-   issue (`develop.md`, Read and claim) and dispatch a developer for it.
-   Claim before dispatching, so a concurrent session cannot take the same
-   issue.
+   `developer` and that has no agent of yours running on it. Dispatch a
+   developer, told the issue is already claimed, for each in-progress
+   issue with a `Claimed` comment, no open delivering PR and no agent of
+   yours running on it: a claim whose session ended is otherwise never
+   advanced and holds a slot forever. Then, while fewer than `<max_tasks>`
+   tasks are in flight, claim the next claimable issue (`develop.md`, Read
+   and claim) and dispatch a developer for it. Claim before dispatching,
+   so a concurrent session cannot take the same issue.
+
+   A task is **in flight** when its issue is in scope, in progress, and
+   has no `need human`. A PR under `hold landing` and a stacked child
+   waiting for its parent count; a held task does not.
 
 **An escalation holds its item, never the run.** Post the ruling request
 with `need human` (`rules.md`, Escalations), name it in your next report,
