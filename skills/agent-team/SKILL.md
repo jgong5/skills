@@ -95,9 +95,11 @@ Read `advise.md` and follow it.
 `run` keeps no state of its own. Each **pass** rereads GitHub and advances
 every item by at most one step, so a run can stop at any point -- interrupt,
 context compaction, a new session -- and the next `run` resumes from GitHub
-alone. It also runs under `/loop`.
+alone. Do not wrap `run` in `/loop`: it schedules itself (The check).
 
 ### One pass
+
+Every pass starts by replacing the check (The check, below).
 
 1. **Read the pool**: the open issues in scope (Scope). For each, read its
    comments and its `Depends on #N` lines and check delivery (`rules.md`).
@@ -130,8 +132,7 @@ and continue the pass. Never block a run on an interactive question: a
 `run` never waits on the owner while unheld work remains.
 
 When a pass lands nothing and dispatches nothing, wait for a running agent to
-finish, then pass again. A message from a `verdict` session (`verdict.md`)
-runs one full pass at once, whatever this run is waiting on.
+finish, then pass again.
 
 ### The quiet pass
 
@@ -142,28 +143,39 @@ by the owner or fired by a check, so the run stays stateless across checks.
 1. If this invocation landed anything, run `<gate_wave>` (`land.md`, After
    landing).
 2. If any in-scope issue is open, whatever its class -- held and needing a
-   brief included -- give an interim report and schedule a check an hour
-   out. Otherwise give the final report -- what landed, what is held and on
-   which hold, what waits on a ruling -- and end.
+   brief included -- give an interim report; the check wakes the next pass.
+   Otherwise give the final report -- what landed, what is held and on
+   which hold, what waits on a ruling -- delete the check (`CronList`, then
+   `CronDelete` each ID whose prompt matches), and end.
 
-The interim report follows `rules.md` (Talking to the owner): whether
-anything blocks; each open in-scope issue, its class and what it waits on;
-when the next check fires. Both reports split what waits on a ruling by
+The interim report is a full report only when an issue's class or what it
+waits on changed since this session's last report, or that report is not
+in context; otherwise it is one line, `No change; next check ~:MM.` A full
+interim report follows `rules.md` (Talking to the owner): whether anything
+blocks; each open in-scope issue, its class and what it waits on; when the
+next check fires. Both reports split what waits on a ruling by
 each held item's ruler (`ruler.py`): "waits on me" when it is the current
 `gh` user, "waits on @x" when it is another login, and `no ruler: hand off
 first` when it has none.
 
-The check is a one-shot (non-recurring) `CronCreate` whose prompt is
-`/agent-team run <argument>`, the original argument verbatim. Under `/loop`
-with no interval, call `ScheduleWakeup` at 3600 seconds instead; under
-`/loop` with an interval, schedule nothing, because the loop returns on
-its own. Before scheduling, run `CronList` and add nothing if the same
-prompt is already pending. A check lives only in the session that scheduled
-it and fires only while that session is idle: closing the session ends the
-wait, and a busy session delays it.
-
 **Done when** a quiet pass finds no open in-scope issue and gives the final
 report.
+
+### The check
+
+The check is a recurring `CronCreate` at `7,22,37,52 * * * *` whose prompt
+is `/agent-team run <argument>`, the original argument verbatim. It is the
+run's only wake signal: a ruler on another account cannot reach this
+session, and GitHub is what both share. Every check runs a full pass, with
+no cheaper pre-check.
+
+At the start of every pass, replace it: `CronList` and note the IDs whose
+prompt matches, `CronCreate` the new one, then `CronDelete` the noted IDs.
+Create before delete, so a check always exists. Replacing it every pass
+keeps a recurring job from reaching its 7-day expiry, whose final fire
+would otherwise see itself pending and recreate nothing. A check lives
+only in the session that scheduled it and fires only while that session is
+idle: closing the session ends the wait, and a busy session delays it.
 
 ### Dispatching
 

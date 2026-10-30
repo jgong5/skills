@@ -2,9 +2,9 @@
 
 `/agent-team verdict [text]` answers ruling requests on the items the
 current `gh` user rules (`rules.md`, Escalations). It posts the ruling where
-the request is, makes the GitHub changes the ruling calls for, removes
-`need human`, and tells the runs waiting on it; or it hands an item to
-another ruler.
+the request is, makes the GitHub changes the ruling calls for, and removes
+`need human`; or it hands an item to another ruler. A run in scope sees the
+Ruling at its next check (`SKILL.md`, The check).
 
 ## 0. Load
 
@@ -100,23 +100,9 @@ or says why not.
    the turn.
 5. **Unlabel every member** last, so no run sees an item unheld before
    its ruling is on GitHub.
-6. **Tell the runs.** `SendMessage` each peer session in `ListAgents` that
-   works in this project: `Ruling posted on #N in <repo>; also affects #X,
-   #Y, and opened #Z. Run one pass if your scope covers any of them.`,
-   dropping empty parts. `ListAgents` shows no working directory; the
-   session records, `~/.claude/sessions/<pid>.json`, hold each session's
-   `name` and `cwd`, and are undocumented Claude Code internals. Find this
-   session's record by the name `ListAgents` gives it; a peer is in the
-   project when its record's `cwd` is that `cwd` or a directory under it.
-   Compare record paths only with each other, never with a path a container
-   wrapper reports: the two can differ. When the records cannot be read or
-   this session's is missing, message every peer `ListAgents` lists and say
-   so in the report: a missed run waits an hour for its check, an extra
-   message is ignored. When this session has a `run` check pending
-   (`CronList`), run one pass here as well.
 
 **Done when** every item in scope that the current user rules carries its
 Ruling and has no `need human` left (a split's after `plan` publishes), or
-carries its hand-off, every item it affects has its comment and every
-peer was messaged; report each Ruling's link and what changed, there and
-outside it, and each refused item with its ruler.
+carries its hand-off, and every item it affects has its comment; report
+each Ruling's link and what changed, there and outside it, and each refused
+item with its ruler.
