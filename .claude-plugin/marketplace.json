@@ -76,7 +76,7 @@
     {
       "name": "agent-team",
       "source": "./",
-      "version": "0.10.0",
+      "version": "0.11.0",
       "description": "Autonomous multi-agent development over a GitHub issue pool: briefs, developer and reviewer agents looping to APPROVE, squash landing behind tree checks, and a need human stop that only the item's ruler lifts. Plus gh-prose, a style guide and lint for GitHub text.",
       "category": "engineering",
       "keywords": [
