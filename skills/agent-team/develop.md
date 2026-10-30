@@ -20,7 +20,9 @@ claims, no worktree exists yet, so a path would be false.
 
 ## 2. Set up the tree
 
-Fetch `<remote>`, then `git worktree add <worktree_root>/<n> -b task-<n>
+Fetch `<remote>`. When `<worktree_root>/<n>` exists on `task-<n>`, an
+earlier session on this claim left it: continue there and keep its commits.
+Otherwise run `git worktree add <worktree_root>/<n> -b task-<n>
 <remote>/<integration_branch>` -- or, to stack on an unlanded parent's PR,
 from the parent's head (`land.md`, Stacking). Run `<import_check>` there when
 it is set. Apply whatever the overlay and local bodies say a fresh tree needs.
