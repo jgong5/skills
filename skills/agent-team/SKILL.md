@@ -142,8 +142,13 @@ with `need human` (`rules.md`, Escalations), name it in your next report,
 and continue the pass. Never block a run on an interactive question: a
 `run` never waits on the owner while unheld work remains.
 
-When a pass lands nothing and dispatches nothing, wait for a running agent to
-finish, then pass again.
+Every pass ends by stopping its timer if it still runs (`TaskStop`). If
+agents of yours are still running, whatever the pass landed or dispatched,
+start a fresh timer, `sleep 900` through Bash `run_in_background`, and wait:
+the first agent to finish or the timer's exit runs the next full pass. The
+timer wakes the run while its agents run, because a headless session's
+check cannot fire then (The check). Whichever of check and timer woke the
+pass, the fresh timer restarts the 15 minutes and holds a headless check.
 
 ### The quiet pass
 
@@ -175,18 +180,21 @@ report.
 ### The check
 
 The check is a recurring `CronCreate` at `7,22,37,52 * * * *` whose prompt
-is `/agent-team run <argument>`, the original argument verbatim. It is the
-run's only wake signal: a ruler on another account cannot reach this
-session, and GitHub is what both share. Every check runs a full pass, with
-no cheaper pre-check.
+is `/agent-team run <argument>`, the original argument verbatim. It wakes
+the run when nothing of its own will: a ruler on another account cannot
+reach this session, and GitHub is what both share. Every check runs a full
+pass, with no cheaper pre-check.
 
 At the start of every pass, replace it: `CronList` and note the IDs whose
 prompt matches, `CronCreate` the new one, then `CronDelete` the noted IDs.
 Create before delete, so a check always exists. Replacing it every pass
 keeps a recurring job from reaching its 7-day expiry, whose final fire
 would otherwise see itself pending and recreate nothing. A check lives
-only in the session that scheduled it and fires only while that session is
-idle: closing the session ends the wait, and a busy session delays it.
+only in the session that scheduled it; closing the session ends the wait.
+When it fires depends on the session kind. A headless session
+(`stream-json`, the SDK) counts any live background task, agent or Bash,
+the timer included, as busy, so its check never fires while one runs. An
+interactive session fires it between turns, so a busy turn delays it.
 
 ### Dispatching
 
