@@ -142,8 +142,8 @@ with `need human` (`rules.md`, Escalations), name it in your next report,
 and continue the pass. Never block a run on an interactive question: a
 `run` never waits on the owner while unheld work remains.
 
-When a pass lands nothing and dispatches nothing while agents of yours run,
-make sure one timer of yours runs too: `sleep 900` through Bash
+A pass that ends with agents of yours still running, whatever it landed or
+dispatched, makes sure one timer of yours runs too: `sleep 900` through Bash
 `run_in_background`, started only when none is running already. Then wait:
 the first agent to finish or the timer's exit runs the next full pass. The
 timer wakes the run while its agents run, because the check cannot fire then
