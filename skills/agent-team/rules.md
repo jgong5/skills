@@ -48,6 +48,10 @@ away on landing and a file in the tree goes stale.
   that carries one.** Read both from the thread with `pr_state.py`, never
   from a summary carried forward from earlier, which is how a stale APPROVE
   gets landed.
+- **Whoever changes an issue body, by hand included, leaves
+  `Brief updated: <parts>. <link to the issue>` on each open PR that
+  delivers it** (Check delivery). `pr_state.py` reads only the PR's own
+  thread, so without it the PR is reviewed and landed against the old brief.
 - Close an issue deliberately, with its handoff comment, after its PR lands.
   Agents open, assign, comment on and close issues, including ones they did
   not open.
