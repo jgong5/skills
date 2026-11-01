@@ -205,3 +205,31 @@ def test_a_ruling_after_an_approve_is_the_reviewers_turn(fake_gh):
     fake_gh.pr = make_pr([dict(affects, createdAt="2026-01-01T12:00:00Z"), approve])
     s = pr_state.state(7)
     assert s["turn"] == "land" and s["holds"] == []
+
+
+def test_a_brief_update_after_the_round_comment_is_the_developers_turn(fake_gh):
+    # jgong5/ATOM#2610: the brief changed under an announced head, so code answers it first.
+    round1 = comment("2026-01-02T00:00:00Z", "Round 1 pushed c0ffee1.")
+    ruling = comment("2026-01-03T00:00:00Z", "Ruling: https://x/2600#c1. Brief updated: Fix.", "owner")
+    fake_gh.pr = make_pr([round1, ruling])
+    s = pr_state.state(7)
+    assert s["turn"] == "developer" and "a brief update follows the last verdict" in s["holds"]
+    # A later comment naming the head, the same sha included, hands it back.
+    fake_gh.pr["comments"].append(comment("2026-01-04T00:00:00Z", "Round 2 pushed c0ffee1."))
+    assert pr_state.state(7)["turn"] == "reviewer"
+
+
+def test_a_brief_update_holds_an_approve_and_reads_past_the_first_line(fake_gh):
+    approve = comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")
+    notice = comment("2026-01-03T00:00:00Z", "Ruling on #9 affects this: see below.\n<link>\nBrief updated: Depends on.")
+    fake_gh.pr = make_pr([approve, notice])
+    assert pr_state.state(7)["turn"] == "developer"
+    fake_gh.pr["comments"].append(comment("2026-01-04T00:00:00Z", "Round 2 pushed c0ffee1: nothing to change."))
+    s = pr_state.state(7)
+    assert s["turn"] == "reviewer" and "a brief update follows the last verdict" in s["holds"]
+    # Case-sensitive, colon required, and only after the last verdict.
+    for body in ("brief updated: Fix.", "Brief updated Fix."):
+        fake_gh.pr = make_pr([approve, comment("2026-01-03T00:00:00Z", body)])
+        assert pr_state.state(7)["turn"] == "land"
+    fake_gh.pr = make_pr([comment("2026-01-01T00:00:00Z", "Brief updated: Fix."), approve])
+    assert pr_state.state(7)["turn"] == "land"
