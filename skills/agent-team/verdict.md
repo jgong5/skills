@@ -66,7 +66,9 @@ or says why not.
    The first line opens with plain `Ruling:`, never bold: `pr_state.py`
    restarts its `verdicts` count only at that form. Each other open member
    PR gets `Ruling: <link to it>.`, so its thread carries the ruling and its
-   count restarts too. The Ruling's `Also:` line comes from item 3.
+   count restarts too; when item 2 edits the issue body it gets
+   `Ruling: <link to it>. Brief updated: <parts>.`, so `pr_state.py`
+   gives its developer the turn. The Ruling's `Also:` line comes from item 3.
 2. **Edit the issue body** when the ruling changes the brief, and add
    `Brief updated: <parts>.` to the Ruling. A split is `plan`'s: run it now
    with `#N` as input, and leave the label on until it publishes the

@@ -58,7 +58,10 @@ briefs, and wait. Creating and editing issues publishes, so nothing reaches
 GitHub before the owner approves. Then create or edit the issues, applying
 `<task_label>` when it is set, and fill in the `#N` numbers in the
 `Depends on` lines as the dependency issues get them. Create parents before
-children so every number exists when it is cited.
+children so every number exists when it is cited. Editing the body of an
+issue with open delivering PRs (`rules.md`, Check delivery) posts
+`Brief updated: <parts>. <link to the issue>` on each, linted as
+`--kind comment`.
 
 **Done when** every approved task is an issue whose brief has every part step 3
 lists and whose `Depends on` lines name existing issues, and you have told the

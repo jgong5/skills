@@ -63,6 +63,12 @@ def test_a_bold_ruling_is_flagged(first):
     assert lint_gh_prose.lint("**Ruling request**: x.", "comment") == []
 
 
+def test_a_brief_update_states_its_state():
+    assert lint_gh_prose.lint("Brief updated: Fix. <link>", "comment") == []
+    link = "https://github.com/jgong5/skills/issues/171"
+    assert lint_gh_prose.lint(f"Brief updated: Fix. {link}", "comment") == []
+
+
 def test_a_bold_needs_owner_ruling_label_is_flagged():
     assert lint_gh_prose.lint("**Needs owner ruling**: keep the cut?", "comment")
     assert lint_gh_prose.lint("**Needs owner ruling:** keep the cut?", "comment") == []
