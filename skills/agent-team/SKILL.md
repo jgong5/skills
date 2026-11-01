@@ -142,14 +142,19 @@ with `need human` (`rules.md`, Escalations), name it in your next report,
 and continue the pass. Never block a run on an interactive question: a
 `run` never waits on the owner while unheld work remains.
 
-When a pass lands nothing and dispatches nothing, wait for a running agent to
-finish, then pass again.
+When a pass lands nothing and dispatches nothing while agents of yours run,
+make sure one timer of yours runs too: `sleep 900` through Bash
+`run_in_background`, started only when none is running already. Then wait:
+the first agent to finish or the timer's exit runs the next full pass. The
+timer wakes the run while its agents run, because the check cannot fire then
+(The check).
 
 ### The quiet pass
 
 A **quiet pass** lands nothing, dispatches nothing, and finds no agent of
 yours running. It ends the invocation: one `/agent-team run` prompt, typed
 by the owner or fired by a check, so the run stays stateless across checks.
+Stop the timer if it still runs (`TaskStop`): it would hold back the check.
 
 1. If this invocation landed anything, run `<gate_wave>` (`land.md`, After
    landing).
@@ -175,10 +180,10 @@ report.
 ### The check
 
 The check is a recurring `CronCreate` at `7,22,37,52 * * * *` whose prompt
-is `/agent-team run <argument>`, the original argument verbatim. It is the
-run's only wake signal: a ruler on another account cannot reach this
-session, and GitHub is what both share. Every check runs a full pass, with
-no cheaper pre-check.
+is `/agent-team run <argument>`, the original argument verbatim. It wakes
+the run when nothing of its own will: a ruler on another account cannot
+reach this session, and GitHub is what both share. Every check runs a full
+pass, with no cheaper pre-check.
 
 At the start of every pass, replace it: `CronList` and note the IDs whose
 prompt matches, `CronCreate` the new one, then `CronDelete` the noted IDs.
@@ -186,7 +191,9 @@ Create before delete, so a check always exists. Replacing it every pass
 keeps a recurring job from reaching its 7-day expiry, whose final fire
 would otherwise see itself pending and recreate nothing. A check lives
 only in the session that scheduled it and fires only while that session is
-idle: closing the session ends the wait, and a busy session delays it.
+idle with no background task live: any running agent or background Bash,
+the timer included, delays it until all have ended. Closing the session
+ends the wait.
 
 ### Dispatching
 
