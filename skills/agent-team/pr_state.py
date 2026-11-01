@@ -17,6 +17,11 @@ is the developer's turn. Any entry after the last verdict whose first line opens
 with `Ruling:` or `Ruling on #N affects this:` holds landing and makes a covered
 head the reviewer's turn, even under an APPROVE: the ruling may have changed the
 brief, or left nothing to push, so a fresh verdict under it comes first.
+A brief update -- an entry with a line, or a sentence, opening with
+`Brief updated:` -- after the last verdict holds landing the same way, and
+while it follows the last comment naming the head, the turn is the
+developer's: a changed brief is answered with code, or with a round comment
+naming the unchanged head, before it is reviewed.
 A caller may pass `equivalent(sha, head)` to let an APPROVE at another sha
 cover the head; land.py does under --expect-tree.
 """
@@ -35,6 +40,7 @@ DELIVERS = re.compile(r"(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|address(?
 VERDICT = re.compile(r"(APPROVE|REQUEST CHANGES)\b")
 SHA = re.compile(r"\b[0-9a-f]{7,40}\b")
 RULING = re.compile(r"Ruling(:| on #\d+ affects this:)")
+BRIEF = re.compile(r"(?m)(?:^\s*|[.!?]\s+)Brief updated:")
 FIELDS = "number,state,body,headRefOid,headRefName,baseRefName,labels,comments,reviews,commits,closingIssuesReferences"
 
 
@@ -52,12 +58,12 @@ def first_line(body):
 
 
 def thread(pr):
-    """Every entry in time order: (time, kind, author, first line)."""
-    entries = [(c["createdAt"], "comment", c["author"]["login"], first_line(c["body"]))
+    """Every entry in time order: (time, kind, author, first line, whole body)."""
+    entries = [(c["createdAt"], "comment", c["author"]["login"], first_line(c["body"]), c["body"] or "")
                for c in pr["comments"]]
-    entries += [(r["submittedAt"], "review", r["author"]["login"], first_line(r["body"]))
+    entries += [(r["submittedAt"], "review", r["author"]["login"], first_line(r["body"]), r["body"])
                 for r in pr["reviews"] if r.get("submittedAt") and (r.get("body") or "").strip()]
-    entries += [(c["committedDate"], "commit", "", c["oid"]) for c in pr["commits"]]
+    entries += [(c["committedDate"], "commit", "", c["oid"], "") for c in pr["commits"]]
     return sorted(entries)
 
 
@@ -79,7 +85,7 @@ def state(number, repo=None, equivalent=None):
         holds += [f"{name} on issue #{n}, which this PR delivers" for name in (LABEL, HOLD) if name in labels]
     verdict = None
     if verdicts:
-        at, _, author, line = verdicts[-1]
+        at, _, author, line, _ = verdicts[-1]
         sha = SHA.search(line)
         verdict = {"verdict": VERDICT.match(line).group(1), "sha": sha and sha.group(0),
                    "author": author, "at": at, "line": line}
@@ -96,21 +102,26 @@ def state(number, repo=None, equivalent=None):
         holds.append(f"the last verdict is REQUEST CHANGES @ {verdict['sha']}")
     last_verdict = entries.index(verdicts[-1]) if verdicts else -1
     since = entries[last_verdict + 1:]
-    announced = any(kind == "comment" and any(head.startswith(s) for s in SHA.findall(line))
-                    for _, kind, _, line in since)
-    ruled_since = any(kind != "commit" and RULING.match(line) for _, kind, _, line in since)
+    named = [i for i, (_, kind, _, line, _) in enumerate(since)
+             if kind == "comment" and any(head.startswith(s) for s in SHA.findall(line))]
+    briefed = [i for i, e in enumerate(since) if BRIEF.search(e[4])]
+    ruled_since = any(kind != "commit" and RULING.match(line) for _, kind, _, line, _ in since)
     if ruled_since:
         holds.append("a ruling follows the last verdict")
-    if not covers and not announced:
+    if briefed:
+        holds.append("a brief update follows the last verdict")
+    if not covers and not named:
         holds.append(f"head {head[:12]} has no round comment")
     if pr["state"] != "OPEN" or any(LABEL in h for h in holds):
         turn = "held"
-    elif covers and verdict["verdict"] == "APPROVE" and not ruled_since:
+    elif briefed and briefed[-1] > max(named, default=-1):
+        turn = "developer"
+    elif covers and verdict["verdict"] == "APPROVE" and not (ruled_since or briefed):
         turn = "held" if any(HOLD in h for h in holds) else "land"
     elif covers:
-        turn = "reviewer" if ruled_since else "developer"
+        turn = "reviewer" if ruled_since or briefed else "developer"
     else:
-        turn = "reviewer" if announced else "developer"
+        turn = "reviewer" if named else "developer"
     last = entries[-1] if entries else None
     return {
         "pr": pr["number"], "state": pr["state"], "head": head, "branch": pr.get("headRefName"),
