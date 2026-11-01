@@ -221,7 +221,7 @@ def test_a_brief_update_after_the_round_comment_is_the_developers_turn(fake_gh):
 
 def test_a_brief_update_holds_an_approve_and_reads_past_the_first_line(fake_gh):
     approve = comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")
-    notice = comment("2026-01-03T00:00:00Z", "Ruling on #9 affects this: see below.\n<link>\nBrief updated: Depends on.")
+    notice = comment("2026-01-03T00:00:00Z", "See #9.\n<link>\nBrief updated: Depends on.")
     fake_gh.pr = make_pr([approve, notice])
     assert pr_state.state(7)["turn"] == "developer"
     fake_gh.pr["comments"].append(comment("2026-01-04T00:00:00Z", "Round 2 pushed c0ffee1: nothing to change."))
