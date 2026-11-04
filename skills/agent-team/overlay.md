@@ -33,6 +33,7 @@ project's `.gitignore` to keep it out of version control. Each problem
 | `split_loc` | no | `1000` | A task estimated above this many lines, tests included, is decomposed. |
 | `task_label` | no | -- | When set, only open issues with this label are in the pool; when absent, every open issue in `repo` is. |
 | `prose_tests` | no | -- | Test files that pin prose by design (comma-separated globs, relative to the repository root); "Prose is not a test subject" (`rules.md`) does not apply to them. |
+| `test_files` | no | a `test`, `tests` or `__tests__` directory in the path, or a name matching `test_*`, `*_test.*`, `*.test.*` or `*.spec.*` | Files `line_count.py` counts as test lines (comma-separated globs, relative to the repository root, `*` matching `/` too); every other file counts as code. |
 
 ## Drafting a missing or broken overlay
 
@@ -42,8 +43,9 @@ owner; every value you propose carries the source you read it from.
 1. **Infer.** `repo` and `remote` from `git remote -v` (offer the candidates;
    flag any remote that looks like an upstream as a `never_touch`
    candidate). `integration_branch` from the default branch and any branch
-   the project's docs name. `design_entry` and `new_tests_dir` from the
-   repository's layout and its `CLAUDE.md` / `AGENTS.md`.
+   the project's docs name. `design_entry`, `new_tests_dir` and `test_files` from
+   the repository's layout and its `CLAUDE.md` / `AGENTS.md`; propose
+   `test_files` only when the default would misclassify a file.
 2. **Find `gate_task` candidates**, in this order, and stop at the first that
    names a command: the test and lint commands in `CLAUDE.md` / `AGENTS.md`;
    the `run:` steps of `.github/workflows/*.yml` that run on pull requests;

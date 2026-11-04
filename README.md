@@ -567,7 +567,7 @@ skills/
   agent-team/            # SKILL.md + rules.md, overlay.md, plan.md,
                          # develop.md, review.md, land.md, verdict.md,
                          # advise.md, overlay.py, pr_state.py, land.py,
-                         # batch.py, ruler.py
+                         # batch.py, ruler.py, line_count.py
   gh-prose/              # SKILL.md + lint_gh_prose.py
   auto-grilling/         # SKILL.md
 tests/
