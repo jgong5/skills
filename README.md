@@ -410,7 +410,10 @@ stopped. A PR's state is read from its thread, never from a summary, so a
 stale APPROVE cannot land. An approval names the sha it covers, and landing
 checks that the tree that lands is the tree that was approved, because two
 green PRs can merge red. A test counts only once someone has seen it fail,
-because a test that cannot fail passes every gate.
+because a test that cannot fail passes every gate. A task's lines are
+counted by `line_count.py`, with moved and deleted lines at a quarter
+weight, only to check its estimate, never to shape its code
+([`rules.md`](skills/agent-team/rules.md), Escalations).
 
 ### The project overlay
 

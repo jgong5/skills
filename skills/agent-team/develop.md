@@ -31,9 +31,10 @@ it is set. Apply whatever the overlay and local bodies say a fresh tree needs.
 
 Work under the `ponytail` skill at level `full` (`/ponytail full`) when it is
 installed. Stay inside the brief's file set; record any change outside it
-under Decided in the Dev record. Track your non-test lines against the brief's
-code estimate; at the overrun `rules.md` (Escalations) sets, stop and
-escalate.
+under Decided in the Dev record. Track your code lines against the brief's
+code estimate with `line_count.py` (`rules.md`, Escalations), and paste its
+output at your head into the Dev record. The count decides only whether to
+stop: at the overrun `rules.md` sets, stop and escalate.
 
 ## 4. Pass the gates
 

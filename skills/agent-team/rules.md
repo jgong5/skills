@@ -82,13 +82,20 @@ An escalation is anything that needs a ruling before work continues;
 anything an agent can fix without one is a finding, and no ruler is ever
 asked about findings. Escalate, in addition to the cases above, when:
 
-- a task's non-test lines exceed twice its code estimate and exceed that
+- a task's code lines exceed twice its code estimate and exceed that
   estimate by more than 20 lines -- the estimate was wrong, and more effort
   will not fix a mis-cut task. A line count, here and in every estimate, is
-  lines added plus lines deleted, as `git diff --numstat` reports them
-  against the task's base; test lines are those in test files;
+  the weighted `total` that `python3 <skill-dir>/line_count.py <base>`
+  prints, run in the task's tree against its base: moved and deleted lines
+  weigh a quarter, and the script says which files are test files;
 - the review loop hits its stop (`review.md`);
 - the only fix is a force-push (a secret or large binary pushed by mistake).
+
+The count checks the estimate; it never constrains the code. Code is written
+correct first, then minimal within correct and efficient. Code shaped to
+lower the count is a defect: packed lines, dead code kept to avoid a
+deletion, a caller-side patch where shared code is at fault, brief scope
+silently deferred.
 
 **Apply the `need human` label the moment you escalate**: a halt declared in
 prose stops nothing, because the next agent reads labels, not prose. Post the
