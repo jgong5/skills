@@ -43,7 +43,8 @@ Follow `gh-prose` (kind `brief`). Every brief has:
 - **Named result** -- the one result the task must show, chosen now. A
   developer choosing it afterwards can always find one that passed; that is
   the case this rule forbids.
-- **Effort** -- code lines and test lines, estimated separately.
+- **Effort** -- the weighted code and test totals (`rules.md`, Escalations),
+  estimated separately, each with its added, moved and deleted counts.
 - **Depends on** -- one `Depends on #N` line per predecessor, and links to
   their issues. Omit the lines for a root task.
 

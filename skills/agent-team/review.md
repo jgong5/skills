@@ -27,6 +27,10 @@ the developer's tree, and run `<import_check>` there when it is set.
   assertion. **An inert pin on a required finding blocks APPROVE.**
 - The published-text rules (`rules.md`) over the PR's whole file set at its
   head, not only the added lines.
+- Rerun `line_count.py` (`rules.md`, Escalations) at the head and compare it
+  with the Dev record's output. An overrun nobody escalated: escalate it with
+  `need human`. A file in the wrong class, or code shaped to the count, is a
+  finding.
 - Run the `ponytail-review` skill over the diff when it is installed, to catch
   over-engineering; post its findings like any others.
 
