@@ -68,6 +68,8 @@ class GitHub:
             n = int(args[1].rsplit("=", 1)[1])
             return json.dumps([{"pull_requests": [{"number": m} for m in sorted(self.linked)]}]
                               if n in self.linked else [])
+        if args[0] == "api" and args[1].rsplit("/", 1)[-1].isdigit():  # the PR's REST view
+            return json.dumps({"mergeable": True})
         if args[:3] == ["api", "-X", "PATCH"]:
             self.prs[int(args[3].rsplit("/", 1)[1])]["base"] = args[5].split("=", 1)[1]
             return "{}"

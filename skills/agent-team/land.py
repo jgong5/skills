@@ -8,8 +8,10 @@ reports; refuse a PR not based on the integration branch (land the one below
 it first); compute the tree that would land on the current tip and refuse
 unless it is the reviewed head's tree (or --expect-tree, a batch's gated
 tree at this PR's place in it); squash through merge-async with the
-checked head sha -- or, for a PR labeled `land as merge`, merge it as a
-two-parent merge commit; poll until merged. Under --expect-tree an APPROVE at
+checked head sha, once GitHub has computed the PR's mergeability -- or, for
+a PR labeled `land as merge`, merge it as a two-parent merge commit; poll
+until merged, and on a failure read the PR once more, since GitHub can
+report failed a merge it completed. Under --expect-tree an APPROVE at
 another sha covers the head when both would land as that tree, the approved
 sha merged from its `git merge-base` with --merge-base, or when the head's
 parents are that sha and the tip and its tree is the gated one. Exit 0
@@ -71,8 +73,22 @@ def tree_check(tip, sha, merge_base=None, expect=None):
     return None
 
 
+def pull(repo, number):
+    """The PR as the REST API reports it; {} when the read fails."""
+    try:
+        return json.loads(pr_state.gh(["api", f"repos/{repo}/pulls/{number}"], check=False))
+    except ValueError:
+        return {}
+
+
 def merge(repo, number, head, title, message_file, method="squash"):
     """Merge through merge-async and poll; returns the final status object."""
+    deadline = time.monotonic() + TIMEOUT
+    # A merge sent before GitHub has computed mergeability can fail, or fail and land anyway.
+    while pull(repo, number).get("mergeable") is None:
+        if time.monotonic() > deadline:
+            return {"status": "failed", "error": "GitHub did not compute mergeability in time"}
+        time.sleep(5)
     base = f"repos/{repo}/pulls/{number}/merge-async"
     out = pr_state.gh(["api", "-X", "PUT", base, "-f", f"merge_method={method}",
                        "-f", "merge_action=direct_merge", "-f", f"sha={head}",
@@ -137,6 +153,10 @@ def main(argv=None):
         title += f" (#{a.pr})"  # GitHub does not add it on this endpoint
     res = merge(keys["repo"], a.pr, s["head"], title, a.message_file, method)
     print(json.dumps(res, indent=1))
+    if res.get("status") == "failed":  # GitHub can report a merge failed that it completed
+        pr = pull(keys["repo"], a.pr)
+        if pr.get("merged") and (pr.get("head") or {}).get("sha") == s["head"]:
+            stop(0, f"GitHub reports #{a.pr} merged at {s['head'][:12]}")
     sys.exit(0 if res.get("status") == "merged" else 5)
 
 

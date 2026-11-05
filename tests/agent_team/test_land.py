@@ -71,12 +71,15 @@ def repo(tmp_path, monkeypatch):
 def fake_gh(monkeypatch):
     class Fake:
         holds, base, polls, calls = [], "dev", ["pending", "merged"], []
+        pulls = [{"mergeable": True}]  # successive reads of the PR; the last one repeats
         head = None
 
         def __call__(self, args, check=True):
             self.calls.append(args)
             if args[:2] == ["pr", "view"]:
                 return json.dumps({"title": "Add the thing"})
+            if args == ["api", "repos/me/proj/pulls/7"]:
+                return json.dumps(self.pulls.pop(0) if len(self.pulls) > 1 else self.pulls[0])
             if args[:3] == ["api", "-X", "PUT"]:
                 return json.dumps({"status": "pending", "details": {"uuid": "u-1"}})
             if args[0] == "api" and args[1].endswith("/merge-async/u-1"):
@@ -164,6 +167,37 @@ def test_a_failed_merge_exits_nonzero(repo, fake_gh, monkeypatch):
     fake_gh.head = branch_with(repo, ("g", "new"))
     fake_gh.polls = ["pending", "failed"]
     assert run(monkeypatch) == 5
+
+
+def test_the_merge_waits_until_github_has_computed_mergeability(repo, fake_gh, monkeypatch):
+    fake_gh.head = branch_with(repo, ("g", "new"))
+    fake_gh.pulls = [{"mergeable": None}, {"mergeable": None}, {"mergeable": True}]
+    assert run(monkeypatch) == 0
+    api = [c for c in fake_gh.calls if c[0] == "api"]
+    (put,) = fake_gh.puts()
+    assert api[:4] == [["api", "repos/me/proj/pulls/7"]] * 3 + [put]
+
+
+def test_mergeability_never_computed_sends_no_merge(repo, fake_gh, monkeypatch):
+    fake_gh.head = branch_with(repo, ("g", "new"))
+    fake_gh.pulls = [{"mergeable": None}]
+    clock = [0]
+    monkeypatch.setattr(land.time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(land.time, "sleep", lambda s: clock.__setitem__(0, clock[0] + s))
+    assert run(monkeypatch) == 5
+    assert fake_gh.puts() == [] and clock[0] > land.TIMEOUT
+
+
+@pytest.mark.parametrize("merged, at_head, code", [
+    (True, True, 0), (True, False, 5), (False, True, 5)])
+def test_a_failed_merge_github_completed_at_the_sha_sent_exits_zero(
+        repo, fake_gh, monkeypatch, merged, at_head, code):
+    fake_gh.head = branch_with(repo, ("g", "new"))
+    fake_gh.polls = ["failed"]
+    fake_gh.pulls = [{"mergeable": True}, {"mergeable": None, "merged": merged,
+                                           "head": {"sha": fake_gh.head if at_head else repo.base}}]
+    assert run(monkeypatch) == code
+    assert len(fake_gh.puts()) == 1
 
 
 def test_a_poll_gh_fails_on_is_retried_after_github_accepted_the_merge(repo, fake_gh, monkeypatch):
