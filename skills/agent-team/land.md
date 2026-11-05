@@ -40,7 +40,12 @@ It refuses on an overlay problem (exit 2), a hold (exit 3), or a tree that
 would land other than the approved one (exit 4). Otherwise it squashes the
 approved sha through GitHub's merge-async endpoint, with the title ending
 ` (#<pr>)` (that endpoint does not add it), and polls until GitHub reports
-the merge (exit 0). Exit 5 -- a failed merge, a merge queue taking the PR
+the merge (exit 0). It sends the merge only once GitHub reports the PR's
+mergeability, because a merge sent before that can fail, and gives up
+(exit 5, nothing sent) when that takes longer than `TIMEOUT`. After a
+failed merge it reads the PR once more and exits 0 if GitHub reports it
+merged at the sha sent, because GitHub can report failed a merge it
+completed. Exit 5 -- a failed merge, a merge queue taking the PR
 instead, or a timeout -- is a finding to diagnose, never to retry blind.
 
 The tree check is GitHub's own merge of the head onto the tip, because that
