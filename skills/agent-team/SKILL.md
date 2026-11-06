@@ -106,8 +106,8 @@ alone. Do not wrap `run` in `/loop`: it schedules itself (The check).
 Every pass starts by replacing the check (The check, below), then stops
 (`TaskStop`) each agent of yours whose final report has arrived: a
 background task it armed and never stopped keeps it live, and a live agent
-holds a headless check. An agent counts as running only until its final
-report.
+can hold a headless check, as seen on the SDK. An agent counts as running
+only until its final report.
 
 1. **Read the pool**: the open issues in scope (Scope). For each, read its
    comments and its `Depends on #N` lines and check delivery (`rules.md`).
@@ -151,8 +151,8 @@ agents of yours are still running, whatever the pass landed or dispatched,
 start a fresh timer, `sleep 900` through Bash `run_in_background`, and wait:
 the first agent to finish or the timer's exit runs the next full pass. The
 timer wakes the run while its agents run, because a headless session's
-check cannot fire then (The check). Whichever of check and timer woke the
-pass, the fresh timer restarts the 15 minutes and holds a headless check.
+check may not fire then (The check). Whichever of check and timer woke the
+pass, the fresh timer restarts the 15 minutes and can hold a headless check.
 
 ### The quiet pass
 
@@ -195,10 +195,11 @@ Create before delete, so a check always exists. Replacing it every pass
 keeps a recurring job from reaching its 7-day expiry, whose final fire
 would otherwise see itself pending and recreate nothing. A check lives
 only in the session that scheduled it; closing the session ends the wait.
-When it fires depends on the session kind. A headless session
-(`stream-json`, the SDK) counts any live background task, agent or Bash,
-the timer included, as busy, so its check never fires while one runs. An
-interactive session fires it between turns, so a busy turn delays it.
+When it fires depends on the session kind. A headless session can count
+a live background task, agent or Bash, the timer included, as busy and not
+fire its check while one runs: seen on the SDK, while `claude -p` with
+`stream-json` has fired a check past a live Bash task. An interactive
+session fires it between turns, so a busy turn delays it.
 
 ### Dispatching
 
