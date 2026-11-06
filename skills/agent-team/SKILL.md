@@ -103,7 +103,11 @@ alone. Do not wrap `run` in `/loop`: it schedules itself (The check).
 
 ### One pass
 
-Every pass starts by replacing the check (The check, below).
+Every pass starts by replacing the check (The check, below), then stops
+(`TaskStop`) each agent of yours whose final report has arrived: a
+background task it armed and never stopped keeps it live, and a live agent
+holds a headless check. An agent counts as running only until its final
+report.
 
 1. **Read the pool**: the open issues in scope (Scope). For each, read its
    comments and its `Depends on #N` lines and check delivery (`rules.md`).
