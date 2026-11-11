@@ -77,9 +77,7 @@ Carry out `verdict.md` step 4 (Act, per item), as the ruler would, with
 these differences:
 
 - every comment item 1 opens with plain `Ruling:` opens with plain
-  `Ruling (auto):` instead: the Ruling, the pointer on each other open
-  member PR, and the issue's `Ruling (auto): <link to it>. Brief updated:
-  <parts>.` when item 2 edits its body;
+  `Ruling (auto):` instead;
 - an issue the Ruling calls for goes under the umbrella, with
   `Part of #U`, only when it serves an acceptance item: a defect this
   feature introduced, or work a target needs. Anything else -- a
