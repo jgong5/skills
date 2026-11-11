@@ -23,7 +23,7 @@ Besides what `develop.md` step 1 reads:
   `<repo>` on the files and terms the requirement touches, searched as
   `advise.md` (Check the evidence) says;
 - the principles: the project's own document, indexed by `<design_entry>`,
-  then `<skill-dir>/principles.md`; a project principle wins a conflict;
+  then `<skill-dir>/principles.md`;
 - the handoffs of the spike and sync issues this issue depends on.
 
 If a dependency is still open, stop and report the issue blocked on it: the
@@ -34,9 +34,8 @@ design waits for its data.
 Read `<skill-dir>/../auto-grilling/SKILL.md` up to its `# Part 2` heading
 and no further (`sed '/^# Part 2/q'`), and run that loop over the
 requirement document, the code and the principles. Its `.grill.md` goes in
-the scratch directory, written in `<publish_language>`. Part 2 stops to wait
-for a user and you have none, so it stays out of your context; step 3 is
-your ending. On top of the loop's own rules:
+the scratch directory, written in `<publish_language>`. Step 3 is your
+ending. On top of the loop's own rules:
 
 - **Every answer names its basis** in its Reason, one of: `code:` a fact at
   `path: symbol`, checked at a freshly fetched
@@ -59,9 +58,12 @@ your ending. On top of the loop's own rules:
 
 From the written Summary, take the first case that holds:
 
-1. **A requirement gap**: post one ruling request on this issue, asking
-   every gap (`rules.md`, Escalations), apply `agent-team/need-human`, and
-   stop. The ruling can change every decision that rests on it.
+1. **A requirement gap, or a non-empty `Unresolved`**: post one ruling
+   request on this issue, asking every gap (`rules.md`, Escalations), apply
+   `agent-team/need-human`, and stop. The ruling can change every decision
+   that rests on it. Branches still open at the loop's cap mean a design too
+   big for one sitting: ask how to split the requirement, which is the
+   owner's call.
 2. **A `low` decision that data would settle**: open one spike issue per
    measurement, labeled `agent-team/spike`, with `Part of #U` and a brief
    (`plan.md`, Write each brief) whose named result is that measurement.
@@ -103,7 +105,8 @@ document, in `<design_entry>`'s directory and linked from `<design_entry>`.
 `<gate_task>` passes at your head. Then `develop.md` step 5: the Dev record
 holds what the loop found that the document does not record, and the Named
 result links the document. A finding on a decision revises it and, through
-the log's `Depends on`, every decision resting on it, in new commits.
+the log's `Depends on`, every decision resting on it, in new commits. A
+finding that a `low` entry is a spike is answered as step 3 case 2.
 
 **Done when** `develop.md` step 5's criterion holds, or a case of step 3
 stopped after posting what it lists.

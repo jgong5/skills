@@ -34,9 +34,7 @@ order:
    rules it out, the rejection fails: blocking.
 4. **Consistency.** No decision contradicts a decision in the indexed
    design documents, a Ruling on the umbrella or its issues, or a
-   principle, unless the document names the conflict and what settles it: a
-   Ruling binds its own item, and a project principle beats the default
-   list.
+   principle, unless the document names the conflict and what settles it.
 5. **Code facts, one by one.** Open every `code:` basis at a freshly
    fetched `<remote>/<integration_branch>` and confirm the path and symbol
    do what the decision says. One false there, even if true at the PR's
