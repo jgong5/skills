@@ -31,9 +31,10 @@ result` states:
 
 - `Result:` the answer to the brief's question, in one line;
 - the command, from the repository root, as you ran it;
-- the head sha measured at (measure again after a commit that changes the
-  script), and the machine or environment it ran in, which is where a
-  reviewer reproduces it;
+- the head sha measured at, and the machine or environment it ran in,
+  which is where a reviewer reproduces it. Measure again after every
+  commit, a merge of `<integration_branch>` included: the handoff names the
+  head as the sha measured at, and a review reproduces only there;
 - the range a reproduction must fall within, and of which figure (the
   median of five runs, say): taken from the spread you saw, so a reviewer
   can tell a reproduction from a different result.
