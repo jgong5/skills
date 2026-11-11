@@ -179,3 +179,64 @@ def test_the_local_gate_wins_whichever_name_each_file_uses(tmp_path, monkeypatch
     write_local(main, "---\ngate_wave: local\n---\n")
     keys, _, problems = overlay.load()
     assert problems == [] and keys["gate_post_land"] == "local" and "gate_wave" not in keys
+
+
+def commit_all(main, msg):
+    git(main, "add", "-A")
+    git(main, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", msg)
+
+
+def overlay_script(*args):
+    r = subprocess.run([sys.executable, overlay.__file__, *args], capture_output=True, text=True)
+    return r.returncode, r.stdout
+
+
+def two_lines(tmp_path, monkeypatch):
+    """A checkout whose overlay names branch `a`, and a branch `b` whose overlay names `b`;
+    `before` is a commit with no overlay at all."""
+    main = repo_with(tmp_path, monkeypatch, GOOD.replace("dev", "a"))
+    overlay_file = main / ".claude" / "agent-team.md"
+    overlay_file.rename(tmp_path / "held")
+    commit_all(main, "before the overlay")
+    git(main, "tag", "before")
+    (tmp_path / "held").rename(overlay_file)
+    commit_all(main, "overlay")
+    git(main, "checkout", "-q", "-b", "b")
+    overlay_file.write_text(GOOD.replace("dev", "b"))
+    commit_all(main, "line b")
+    git(main, "checkout", "-q", "-")
+    return main
+
+
+def test_ref_reads_the_overlay_committed_at_a_revision(tmp_path, monkeypatch):
+    main = two_lines(tmp_path, monkeypatch)
+    rc, out = overlay_script()
+    assert rc == 0 and json.loads(out)["integration_branch"] == "a"
+    rc, out = overlay_script("--ref", "b")
+    assert rc == 0, out
+    keys = json.loads(out)
+    assert keys["integration_branch"] == "b"
+    assert keys["remote"] == "fork" and keys["publish_language"] == "English"
+    assert Path(keys["worktree_root"]) == main.parent.resolve() / "proj-worktrees"
+    sha = subprocess.run(["git", "rev-parse", "b"], capture_output=True, text=True).stdout.strip()
+    git(main, "update-ref", "refs/remotes/fork/b", sha)
+    for rev in (sha, "fork/b"):
+        assert overlay.load(ref=rev)[0]["integration_branch"] == "b"
+
+
+def test_ref_still_reads_the_checkouts_local_file(tmp_path, monkeypatch):
+    main = two_lines(tmp_path, monkeypatch)
+    write_local(main, "---\nmax_tasks: 2\n---\nLocal notes.\n")
+    keys, body, problems = overlay.load(ref="b")
+    assert problems == []
+    assert keys["integration_branch"] == "b" and keys["max_tasks"] == "2"
+    assert body.endswith("Local notes.\n")
+
+
+def test_no_overlay_at_the_ref_is_a_problem_naming_it(tmp_path, monkeypatch):
+    two_lines(tmp_path, monkeypatch)
+    for rev in ("before", "nope"):
+        rc, out = overlay_script("--ref", rev)
+        assert rc == 1 and out.startswith(f"no overlay at {rev}: ")
+    rc, _ = overlay_script("--ref")
+    assert rc == 1

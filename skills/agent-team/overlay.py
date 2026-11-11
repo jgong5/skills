@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Read a project's agent-team overlay.
 
-Usage: overlay.py   (reads .claude/agent-team.md under the work tree's root,
-                     then .claude/agent-team.local.md beside it when present)
+Usage: overlay.py [--ref REV]
+       (reads .claude/agent-team.md under the work tree's root, or as
+        committed at REV with --ref, then .claude/agent-team.local.md beside
+        the work tree's overlay when present)
 
 Prints the resolved keys as JSON and exits 0, or prints every problem and
 exits 1. The keys and their meaning are documented in overlay.md.
@@ -62,21 +64,29 @@ def git(*args):
     return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout.strip()
 
 
-def load(path=DEFAULT_PATH):
+def load(path=DEFAULT_PATH, ref=None):
     """Resolved keys, the body, and a list of problems (empty when usable).
 
-    Keys in the local file beside the overlay override the overlay's; its
-    body follows the overlay's.
+    With `ref`, the overlay is read as committed at that revision instead of
+    from `path`. Keys in the local file beside `path` override the overlay's;
+    its body follows the overlay's.
     """
     if path == DEFAULT_PATH:
         path = Path(git("rev-parse", "--show-toplevel")) / DEFAULT_PATH
     local = Path(path).parent / LOCAL_NAME
+    first = f"{ref}:{DEFAULT_PATH}" if ref else path
     keys, bodies, problems = {}, [], []
-    for p in [path] + ([local] if local.exists() else []):
-        try:
-            text = Path(p).read_text(encoding="utf-8")
-        except OSError as e:
-            return {}, "", [f"cannot read {p}: {e.strerror}"]
+    for p in [first] + ([local] if local.exists() else []):
+        if p is first and ref:
+            r = subprocess.run(["git", "show", p], capture_output=True, text=True)
+            if r.returncode:
+                return {}, "", [f"no overlay at {ref}: {r.stderr.strip()}"]
+            text = r.stdout
+        else:
+            try:
+                text = Path(p).read_text(encoding="utf-8")
+            except OSError as e:
+                return {}, "", [f"cannot read {p}: {e.strerror}"]
         k, b, found = parse(text)
         if "gate_wave" in k:
             if "gate_post_land" in k:
@@ -109,9 +119,11 @@ def load(path=DEFAULT_PATH):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        sys.exit("usage: overlay.py (takes no arguments)")
-    keys, body, problems = load()
+    args = sys.argv[1:]
+    ref = args[1] if len(args) == 2 and args[0] == "--ref" else None
+    if args and not ref:
+        sys.exit("usage: overlay.py [--ref REV] (takes no arguments but --ref)")
+    keys, body, problems = load(ref=ref)
     if problems:
         print("\n".join(problems))
         sys.exit(1)

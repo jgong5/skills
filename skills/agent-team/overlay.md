@@ -15,6 +15,15 @@ is read after the overlay's. Add `.claude/agent-team.local.md` to the
 project's `.gitignore` to keep it out of version control. Each problem
 `overlay.py` reports from parsing either file names that file.
 
+`overlay.py --ref <rev>` reads the overlay as committed at `<rev>` -- a
+branch, a remote branch or a sha -- with `git show`, instead of from the
+checkout; the local file is still read from beside the checkout's overlay.
+No overlay at `<rev>` is a problem. A run passes the same `--ref` to
+`overlay.py`, `land.py` and `batch.py` when its integration branch is not
+the one checked out (one checkout serving two lines: `--ref
+<remote>/<integration_branch>`, fetched), and when the overlay it runs on is
+still in an unlanded PR (`--ref <remote>/<PR branch>`).
+
 | Key | Required | Default | Meaning |
 |---|---|---|---|
 | `repo` | yes | -- | `OWNER/NAME` agents write to. No default: `origin` is often an upstream agents must not touch. |

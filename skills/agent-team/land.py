@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Land one approved PR onto the integration branch, squashed.
 
-Usage: land.py PR --message-file FILE [--expect-tree TREE [--merge-base SHA]]
+Usage: land.py PR --message-file FILE [--expect-tree TREE [--merge-base SHA]] [--ref REV]
 
 Run from inside the repository. In order: refuse on any hold pr_state.py
 reports; refuse a PR not based on the integration branch (land the one below
@@ -119,9 +119,10 @@ def main(argv=None):
     ap.add_argument("--message-file", required=True)
     ap.add_argument("--merge-base")
     ap.add_argument("--expect-tree")
+    ap.add_argument("--ref", help="read the overlay as committed at REV (overlay.py --ref)")
     a = ap.parse_args(argv)
 
-    keys, _, problems = overlay.load()
+    keys, _, problems = overlay.load(ref=a.ref)
     if problems:
         stop(2, "\n".join(problems))
     tip = lambda: fetch_tip(keys["remote"], keys["integration_branch"], a.pr)
