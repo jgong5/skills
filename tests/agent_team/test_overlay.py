@@ -139,6 +139,16 @@ def test_no_local_file_changes_nothing(tmp_path, monkeypatch):
     assert keys["max_tasks"] == "3" and "conversation_language" not in keys
 
 
+def test_a_keyless_local_file_adds_only_its_body(tmp_path, monkeypatch):
+    main = repo_with(tmp_path, monkeypatch, GOOD)
+    write_local(main, "---\n---\nLocal notes.\n---\nmore.\n")
+    r = subprocess.run([sys.executable, overlay.__file__], capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout
+    assert json.loads(r.stdout)["max_tasks"] == "3"
+    keys, body, problems = overlay.load()
+    assert problems == [] and body.endswith("Local notes.\n---\nmore.\n")
+
+
 def test_an_unknown_local_key_names_the_local_file(tmp_path, monkeypatch):
     main = repo_with(tmp_path, monkeypatch, GOOD)
     write_local(main, "---\nmax_task: 2\n---\n")

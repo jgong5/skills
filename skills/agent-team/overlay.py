@@ -29,11 +29,11 @@ KEYS = REQUIRED + OPTIONAL + tuple(DEFAULTS) + ("gate_wave",)  # gate_wave: depr
 
 def parse(text):
     """Split an overlay into its flat `key: value` frontmatter and its body."""
-    m = re.match(r"---\n(.*?)\n---\n?(.*)", text, re.S)
+    m = re.match(r"---\n(.*?\n)??---\n?(.*)", text, re.S)
     if not m:
         return {}, text, ["no frontmatter: the file must open with a --- block"]
     keys, problems = {}, []
-    for n, line in enumerate(m.group(1).splitlines(), 2):
+    for n, line in enumerate((m.group(1) or "").splitlines(), 2):
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         key, sep, value = line.partition(":")
