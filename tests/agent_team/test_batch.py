@@ -266,3 +266,16 @@ def test_merge_leaves_a_spike_out_of_the_batch_and_land_lands_the_rest(gh, capsy
     batch.main(["land", "--record", "rec.json", "--message-dir", "msgs"])
     assert gh.prs[2]["state"] == "MERGED" and gh.prs[1]["state"] == "OPEN"
     assert git(gh.remote, "rev-parse", "dev^{tree}") == rec["prs"][0]["tree"]
+
+
+def test_merge_given_only_spikes_stops_and_writes_no_record(gh, capsys):
+    w = gh.work
+    commit(w, ("f", "a"))
+    git(w, "push", "-q", "origin", "dev")
+    open_pr(gh, 1, "dev", commit(w, ("spike.py", "1")))
+    gh.prs[1]["labels"] = [land.SPIKE]
+    with pytest.raises(SystemExit) as e:
+        batch.main(["merge", "1", "--record", "rec.json"])
+    assert e.value.code == 3
+    assert "#1" in capsys.readouterr().out
+    assert not (w / "rec.json").exists()
