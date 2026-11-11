@@ -72,7 +72,7 @@ From the written Summary, take the first case that holds:
    after the spikes close starts from their handoffs.
 3. Otherwise write the document (step 4).
 
-In every case, open one sync issue per upstream-only dependency, labeled
+In cases 2 and 3, open one sync issue per upstream-only dependency, labeled
 `agent-team/land-as-merge`, with `Part of #U` and a brief that targets the
 upstream tip. The tasks that need it depend on it; the design does not.
 
@@ -97,7 +97,7 @@ number. Sections:
   and the acceptance items -- what `plan` cuts tasks from.
 
 When the issue carries a principles draft the owner confirmed, because the
-line had none, commit it in the same PR as the project's principles
+project had none, commit it in the same PR as the project's principles
 document, in `<design_entry>`'s directory and linked from `<design_entry>`.
 
 ## 5. Gate and PR
