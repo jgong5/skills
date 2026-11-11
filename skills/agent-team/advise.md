@@ -120,7 +120,7 @@ as a work log and buries the decision.
      linted as `--kind comment`, that calls for its follow-ups so `verdict`
      (step 4) carries them out: a tracking issue for each problem the
      ruling defers and each side finding no option fixes, with a suggested
-     stage label and assignee -- the item's own, or one the thread says can
+     label and assignee -- the item's own, or one the thread says can
      reach the environment the work needs; and, when the recommended
      option is a simplification or a stopgap, a note in the docs or code
      saying so and what it costs. The ruler strikes what they do not want;
