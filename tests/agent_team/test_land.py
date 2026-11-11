@@ -284,6 +284,11 @@ def test_a_pr_labeled_land_as_merge_lands_as_a_merge_whose_second_parent_is_its_
         repo.work, "rev-parse", fake_gh.head + "^{tree}")
 
 
+def test_the_prefixed_merge_label_lands_as_a_merge_too(repo, fake_gh, monkeypatch):
+    test_a_pr_labeled_land_as_merge_lands_as_a_merge_whose_second_parent_is_its_head(
+        repo, fake_gh, monkeypatch, ["agent-team/land-as-merge"], True)
+
+
 def test_a_rebased_child_cut_before_its_parents_last_round_lands_given_the_parents_head(
         repo, fake_gh, monkeypatch):
     round1 = branch_with(repo, ("g", "1"))

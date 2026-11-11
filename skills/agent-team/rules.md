@@ -76,7 +76,7 @@ spec: code that departs from it is a defect and is fixed. If building a
 decision shows it is wrong or cannot be built, that is an escalation and the
 design changes first.
 
-## Escalations and `need human`
+## Escalations and `agent-team/need-human`
 
 An escalation is anything that needs a ruling before work continues;
 anything an agent can fix without one is a finding, and no ruler is ever
@@ -97,9 +97,9 @@ lower the count is a defect: packed lines, dead code kept to avoid a
 deletion, a caller-side patch where shared code is at fault, brief scope
 silently deferred.
 
-**Apply the `need human` label the moment you escalate**: a halt declared in
-prose stops nothing, because the next agent reads labels, not prose. Post the
-ruling request (`gh-prose`'s shape) on the issue or PR; on an item with no
+**Apply the `agent-team/need-human` label the moment you escalate**: a halt
+declared in prose stops nothing, because the next agent reads labels, not
+prose. Post the ruling request (`gh-prose`'s shape) on the issue or PR; on an item with no
 assignee, assign yourself first, so the item has a ruler. When the ruling
 lives on another issue, label each PR it holds and name that issue. A PR whose body
 declares an escalation without the label gets the label.
@@ -166,9 +166,9 @@ silently resolves against instead of its own.
 review findings with new commits. That keeps GitHub's incremental review and
 the delta review (`review.md`) intact, and the branch lands squashed, so its
 merge commits never reach `<integration_branch>` -- unless it is labeled
-`land as merge` (`land.md`), because its history is the point. A Ruling may
-allow one force-push; the next review then covers the whole head (`review.md`,
-Delta review).
+`agent-team/land-as-merge` (`land.md`), because its history is the point.
+A Ruling may allow one force-push; the next review then covers the whole
+head (`review.md`, Delta review).
 
 Update a branch only when it conflicts, needs code landed since, or is an
 unlinked stacked child whose parent landed (`land.md`) -- a moved tip alone
