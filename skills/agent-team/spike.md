@@ -17,25 +17,26 @@ Write the script that takes the measurement and commit it in a new `spike/`
 directory at the root, or wherever else nothing the project runs (a test
 collector, say) picks it up. The branch holds nothing else, so its head
 measures the project as of its base, and since it never lands, the script
-is not a file in the tree (`rules.md`, The task record). Run the script at
-that head, repeating the measurement, and state the spread you saw, so a
-reviewer can tell a reproduction from a different result. Track lines as
-`develop.md` step 3; `<gate_task>` and the new-test gate do not apply.
+never reaches `<integration_branch>` (`rules.md`, The task record). Run it
+at that head, repeating the measurement until you see its spread. Track
+lines as `develop.md` step 3; `<gate_task>` and the new-test gate do not
+apply, so `## Gates` says only that.
 
 ## 3. Open the PR
 
 Open it as `develop.md` step 5 does, with `--label agent-team/spike`: the
 label is what makes `land.py` close the PR instead of merging the script
-into the tree. The PR body (`gh-prose`'s shape) is its Dev record; under
-`## Named result` it states:
+into the tree. The PR body follows `gh-prose`'s shape; its `## Named
+result` states:
 
 - `Result:` the answer to the brief's question, in one line;
-- the command, run from the repository root, exactly as the reviewer runs
-  it;
+- the command, from the repository root, as you ran it;
 - the head sha measured at (measure again after a commit that changes the
   script), and the machine or environment it ran in, which is where a
   reviewer reproduces it;
-- the spread a reproduction must fall within.
+- the range a reproduction must fall within, and of which figure (the
+  median of five runs, say): taken from the spread you saw, so a reviewer
+  can tell a reproduction from a different result.
 
 The command's output from every run goes verbatim in its Evidence
 `<details>`.
