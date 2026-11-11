@@ -13,30 +13,36 @@ question and what figure would settle it.
 
 ## 2. Measure
 
-Write the script that takes the measurement and commit it where nothing the
-project runs picks it up (a test collector, say); the branch holds nothing
-else, so its head measures the project as of its base. Run it at that head,
-more than once, and state the spread you saw, so a reviewer can tell a
-reproduction from a different result. Track lines as `develop.md` step 3;
-`<gate_task>` and the new-test gate do not apply.
+Write the script that takes the measurement and commit it in a new `spike/`
+directory at the root, or wherever else nothing the project runs (a test
+collector, say) picks it up. The branch holds nothing else, so its head
+measures the project as of its base, and since it never lands, the script
+is not a file in the tree (`rules.md`, The task record). Run the script at
+that head, repeating the measurement, and state the spread you saw, so a
+reviewer can tell a reproduction from a different result. Track lines as
+`develop.md` step 3; `<gate_task>` and the new-test gate do not apply.
 
 ## 3. Open the PR
 
 Open it as `develop.md` step 5 does, with `--label agent-team/spike`: the
 label is what makes `land.py` close the PR instead of merging the script
-into the tree. Its Dev record states:
+into the tree. The PR body (`gh-prose`'s shape) is its Dev record; under
+`## Named result` it states:
 
 - `Result:` the answer to the brief's question, in one line;
 - the command, run from the repository root, exactly as the reviewer runs
   it;
-- its output, verbatim, from every run;
 - the head sha measured at (measure again after a commit that changes the
-  script), and the machine or environment it ran in;
+  script), and the machine or environment it ran in, which is where a
+  reviewer reproduces it;
 - the spread a reproduction must fall within.
+
+The command's output from every run goes verbatim in its Evidence
+`<details>`.
 
 Post the round comment as `develop.md` step 5 does, and answer findings the
 same way.
 
-**Done when** the PR is open with `agent-team/spike`, its Dev record states
-all of the above, and the latest round comment names its head. The lander
+**Done when** the PR is open with `agent-team/spike`, its body states all
+of the above, and the latest round comment names its head. The lander
 then closes it and writes the issue's handoff (`land.md`, Land one PR).
