@@ -31,8 +31,10 @@ import json
 import re
 import subprocess
 
-LABEL = "need human"
-HOLD = "hold landing"  # holds landing only; development and review go on
+# Each label's name, then its old name, still read for one version. HOLD
+# holds landing only; development and review go on.
+LABEL = ("agent-team/need-human", "need human")
+HOLD = ("agent-team/hold-landing", "hold landing")
 # GitHub links closing keywords only on PRs into the default branch, so the
 # body is read too, with every verb rules.md counts as delivering.
 DELIVERS = re.compile(r"(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|address(?:es|ed)?|"
@@ -77,12 +79,12 @@ def state(number, repo=None, equivalent=None):
     holds = []
     if pr["state"] != "OPEN":
         holds.append(f"PR is {pr['state']}")
-    holds += [f"{name} on the PR" for name in (LABEL, HOLD) if name in {l["name"] for l in pr["labels"]}]
+    holds += [f"{name} on the PR" for name in LABEL + HOLD if name in {l["name"] for l in pr["labels"]}]
     issues = {i["number"] for i in pr["closingIssuesReferences"]}
     issues |= {int(n) for n in DELIVERS.findall(pr.get("body") or "")}
     for n in sorted(issues):
         labels = {l["name"] for l in json.loads(gh(["issue", "view", str(n), "--json", "labels", *r]))["labels"]}
-        holds += [f"{name} on issue #{n}, which this PR delivers" for name in (LABEL, HOLD) if name in labels]
+        holds += [f"{name} on issue #{n}, which this PR delivers" for name in LABEL + HOLD if name in labels]
     verdict = None
     if verdicts:
         at, _, author, line, _ = verdicts[-1]
@@ -112,12 +114,12 @@ def state(number, repo=None, equivalent=None):
         holds.append("a brief update follows the last verdict")
     if not covers and not named:
         holds.append(f"head {head[:12]} has no round comment")
-    if pr["state"] != "OPEN" or any(LABEL in h for h in holds):
+    if pr["state"] != "OPEN" or any(h.startswith(LABEL) for h in holds):
         turn = "held"
     elif briefed and briefed[-1] > max(named, default=-1):
         turn = "developer"
     elif covers and verdict["verdict"] == "APPROVE" and not (ruled_since or briefed):
-        turn = "held" if any(HOLD in h for h in holds) else "land"
+        turn = "held" if any(h.startswith(HOLD) for h in holds) else "land"
     elif covers:
         turn = "reviewer" if ruled_since or briefed else "developer"
     else:

@@ -8,16 +8,16 @@ does not wait for `<gate_post_land>`. Any PR whose `pr_state.py` turn is
 
 These are the landing preconditions, and the only holds:
 
-1. No `need human` on the PR, on any PR below it in its stack, or on an issue
-   it closes.
+1. No `agent-team/need-human` on the PR, on any PR below it in its stack,
+   or on an issue it closes.
 2. An APPROVE naming each head being landed, or, in a batch, an APPROVE
    at another sha that lands as the same gated tree, or whose base update
    carries it (Land a batch).
 3. The tree check: what lands on the current tip is exactly the tree that was
    approved, or the batch tree that was gated.
-4. No `hold landing` on the PR or on an issue it closes. It holds landing and
-   nothing else -- development and review go on -- and whoever applied it
-   removes it.
+4. No `agent-team/hold-landing` on the PR or on an issue it closes. It
+   holds landing and nothing else -- development and review go on -- and
+   whoever applied it removes it.
 5. No entry after the last verdict whose first line opens with `Ruling:` or
    `Ruling on #N affects this:`. The ruling may have changed the brief, so a
    fresh verdict under it comes first.
@@ -54,9 +54,9 @@ whose parent has landed as a new squash commit can fail it with nothing
 real to resolve. Land such a child through `batch.py`, alone if need be
 (Land a batch), which gives it the base update it needs.
 
-A PR labeled `land as merge` lands as a two-parent merge commit instead,
-whose second parent is the approved head, under the same holds, tree check
-and `--expect-tree`; the message file becomes the merge commit's message.
+A PR labeled `agent-team/land-as-merge` lands as a two-parent merge commit
+instead, whose second parent is the approved head, under the same holds,
+tree check and `--expect-tree`; the message file becomes the merge commit's message.
 Use it only for a branch whose history must survive landing, such as a merge
 of an upstream repository: squashed, the upstream commit stops being an
 ancestor, so the next upstream merge conflicts on everything since and `git

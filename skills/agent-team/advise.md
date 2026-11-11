@@ -19,8 +19,8 @@ what it may read, and `<design_entry>` where its principles come from.
 - Text after it is the owner's concern; the report answers it first.
 - The item is as `verdict.md` (Scope) defines it. Read every member's
   thread, the brief and its dependencies' handoffs.
-- An item without `need human` is analysed all the same, and the report
-  says first that it is not held.
+- An item without `agent-team/need-human` is analysed all the same, and
+  the report says first that it is not held.
 
 ## 2. Check the evidence
 

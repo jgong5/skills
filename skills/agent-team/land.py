@@ -9,9 +9,9 @@ it first); compute the tree that would land on the current tip and refuse
 unless it is the reviewed head's tree (or --expect-tree, a batch's gated
 tree at this PR's place in it); squash through merge-async with the
 checked head sha, once GitHub has computed the PR's mergeability -- or, for
-a PR labeled `land as merge`, merge it as a two-parent merge commit; poll
-until merged, and on a failure read the PR once more, since GitHub can
-report failed a merge it completed. Under --expect-tree an APPROVE at
+a PR labeled `agent-team/land-as-merge` (or its old name, `land as merge`),
+merge it as a two-parent merge commit; poll until merged, and on a failure
+read the PR once more, since GitHub can report failed a merge it completed. Under --expect-tree an APPROVE at
 another sha covers the head when both would land as that tree, the approved
 sha merged from its `git merge-base` with --merge-base, or when the head's
 parents are that sha and the tip and its tree is the gated one. Exit 0
@@ -29,7 +29,8 @@ import overlay
 import pr_state
 
 TIMEOUT = 900  # seconds GitHub gets to report the merge
-AS_MERGE = "land as merge"  # keeps the branch's history, such as an upstream merge
+# keeps the branch's history, such as an upstream merge; the old name is still read for one version
+AS_MERGE = {"agent-team/land-as-merge", "land as merge"}
 TIP = "refs/agent-team/tip"  # the fetched integration tip; any other fetch overwrites FETCH_HEAD
 
 
@@ -148,7 +149,7 @@ def main(argv=None):
     pr = json.loads(pr_state.gh(
         ["pr", "view", str(a.pr), "-R", keys["repo"], "--json", "title,labels"]))
     title = pr["title"]
-    method = "merge" if AS_MERGE in {l["name"] for l in pr.get("labels", [])} else "squash"
+    method = "merge" if AS_MERGE & {l["name"] for l in pr.get("labels", [])} else "squash"
     if not title.endswith(f" (#{a.pr})"):
         title += f" (#{a.pr})"  # GitHub does not add it on this endpoint
     res = merge(keys["repo"], a.pr, s["head"], title, a.message_file, method)

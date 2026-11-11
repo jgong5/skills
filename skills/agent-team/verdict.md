@@ -3,8 +3,8 @@
 `/agent-team verdict [text]` answers ruling requests on the items the
 current `gh` user rules (`rules.md`, Escalations). It posts the ruling where
 the request is, makes the GitHub changes the ruling calls for, and removes
-`need human`; or it hands an item to another ruler. A run in scope sees the
-Ruling at its next check (`SKILL.md`, The check).
+`agent-team/need-human`; or it hands an item to another ruler. A run in
+scope sees the Ruling at its next check (`SKILL.md`, The check).
 
 ## 0. Load
 
@@ -15,7 +15,7 @@ worth that.
 ## 1. Scope
 
 - `#N` numbers, labels or "all" in the text name the items; "all" is every
-  open `need human` item in `<repo>` whose ruler is the current user
+  open `agent-team/need-human` item in `<repo>` whose ruler is the current user
   (`gh api user`). List the others, each with its ruler, and act on none.
 - Otherwise it is the held item last discussed in this conversation; an
   `advise` (`advise.md`) discusses the item it analysed.
@@ -91,7 +91,7 @@ or says why not.
      ruler, and keeps its label: its own request still needs a ruling;
    - an unheld one assigned only to others is not edited: its comment
      opens `Needs ruling from @<assignee>:` instead, and it and its open
-     PRs get `need human`.
+     PRs get `agent-team/need-human`.
 
    An affected issue's open delivering PRs (`rules.md`, Check delivery)
    get the comment too: `pr_state.py` reads only a PR's own thread, so
@@ -104,7 +104,7 @@ or says why not.
    its ruling is on GitHub.
 
 **Done when** every item in scope that the current user rules carries its
-Ruling and has no `need human` left (a split's after `plan` publishes), or
-carries its hand-off, and every item it affects has its comment; report
+Ruling and has no `agent-team/need-human` left (a split's after `plan`
+publishes), or carries its hand-off, and every item it affects has its comment; report
 each Ruling's link and what changed, there and outside it, and each refused
 item with its ruler.

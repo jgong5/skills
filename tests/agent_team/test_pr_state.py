@@ -95,6 +95,28 @@ def test_need_human_on_the_pr_or_on_an_issue_it_closes_holds_it(fake_gh):
     assert s["holds"] == ["need human on issue #4, which this PR delivers"]
 
 
+@pytest.mark.parametrize("label", ["agent-team/need-human", "need human"])
+def test_either_name_of_the_need_human_label_holds_every_turn_and_is_named(fake_gh, label):
+    # A round comment alone would make it the reviewer's turn.
+    fake_gh.pr = make_pr([ROUND], labels=[label])
+    s = pr_state.state(7)
+    assert s["turn"] == "held" and f"{label} on the PR" in s["holds"]
+    fake_gh.pr, fake_gh.issues = make_pr([ROUND], closes=[4]), {4: [label]}
+    s = pr_state.state(7)
+    assert s["turn"] == "held" and f"{label} on issue #4, which this PR delivers" in s["holds"]
+
+
+@pytest.mark.parametrize("label", ["agent-team/hold-landing", "hold landing"])
+def test_either_name_of_the_hold_landing_label_holds_only_the_land_turn(fake_gh, label):
+    approved = [comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")]
+    fake_gh.pr, fake_gh.issues = make_pr(approved, closes=[4]), {4: [label]}
+    s = pr_state.state(7)
+    assert s["turn"] == "held" and s["holds"] == [f"{label} on issue #4, which this PR delivers"]
+    fake_gh.pr = make_pr([ROUND], labels=[label])
+    s = pr_state.state(7)
+    assert s["turn"] == "reviewer" and f"{label} on the PR" in s["holds"]
+
+
 def test_an_issue_named_by_a_delivering_verb_in_the_body_holds_it_too(fake_gh):
     # Into a non-default branch GitHub records no closing reference at all.
     fake_gh.pr = make_pr([comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")],

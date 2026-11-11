@@ -11,8 +11,8 @@ agents review each head until APPROVE; you land what is approved. GitHub is
 the only task record -- briefs in issues, dev and review records in PRs,
 handoffs in closing comments -- so any session can pick up where another
 stopped. An item's ruler (`rules.md`, Escalations) rules on its
-escalations, through the `need human` label and `verdict`, and on nothing
-else; `advise` analyses one before the ruler rules.
+escalations, through the `agent-team/need-human` label and `verdict`, and
+on nothing else; `advise` analyses one before the ruler rules.
 
 You never write or review the change yourself: a task's author, its reviewer
 and its orchestrator are different agents, which is what makes an
@@ -41,8 +41,13 @@ APPROVE mean something.
    `.claude/agent-team.local.md` when that file exists (`overlay.md`). All
    bind you as much as any agent you dispatch; where the two bodies
    conflict, the local one wins.
-3. In `plan` and `run`, create the `need human` label in `<repo>` if
-   `gh label list` lacks it.
+3. In `plan` and `run`, read `gh label list`. Each old label present
+   without its new name -- `need human` (`agent-team/need-human`),
+   `hold landing` (`agent-team/hold-landing`), `land as merge`
+   (`agent-team/land-as-merge`) -- is renamed with `gh label edit <old>
+   --name <new>`, which keeps it on every item that carries it; say so in
+   your first report. Then create `agent-team/need-human` if it is still
+   missing. The scripts read the old names too, for one version.
 4. Note whether the `ponytail` and `ponytail-review` skills are installed. If
    not, say so once in your first report; developers and reviewers then skip
    them.
@@ -77,7 +82,7 @@ Read-only; changes nothing on GitHub or disk. Report, within the scope:
 
 - every open PR: its `pr_state.py` turn and holds;
 - every open issue, classified as in `run`, step 1, with what blocks it;
-- every `need human` item, the ruling it waits on, and its ruler
+- every `agent-team/need-human` item, the ruling it waits on, and its ruler
   (`python3 <skill-dir>/ruler.py N --repo <repo>`), or `no ruler: hand off
   first` when it has none.
 
@@ -114,7 +119,7 @@ only until its final report.
 1. **Read the pool**: the open issues in scope (Scope). For each, read its
    comments and its `Depends on #N` lines and check delivery (`rules.md`).
    Classify it:
-   - **held** -- `need human` on it;
+   - **held** -- `agent-team/need-human` on it;
    - **in progress** -- a `Claimed` comment, or an open PR that delivers it;
    - **needs a brief** -- the brief lacks a file set, exit criteria, a
      named result or an effort estimate, or estimates above `<split_loc>`
@@ -140,12 +145,12 @@ only until its final report.
    so a concurrent session cannot take the same issue.
 
    A task is **in flight** when its issue is in scope, in progress, and
-   has no `need human`. A PR under `hold landing` and a stacked child
-   waiting for its parent count; a held task does not.
+   has no `agent-team/need-human`. A PR under `agent-team/hold-landing`
+   and a stacked child waiting for its parent count; a held task does not.
 
 **An escalation holds its item, never the run.** Post the ruling request
-with `need human` (`rules.md`, Escalations), name it in your next report,
-and continue the pass. Never block a run on an interactive question: a
+with `agent-team/need-human` (`rules.md`, Escalations), name it in your
+next report, and continue the pass. Never block a run on an interactive question: a
 `run` never waits on the owner while unheld work remains.
 
 Every pass ends by stopping its timer if it still runs (`TaskStop`). If
