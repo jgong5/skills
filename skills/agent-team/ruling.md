@@ -38,9 +38,10 @@ The owner rules the item when any of these holds; take the first:
    human ruler, as a rule naming who rules a class does. Judge the class by
    the overlay body's own definition, not by the request's first line,
    which only proposes it.
-2. **Not converging**: the members' threads already hold two
-   `Ruling (auto):` comments since the last plain `Ruling:`, and the
-   question is back.
+2. **Not converging**: the item has been ruled twice by AI since the last
+   plain `Ruling:`, and the question is back. Count Rulings, not comments:
+   a `Ruling (auto): <link>.` that step 5 posts on another member counts
+   with the Ruling it links, not as a second one.
 3. **Requirement-level**: the question is what to build -- the
    requirement, a goal, an acceptance target or its priority. A target the
    requirement or the brief states that is not met belongs here: any

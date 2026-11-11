@@ -35,12 +35,15 @@ credentials -- is not met for want of evidence; step 4 asks for it.
 
 ## 3. Write the report
 
-In `<publish_language>`, evidence in `<details>`:
+In `<publish_language>`. Only the first line (step 4), each acceptance
+item's verdict and the deviations stay outside `<details>`: a report with a
+line per AI ruling and per item outgrows what `--kind ruling` allows there.
 
 - **Acceptance**: per item, met or not met, at the sha, with its deciding
   output; the command and the full output go in `<details>`.
-- **AI rulings**: every `Ruling (auto):` in the threads of the umbrella and
-  of each issue and PR under it, one line each: its link and decision.
+- **AI rulings**, in `<details>`: every `Ruling (auto):` in the threads of
+  the umbrella and of each issue and PR under it, one line each: its link
+  and decision, a pointer to another member's Ruling left out.
 - **Principles added**: each change since the umbrella was opened to the
   project's principles document (`git log --since`), linked to its commit.
 - **Deviations**: where the delivered feature departs from the requirement
