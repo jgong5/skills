@@ -97,14 +97,22 @@ known failure by name and fails on anything else. The wrapper becomes
 stable name, or one so broad the wrapper would exclude most of the suite,
 is not wrapped: it is a question.
 
+Draft a brief (`plan.md`, step 3) for each excluded failure, since nothing
+later in auto mode writes one and `run` never claims an issue without it:
+its file set the test, the code it fails in and the wrapper; its exit
+criteria and named result the test passing with the wrapper no longer
+excluding it; an effort estimate from reading the failure. A failure whose
+cause the reading does not find is a question, not a brief.
+
 **The local file.** When `.claude/agent-team.local.md` is missing, draft
 one whose body says how the baseline actually ran: the wrapper or
 container command, the interpreter, any path mapping. Read
 `CLAUDE.local.md` and each parent directory's `CLAUDE.md` for them, since
 a shared machine records its conventions above the repository.
 
-**Done when** the case is chosen, every overlay value has a source, and
-the baseline has a result, or what stopped it is a question.
+**Done when** the case is chosen, every overlay value has a source, the
+baseline has a result and each excluded failure a brief, or what stopped
+it is a question.
 
 ## 4. Principles
 
@@ -115,7 +123,8 @@ principle one or two sentences, its why, and a link to its source.
 
 - Sources: the design documents `<design_entry>` indexes, `CLAUDE.md`,
   the overlay body, and past human Rulings. Find those with `gh search
-  issues "Ruling:" --repo <repo> --include-prs` and read the comments
+  issues "Ruling:" --repo <repo> --include-prs --limit 1000` (without
+  it, a long ruling history yields a silent sample) and read the comments
   whose first line opens with plain `Ruling:`; a `Ruling (auto):` is an
   agent's and is never a source.
 - Cluster the Rulings by the reason they give. A reason that recurs is a
@@ -141,8 +150,8 @@ the owner), quoting each draft rather than pointing at scratch:
    take, in order.
 3. **What was verified**, each with its source, for approval with the
    rest and no question asked: the overlay draft value by value, the
-   baseline result, the wrapper and the failures it excludes, the local
-   file draft, the principles draft.
+   baseline result, the wrapper, the failures it excludes and their
+   briefs, the local file draft, the principles draft.
 4. **What is asked**: everything not found or not verified -- no gate
    candidate, no working environment, several ways to run that differ, an
    action outside the repository, a red baseline too broad to wrap --
@@ -159,7 +168,9 @@ covers the values as last shown.
 
 In this order, linting every GitHub text with `gh-prose` first:
 
-1. **Set up the environment** for the case:
+1. **Set up the environment** for the case. A commit below that carries
+   the overlay also carries the local file's `.gitignore` line
+   (`overlay.md`) when a local file was drafted:
    - new project: `gh repo create`. With a checkout, push its branch as it
      is, then as no overlay. Without one, clone to the approved path and
      push an initial commit with a minimal skeleton, the overlay and its
@@ -176,7 +187,9 @@ In this order, linting every GitHub text with `gh-prose` first:
      integration branch. Until it lands, every script reads the overlay
      with `--ref <remote>/<PR branch>` (`overlay.md`).
 2. **Write the local file** when one was drafted, beside the checkout's
-   overlay; `overlay.md` says how it stays out of version control.
+   overlay. When step 1 made no commit (overlay present, baseline green),
+   its ignore line goes in `.git/info/exclude` instead, so the main
+   worktree keeps no uncommitted change.
 3. **Create the labels** `agent-team/auto` and `agent-team/design` when
    missing.
 4. **Open the umbrella**: titled with the feature, labeled
@@ -189,9 +202,9 @@ In this order, linting every GitHub text with `gh-prose` first:
    `<design_entry>`'s directory and, when one was drafted, the principles
    document. The body quotes the approved principles draft in full: the
    designer commits it with the design, as approved.
-6. **File one issue per excluded failure**, each `Part of #U`, naming the
-   test and its failing output, done when the wrapper no longer excludes
-   it.
+6. **File one issue per excluded failure**, each `Part of #U`, with the
+   test's failing output and its approved brief, plus `Depends on #P` when
+   the wrapper is in the overlay PR, since the fix edits it.
 7. **Enter `run`** with scope `#U`, adding the overlay PR when there is
    one so it is reviewed and landed like any other. No approval gate
    follows: the confirmation was it.
