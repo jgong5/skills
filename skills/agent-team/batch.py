@@ -7,15 +7,18 @@ Usage: batch.py merge PR... --record FILE [--ref REV]
 Run from inside the repository. `merge` merges each approved head onto the
 integration tip in the order given, as local commits it never pushes, writes
 each PR's approved sha, merge base and tree to FILE, and prints the final
-commit for <gate_task>. `land` lands FILE's PRs in order through land.py,
-DIR/<pr>.txt as each message, patching an unlinked child's base and pushing
-a base update wherever GitHub's own merge would not give the recorded tree.
+commit for <gate_task>. It leaves out a PR labeled agent-team/spike, which
+land.py closes alone, and says so on stderr. `land` lands FILE's PRs in
+order through land.py, DIR/<pr>.txt as each message, patching an unlinked
+child's base and pushing a base update wherever GitHub's own merge would not
+give the recorded tree.
 A merged PR is skipped, so a rerun resumes. Exits as land.py does.
 """
 
 import argparse
 import json
 import re
+import sys
 import time
 from pathlib import Path
 
@@ -43,6 +46,12 @@ def stack_of(repo, n):
 
 def merge(keys, prs, record):
     repo, branch = keys["repo"], keys["integration_branch"]
+    spikes = [n for n in prs if land.SPIKE in {l["name"] for l in json.loads(pr_state.gh(
+        ["pr", "view", str(n), "-R", repo, "--json", "labels"]))["labels"]}]
+    if spikes:
+        print(f"left out, labeled {land.SPIKE}: " + ", ".join(f"#{n}" for n in spikes)
+              + "; close each alone with land.py", file=sys.stderr)
+    prs = [n for n in prs if n not in spikes]
     states = [pr_state.state(n, repo) for n in prs]
     held = [f"#{s['pr']}: turn {s['turn']}; {'; '.join(s['holds'])}" for s in states
             if s["turn"] != "land"]
