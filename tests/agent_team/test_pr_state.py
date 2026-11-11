@@ -257,6 +257,22 @@ def test_a_brief_update_holds_an_approve_and_reads_past_the_first_line(fake_gh):
     assert pr_state.state(7)["turn"] == "land"
 
 
+def test_a_brief_update_quoted_as_code_is_not_one(fake_gh):
+    # jgong5/skills#231: a round comment quoting the pointer form held landing.
+    approve = comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")
+    for body in ("Round 2 pushed c0ffee1. It posts `` `Brief updated: x.` `` on each PR.",
+                 "Quoting `Brief updated: x.` here.",
+                 "It posts `Ruling: <link>. Brief updated: x.` on each PR.",
+                 "Round 2 pushed c0ffee1. The notice:\n\n```\nBrief updated: x.\n```\n"):
+        fake_gh.pr = make_pr([approve, comment("2026-01-03T00:00:00Z", body)])
+        s = pr_state.state(7)
+        assert s["turn"] == "land" and s["holds"] == [], body
+    # Unquoted, beside a code span, it still is one.
+    fake_gh.pr = make_pr([approve, comment("2026-01-03T00:00:00Z", "See `x`.\nBrief updated: Fix.")])
+    s = pr_state.state(7)
+    assert s["turn"] == "developer" and "a brief update follows the last verdict" in s["holds"]
+
+
 def test_an_ai_ruling_after_an_approve_is_a_ruling(fake_gh):
     approve = comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")
     ruling = comment("2026-01-03T00:00:00Z", "**Ruling (auto):** (a) keep the cut.", "bot")

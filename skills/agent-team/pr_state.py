@@ -19,10 +19,11 @@ entry after the last verdict whose first line opens a Ruling, or with
 head the reviewer's turn, even under an APPROVE: the ruling may have changed the
 brief, or left nothing to push, so a fresh verdict under it comes first.
 A brief update -- an entry with a line, or a sentence, opening with
-`Brief updated:` -- after the last verdict holds landing the same way, and
-while it follows the last comment naming the head, the turn is the
-developer's: a changed brief is answered with code, or with a round comment
-naming the unchanged head, before it is reviewed.
+`Brief updated:` outside inline code and fenced blocks -- after the last
+verdict holds landing the same way, and while it follows the last comment
+naming the head, the turn is the developer's: a changed brief is answered
+with code, or with a round comment naming the unchanged head, before it is
+reviewed.
 A caller may pass `equivalent(sha, head)` to let an APPROVE at another sha
 cover the head; land.py does under --expect-tree.
 """
@@ -45,6 +46,8 @@ SHA = re.compile(r"\b[0-9a-f]{7,40}\b")
 RULED = re.compile(r"Ruling(?: \(auto\))?:")  # a Ruling, the owner's or an AI's
 RULING = re.compile(RULED.pattern + r"|Ruling on #\d+ affects this:")
 BRIEF = re.compile(r"(?m)(?:^\s*|[.!?]\s+)Brief updated:")
+# A code span or fenced block: a backtick run up to the next run of the same length.
+CODE = re.compile(r"(?s)(?<!`)(`+)(?!`).*?(?<!`)\1(?!`)")
 FIELDS = "number,state,body,headRefOid,headRefName,baseRefName,labels,comments,reviews,commits,closingIssuesReferences"
 
 
@@ -108,7 +111,7 @@ def state(number, repo=None, equivalent=None):
     since = entries[last_verdict + 1:]
     named = [i for i, (_, kind, _, line, _) in enumerate(since)
              if kind == "comment" and any(head.startswith(s) for s in SHA.findall(line))]
-    briefed = [i for i, e in enumerate(since) if BRIEF.search(e[4])]
+    briefed = [i for i, e in enumerate(since) if BRIEF.search(CODE.sub("code", e[4]))]
     ruled_since = any(kind != "commit" and RULING.match(line) for _, kind, _, line, _ in since)
     if ruled_since:
         holds.append("a ruling follows the last verdict")
