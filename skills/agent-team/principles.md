@@ -42,7 +42,7 @@ Build for the cases the requirement names; an option, mode or extension point
 no one needs yet waits until someone does. Generality costs now, and the need
 it guesses at tends to arrive in another shape.
 [Ruling](https://github.com/jgong5/ATOM/pull/2683#issuecomment-6578751421):
-no per-request model; the one existing setting covers the cells that run.
+no per-request acceptance; the one existing setting covers the cells that run.
 
 ## Fix shared code, not callers
 
