@@ -262,6 +262,7 @@ def test_a_brief_update_quoted_as_code_is_not_one(fake_gh):
     approve = comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")
     for body in ("Round 2 pushed c0ffee1. It posts `` `Brief updated: x.` `` on each PR.",
                  "Quoting `Brief updated: x.` here.",
+                 "It posts `Ruling: <link>. Brief updated: x.` on each PR.",
                  "Round 2 pushed c0ffee1. The notice:\n\n```\nBrief updated: x.\n```\n"):
         fake_gh.pr = make_pr([approve, comment("2026-01-03T00:00:00Z", body)])
         s = pr_state.state(7)
