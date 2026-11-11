@@ -26,16 +26,18 @@ Run `advise.md` steps 2 (Check the evidence) and 3 (Report), writing the
 report to the scratch directory, not to GitHub. Its draft Ruling is your
 decision, with one restriction: the recommended option must rest on the
 requirement document, the design, a principle or a past Ruling, and the
-Ruling's one sentence of why names which, linked. Code facts and
-measurements are evidence for that basis, never a basis of their own.
+Ruling's one sentence of why names which, linked when it is on GitHub.
+Code facts and measurements are evidence for that basis, never a basis of
+their own.
 
 ## 3. Decide whose ruling it is
 
 The owner rules the item when any of these holds; take the first:
 
 1. **Reserved**: the overlay body reserves this class of escalation for a
-   human ruler. Judge the class by the overlay body's own definition, not
-   by the request's first line, which only proposes it.
+   human ruler, as a rule naming who rules a class does. Judge the class by
+   the overlay body's own definition, not by the request's first line,
+   which only proposes it.
 2. **Not converging**: the members' threads already hold two
    `Ruling (auto):` comments since the last plain `Ruling:`, and the
    question is back.
