@@ -12,10 +12,6 @@ branch of its decision tree, resolving dependencies one decision at a time
 going until the tree is done. `/auto-grilling` asks the user exactly once,
 at the end.
 
-This file has two parts. Part 1, the loop, runs the grilling and ends at a
-written Summary. Part 2, the ending, is the final menu and Revise, and only
-`/auto-grilling` runs it.
-
 Adapted from Matt Pocock's
 [`grilling`](https://github.com/mattpocock/skills/tree/170ad48655825783d0193e850e31a9aac957bb95/skills/productivity/grilling)
 skill as of commit `170ad48`, MIT licensed
@@ -44,9 +40,9 @@ over. A path is read; anything else is the plan itself. Read the code and
 documents the plan touches before the first question, because a question
 the environment can answer is not a question.
 
-Talk to the user, and write `.grill.md`, in the user's language unless a
-reusing skill sets it; this file stays English so one copy serves every
-user.
+Talk to the user in the user's language, and write `.grill.md` in it
+unless a reusing skill sets the log's language; this file stays English so
+one copy serves every user.
 
 ## The run
 
