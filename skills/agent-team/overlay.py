@@ -18,11 +18,11 @@ DEFAULT_PATH = ".claude/agent-team.md"
 LOCAL_NAME = "agent-team.local.md"
 REQUIRED = ("repo", "integration_branch", "gate_task", "design_entry")
 DEFAULTS = {"publish_language": "English", "max_tasks": "5", "split_loc": "1000"}
-OPTIONAL = ("remote", "never_touch", "gate_wave", "new_tests_dir", "import_check",
+OPTIONAL = ("remote", "never_touch", "gate_post_land", "new_tests_dir", "import_check",
             "worktree_root", "task_label", "prose_tests", "conversation_language",
             "test_files")
 INTEGER = ("max_tasks", "split_loc")
-KEYS = REQUIRED + OPTIONAL + tuple(DEFAULTS)
+KEYS = REQUIRED + OPTIONAL + tuple(DEFAULTS) + ("gate_wave",)  # gate_wave: deprecated alias
 
 
 def parse(text):
@@ -78,6 +78,13 @@ def load(path=DEFAULT_PATH):
         except OSError as e:
             return {}, "", [f"cannot read {p}: {e.strerror}"]
         k, b, found = parse(text)
+        if "gate_wave" in k:
+            if "gate_post_land" in k:
+                found.append("gate_wave and gate_post_land both set; "
+                             "gate_wave is a deprecated alias, keep gate_post_land")
+            else:
+                print(f"{p}: gate_wave is deprecated; rename it gate_post_land", file=sys.stderr)
+            k.setdefault("gate_post_land", k.pop("gate_wave"))
         keys.update(k)
         bodies.append(b)
         problems += [f"{p}: {f}" for f in found]

@@ -31,10 +31,12 @@ APPROVE mean something.
 ## Step 0 -- Load (every mode)
 
 1. From the repository, run `python3 <skill-dir>/overlay.py`. Exit 0 prints
-   the resolved keys as JSON. Exit 1 prints every problem: in `plan` and
-   `run`, read `overlay.md` and draft the overlay with the owner, and go no
-   further until it loads clean; `status` continues on whatever resolved;
-   `verdict` and `advise` stop (`verdict.md`, `advise.md`).
+   the resolved keys as JSON, and any warning, such as a deprecated key, on
+   stderr: pass each warning to the owner in your first report. Exit 1
+   prints every problem: in `plan` and `run`, read `overlay.md` and draft
+   the overlay with the owner, and go no further until it loads clean;
+   `status` continues on whatever resolved; `verdict` and `advise` stop
+   (`verdict.md`, `advise.md`).
 2. Read `rules.md`, the overlay body, and then the body of
    `.claude/agent-team.local.md` when that file exists (`overlay.md`). All
    bind you as much as any agent you dispatch; where the two bodies
@@ -160,8 +162,8 @@ A **quiet pass** lands nothing, dispatches nothing, and finds no agent of
 yours running. It ends the invocation: one `/agent-team run` prompt, typed
 by the owner or fired by a check, so the run stays stateless across checks.
 
-1. If this invocation landed anything, run `<gate_wave>` (`land.md`, After
-   landing).
+1. If this invocation landed anything, run `<gate_post_land>` (`land.md`,
+   After landing).
 2. If any in-scope issue is open, whatever its class -- held and needing a
    brief included -- give an interim report; the check wakes the next pass.
    Otherwise give the final report -- what landed, what is held and on

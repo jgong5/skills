@@ -23,7 +23,7 @@ project's `.gitignore` to keep it out of version control. Each problem
 | `design_entry` | yes | -- | The document developers and reviewers read first (design principles, or the README that indexes them). |
 | `remote` | no | the one remote whose URL points at `repo` | Name of that remote; set it only when zero or several match. |
 | `never_touch` | no | -- | Repositories agents never write to (comma-separated), typically the upstream. |
-| `gate_wave` | no | -- | A wider, slower gate run on `integration_branch` after a run lands work; never blocks a landing. |
+| `gate_post_land` | no | -- | A gate run once on `integration_branch` after a `run` lands work, judged as a delta (`land.md`, After landing). It never holds a landing, so a change only it covers can land broken; slow tests and tests needing a scarce resource usually go here. `gate_wave` is its deprecated alias: it still loads, with a warning, and setting both in one file is a problem. |
 | `new_tests_dir` | no | -- | Where a task's new tests go. |
 | `import_check` | no | -- | Command printing where the project's package resolves from, run in each tree. |
 | `worktree_root` | no | `<main worktree>-worktrees`, beside it | Parent of the per-task worktrees. |

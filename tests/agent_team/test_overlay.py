@@ -145,3 +145,37 @@ def test_an_unknown_local_key_names_the_local_file(tmp_path, monkeypatch):
     r = subprocess.run([sys.executable, overlay.__file__], capture_output=True, text=True)
     assert r.returncode == 1
     assert "agent-team.local.md: line 2: unknown key 'max_task'" in r.stdout
+
+
+def test_gate_wave_loads_as_gate_post_land_with_a_warning(tmp_path, monkeypatch):
+    main = repo_with(tmp_path, monkeypatch, GOOD.replace("max_tasks: 3", "gate_wave: make slow"))
+    r = subprocess.run([sys.executable, overlay.__file__], capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout
+    keys = json.loads(r.stdout)
+    assert keys["gate_post_land"] == "make slow" and "gate_wave" not in keys
+    assert str(main / ".claude" / "agent-team.md") in r.stderr and "gate_post_land" in r.stderr
+
+
+def test_gate_post_land_alone_loads_with_no_warning(tmp_path, monkeypatch):
+    repo_with(tmp_path, monkeypatch, GOOD.replace("max_tasks: 3", "gate_post_land: make slow"))
+    r = subprocess.run([sys.executable, overlay.__file__], capture_output=True, text=True)
+    assert r.returncode == 0 and r.stderr == ""
+    assert json.loads(r.stdout)["gate_post_land"] == "make slow"
+
+
+def test_one_file_setting_both_gate_keys_is_a_problem(tmp_path, monkeypatch):
+    repo_with(tmp_path, monkeypatch, GOOD.replace("max_tasks: 3", "gate_wave: a\ngate_post_land: b"))
+    problems = overlay.load()[2]
+    assert any(p.endswith("agent-team.md: gate_wave and gate_post_land both set; "
+                          "gate_wave is a deprecated alias, keep gate_post_land") for p in problems)
+
+
+def test_the_local_gate_wins_whichever_name_each_file_uses(tmp_path, monkeypatch):
+    main = repo_with(tmp_path, monkeypatch, GOOD.replace("max_tasks: 3", "gate_wave: shared"))
+    write_local(main, "---\ngate_post_land: local\n---\n")
+    keys, _, problems = overlay.load()
+    assert problems == [] and keys["gate_post_land"] == "local"
+    (main / ".claude" / "agent-team.md").write_text(GOOD.replace("max_tasks: 3", "gate_post_land: shared"))
+    write_local(main, "---\ngate_wave: local\n---\n")
+    keys, _, problems = overlay.load()
+    assert problems == [] and keys["gate_post_land"] == "local" and "gate_wave" not in keys
