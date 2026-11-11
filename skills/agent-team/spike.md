@@ -46,4 +46,5 @@ same way.
 
 **Done when** the PR is open with `agent-team/spike`, its body states all
 of the above, and the latest round comment names its head. The lander
-then closes it and writes the issue's handoff (`land.md`, Land one PR).
+then closes the PR, and the issue with its handoff (`land.md`, Land one
+PR).

@@ -22,9 +22,9 @@ the developer's tree, and run `<import_check>` there when it is set.
   justification in the Dev record; confirm the new tests reach code the PR
   did not add; confirm the brief's named result, the one it stated, is shown.
 - **A spike** (`spike.md`) lands nothing, so `<gate_task>` and the new-test
-  gate do not apply. Gate 3 is a reproduction: run the Dev record's command
-  at the sha and in the environment it names, in your own tree, and record
-  your output beside its own. A result outside the stated range, or one you
+  gate do not apply. Gate 3 is a reproduction: run the command the PR
+  body's `## Named result` states, at the sha and in the environment it
+  names, in your own tree, and record your output beside its own. A result outside the stated range, or one you
   cannot run, is unreproduced, and an unreproduced result blocks APPROVE: a
   design must not rest on it. `agent-team/spike` on only one of the issue
   and the PR blocks too: on the issue alone, `land.py` would merge the
