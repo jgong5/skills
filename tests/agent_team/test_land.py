@@ -357,3 +357,19 @@ def test_a_fetch_after_the_tip_fetch_does_not_change_the_tip(repo, fake_gh, monk
     assert land.fetch_tip("origin", "dev", 7) == repo.base
     assert real("rev-parse", "FETCH_HEAD")[1] == other
     assert run(monkeypatch) == 0
+
+
+def test_ref_resolves_every_key_through_the_named_revision(repo, fake_gh, monkeypatch):
+    blob = subprocess.run(["git", "hash-object", "-w", "--stdin"], cwd=repo.work, input=OVERLAY,
+                          capture_output=True, text=True, check=True).stdout.strip()
+    mktree = lambda entry: subprocess.run(["git", "mktree"], cwd=repo.work, input=entry,
+                                          capture_output=True, text=True, check=True).stdout.strip()
+    claude = mktree(f"100644 blob {blob}\tagent-team.md\n")
+    tree = mktree(f"040000 tree {claude}\t.claude\n")
+    line = git(repo.work, "commit-tree", tree, "-m", "the line's overlay")
+    (repo.work / ".claude" / "agent-team.md").write_text(OVERLAY.replace("dev", "other"))
+    fake_gh.head = branch_with(repo, ("g", "new"))
+    assert run(monkeypatch) == 3  # the checkout's overlay lands on `other`
+    assert fake_gh.puts() == []
+    assert run(monkeypatch, "--ref", line) == 0
+    assert len(fake_gh.puts()) == 1

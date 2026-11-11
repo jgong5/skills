@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Land a batch of approved PRs, gated once as one tree.
 
-Usage: batch.py merge PR... --record FILE
-       batch.py land --record FILE --message-dir DIR
+Usage: batch.py merge PR... --record FILE [--ref REV]
+       batch.py land --record FILE --message-dir DIR [--ref REV]
 
 Run from inside the repository. `merge` merges each approved head onto the
 integration tip in the order given, as local commits it never pushes, writes
@@ -97,7 +97,7 @@ def base_update(keys, row, pr, tip):
                  + (", ".join(f"`{f}`" for f in resolved) or "none") + "."])
 
 
-def land_all(keys, record, message_dir):
+def land_all(keys, record, message_dir, ref=None):
     repo, branch = keys["repo"], keys["integration_branch"]
     rec = json.loads(Path(record).read_text())
     message = lambda n: Path(message_dir) / f"{n}.txt"
@@ -123,7 +123,8 @@ def land_all(keys, record, message_dir):
             base_update(keys, row, pr, tip)
         try:
             land.main([str(row["pr"]), "--message-file", str(message(row["pr"])),
-                       "--expect-tree", row["tree"], "--merge-base", row["base"]])
+                       "--expect-tree", row["tree"], "--merge-base", row["base"],
+                       *(["--ref", ref] if ref else [])])
         except SystemExit as e:
             if e.code:
                 raise
@@ -140,14 +141,16 @@ def main(argv=None):
     l = sub.add_parser("land")
     l.add_argument("--record", required=True)
     l.add_argument("--message-dir", required=True)
+    for p in (m, l):
+        p.add_argument("--ref", help="read the overlay as committed at REV (overlay.py --ref)")
     a = ap.parse_args(argv)
-    keys, _, problems = overlay.load()
+    keys, _, problems = overlay.load(ref=a.ref)
     if problems:
         stop(2, "\n".join(problems))
     if a.cmd == "merge":
         merge(keys, a.prs, a.record)
     else:
-        land_all(keys, a.record, a.message_dir)
+        land_all(keys, a.record, a.message_dir, a.ref)
 
 
 if __name__ == "__main__":

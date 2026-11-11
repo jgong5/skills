@@ -232,3 +232,17 @@ def test_merge_starts_from_the_tip_when_another_fetch_follows_its_own(gh, monkey
     rec = json.loads((w / "rec.json").read_text())
     assert rec["tip"] == tip
     assert git(w, "ls-tree", "--name-only", "-r", rec["commit"]).split() == ["f", "x"]
+
+
+def test_ref_reaches_every_landing_the_batch_makes(gh):
+    w = gh.work
+    commit(w, ("f", "a"))
+    git(w, "push", "-q", "origin", "dev")
+    open_pr(gh, 1, "dev", commit(w, ("x", "1")))
+    git(w, "checkout", "-q", "-B", "line")
+    git(w, "add", ".claude/agent-team.md")
+    git(w, "commit", "-qm", "the line's overlay")
+    (w / ".claude" / "agent-team.md").write_text("---\n---\n")  # unusable without --ref
+    batch.main(["merge", "1", "--record", "rec.json", "--ref", "line"])
+    batch.main(["land", "--record", "rec.json", "--message-dir", "msgs", "--ref", "line"])
+    assert gh.prs[1]["state"] == "MERGED"
