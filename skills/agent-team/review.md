@@ -21,6 +21,16 @@ the developer's tree, and run `<import_check>` there when it is set.
   run `<gate_task>` yourself; confirm no existing test was edited without a
   justification in the Dev record; confirm the new tests reach code the PR
   did not add; confirm the brief's named result, the one it stated, is shown.
+- **A spike** (`spike.md`) lands nothing, so `<gate_task>` and the new-test
+  gate do not apply. Gate 3 is a reproduction, in every review, a delta
+  review included: run the command the PR body's `## Named result` states,
+  at the head and in the environment it names, in your own tree, and record
+  your output beside its own. A named sha other than the head, a result
+  outside the stated range, or one you cannot run is unreproduced, and an
+  unreproduced result blocks APPROVE: a design must not rest on it.
+  `agent-team/spike` on only one of the issue and the PR blocks too: on the
+  issue alone, `land.py` would merge the script into the tree; on the PR
+  alone, it would close a task's PR unmerged.
 - **Credit a test with holding a defect only after you have seen it red**:
   reinstate the pre-fix code (`git show`, line count preserved, nothing else
   changed), run it, and record both counts and the failing test id and
