@@ -60,7 +60,8 @@ class GitHub:
             n = int(args[2])
             p, head = self.prs[n], self.head(n)
             return json.dumps({
-                "number": n, "state": p["state"], "body": "", "title": f"Task {n}", "labels": [],
+                "number": n, "state": p["state"], "body": "", "title": f"Task {n}",
+                "labels": [{"name": name} for name in p.get("labels", ())],
                 "headRefOid": head, "headRefName": p["branch"], "baseRefName": p["base"],
                 "reviews": [], "closingIssuesReferences": [], "comments": p["comments"],
                 "commits": [{"committedDate": "2026-01-03T00:00:00Z", "oid": head}]})
@@ -246,3 +247,22 @@ def test_ref_reaches_every_landing_the_batch_makes(gh):
     batch.main(["merge", "1", "--record", "rec.json", "--ref", "line"])
     batch.main(["land", "--record", "rec.json", "--message-dir", "msgs", "--ref", "line"])
     assert gh.prs[1]["state"] == "MERGED"
+
+
+def test_merge_leaves_a_spike_out_of_the_batch_and_land_lands_the_rest(gh, capsys):
+    w = gh.work
+    commit(w, ("f", "a"))
+    git(w, "push", "-q", "origin", "dev")
+    open_pr(gh, 1, "dev", commit(w, ("spike.py", "1")))
+    gh.prs[1]["labels"] = [land.SPIKE]
+    git(w, "checkout", "-q", "-B", "t2", "origin/dev")
+    open_pr(gh, 2, "dev", commit(w, ("x", "1")))
+    batch.main(["merge", "1", "2", "--record", "rec.json"])
+    rec = json.loads((w / "rec.json").read_text())
+    assert [r["pr"] for r in rec["prs"]] == [2]
+    assert git(w, "ls-tree", "--name-only", "-r", rec["commit"]).split() == ["f", "x"]
+    assert "#1" in capsys.readouterr().err
+
+    batch.main(["land", "--record", "rec.json", "--message-dir", "msgs"])
+    assert gh.prs[2]["state"] == "MERGED" and gh.prs[1]["state"] == "OPEN"
+    assert git(gh.remote, "rev-parse", "dev^{tree}") == rec["prs"][0]["tree"]
