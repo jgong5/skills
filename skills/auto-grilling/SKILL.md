@@ -9,7 +9,12 @@ disable-model-invocation: true
 Stress-test a plan the way a relentless interviewer would -- walk every
 branch of its decision tree, resolving dependencies one decision at a time
 -- but answer each question yourself with your recommended answer, and keep
-going until the tree is done. The user is asked exactly once, at the end.
+going until the tree is done. `/auto-grilling` asks the user exactly once,
+at the end.
+
+This file has two parts. Part 1, the loop, runs the grilling and ends at a
+written Summary. Part 2, the ending, is the final menu and Revise, and only
+`/auto-grilling` runs it.
 
 Adapted from Matt Pocock's
 [`grilling`](https://github.com/mattpocock/skills/tree/170ad48655825783d0193e850e31a9aac957bb95/skills/productivity/grilling)
@@ -21,21 +26,33 @@ answer to each, and those lines contradict a run that never waits.
 Invoking it and overriding them would leave two instructions fighting in
 one context.
 
+## Reusing the loop
+
+A skill that reuses the loop reads this file, since this skill cannot be
+invoked by a model, and runs Part 1 only: it stops reading at Part 2's
+heading and defines its own ending, which starts from the written Summary.
+It may also set the language `.grill.md` is written in. Part 2 stays out of
+its context for the reason this skill rewrites `grilling`: Part 2 stops and
+waits, the loop never does.
+
+# Part 1: the loop
+
 ## Input
 
-`/auto-grilling <plan text | file path>`. A path is read; anything else is
-the plan itself. Read the code and documents the plan touches before the
-first question, because a question the environment can answer is not a
-question.
+`/auto-grilling <plan text | file path>`, or whatever a reusing skill hands
+over. A path is read; anything else is the plan itself. Read the code and
+documents the plan touches before the first question, because a question
+the environment can answer is not a question.
 
-Talk to the user, and write `.grill.md`, in the user's language; this file
-stays English so one copy serves every user.
+Talk to the user, and write `.grill.md`, in the user's language unless a
+reusing skill sets it; this file stays English so one copy serves every
+user.
 
 ## The run
 
 Never stop mid-run. A pause to ask is exactly the cost this skill exists to
-remove; a doubtful answer is instead tagged `low` and shown at the end,
-where the user can overturn it with the whole tree in view.
+remove; a doubtful answer is instead tagged `low` and listed in the
+Summary, where the ending can show it with the whole tree in view.
 
 For each question, in dependency order:
 
@@ -103,6 +120,13 @@ Input: <path, or "inline plan">
 
 `Depends on` is what makes a revision cheap: it says exactly which answers
 a changed decision invalidates.
+
+When the run is done, write the Summary. **The loop ends there, at a
+written Summary**: Part 1 has no menu and never waits for the user. A run
+started as `/auto-grilling` goes on to Part 2; a reusing skill goes to its
+own ending.
+
+# Part 2: the ending (`/auto-grilling` only)
 
 ## The final menu
 
