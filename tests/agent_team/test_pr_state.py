@@ -255,3 +255,25 @@ def test_a_brief_update_holds_an_approve_and_reads_past_the_first_line(fake_gh):
         assert pr_state.state(7)["turn"] == "land"
     fake_gh.pr = make_pr([comment("2026-01-01T00:00:00Z", "Brief updated: Fix."), approve])
     assert pr_state.state(7)["turn"] == "land"
+
+
+def test_an_ai_ruling_after_an_approve_is_a_ruling(fake_gh):
+    approve = comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")
+    ruling = comment("2026-01-03T00:00:00Z", "**Ruling (auto):** (a) keep the cut.", "bot")
+    fake_gh.pr = make_pr([approve, ruling])
+    s = pr_state.state(7)
+    assert s["turn"] == "reviewer" and s["verdicts"] == 0
+    assert s["holds"] == ["a ruling follows the last verdict"]
+    # Only that opening: anything else after `Ruling` is not a Ruling.
+    fake_gh.pr = make_pr([approve, dict(ruling, body="Ruling (draft): (a) keep the cut.")])
+    s = pr_state.state(7)
+    assert s["turn"] == "land" and s["verdicts"] == 1
+
+
+def test_an_ai_ruling_restarts_the_verdict_count(fake_gh):
+    rc = [comment(f"2026-01-0{d}T00:00:00Z", f"REQUEST CHANGES @ 111111{d}: 1 blocking.", "rev")
+          for d in (2, 3, 4)]
+    ruling = comment("2026-01-06T00:00:00Z", "Ruling (auto): (b) split the task.", "bot")
+    last = comment("2026-01-07T00:00:00Z", "REQUEST CHANGES @ c0ffee1: 1 blocking.", "rev")
+    fake_gh.pr = make_pr(rc + [ruling, last])
+    assert pr_state.state(7)["verdicts"] == 1

@@ -10,11 +10,12 @@ APPROVE or REQUEST CHANGES (markdown emphasis allowed) and names the head it
 covers as a sha, as in `APPROVE @ 1a2b3c4.` A head the last verdict does
 not cover is the reviewer's turn only once a later comment names it, as the
 round comment `Round <k> pushed <sha>.` does; until then it is the developer's.
-`verdicts` counts only the verdicts after the last entry whose first line
-opens with `Ruling:`, so an owner ruling restarts the count; the last verdict
-and holds still read the whole thread. A REQUEST CHANGES that covers the head
-is the developer's turn. Any entry after the last verdict whose first line opens
-with `Ruling:` or `Ruling on #N affects this:` holds landing and makes a covered
+`verdicts` counts only the verdicts after the last Ruling -- an entry whose
+first line opens with `Ruling:` or, for an AI ruling, `Ruling (auto):` -- so a
+ruling restarts the count; the last verdict and holds still read the whole
+thread. A REQUEST CHANGES that covers the head is the developer's turn. Any
+entry after the last verdict whose first line opens a Ruling, or with
+`Ruling on #N affects this:`, holds landing and makes a covered
 head the reviewer's turn, even under an APPROVE: the ruling may have changed the
 brief, or left nothing to push, so a fresh verdict under it comes first.
 A brief update -- an entry with a line, or a sentence, opening with
@@ -41,7 +42,8 @@ DELIVERS = re.compile(r"(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|address(?
                       r"implement(?:s|ed)?)\s+#(\d+)")
 VERDICT = re.compile(r"(APPROVE|REQUEST CHANGES)\b")
 SHA = re.compile(r"\b[0-9a-f]{7,40}\b")
-RULING = re.compile(r"Ruling(:| on #\d+ affects this:)")
+RULED = re.compile(r"Ruling(?: \(auto\))?:")  # a Ruling, the owner's or an AI's
+RULING = re.compile(RULED.pattern + r"|Ruling on #\d+ affects this:")
 BRIEF = re.compile(r"(?m)(?:^\s*|[.!?]\s+)Brief updated:")
 FIELDS = "number,state,body,headRefOid,headRefName,baseRefName,labels,comments,reviews,commits,closingIssuesReferences"
 
@@ -75,7 +77,7 @@ def state(number, repo=None, equivalent=None):
     head = pr["headRefOid"]
     entries = thread(pr)
     verdicts = [e for e in entries if e[1] != "commit" and VERDICT.match(e[3])]
-    ruled = max((i for i, e in enumerate(entries) if e[3].startswith("Ruling:")), default=-1)
+    ruled = max((i for i, e in enumerate(entries) if RULED.match(e[3])), default=-1)
     holds = []
     if pr["state"] != "OPEN":
         holds.append(f"PR is {pr['state']}")

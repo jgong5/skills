@@ -11,11 +11,13 @@ tree at this PR's place in it); squash through merge-async with the
 checked head sha, once GitHub has computed the PR's mergeability -- or, for
 a PR labeled `agent-team/land-as-merge` (or its old name, `land as merge`),
 merge it as a two-parent merge commit; poll until merged, and on a failure
-read the PR once more, since GitHub can report failed a merge it completed. Under --expect-tree an APPROVE at
+read the PR once more, since GitHub can report failed a merge it completed. A PR
+labeled `agent-team/spike` is closed unmerged instead, after the holds and
+before the tree check: its result lives in its PR, not the tree. Under --expect-tree an APPROVE at
 another sha covers the head when both would land as that tree, the approved
 sha merged from its `git merge-base` with --merge-base, or when the head's
 parents are that sha and the tip and its tree is the gated one. Exit 0
-merged, 2 overlay problem, 3 hold, 4 tree differs or conflicts, 5 merge
+merged (or a spike closed), 2 overlay problem, 3 hold, 4 tree differs or conflicts, 5 merge
 failed.
 """
 
@@ -31,6 +33,7 @@ import pr_state
 TIMEOUT = 900  # seconds GitHub gets to report the merge
 # keeps the branch's history, such as an upstream merge; the old name is still read for one version
 AS_MERGE = {"agent-team/land-as-merge", "land as merge"}
+SPIKE = "agent-team/spike"  # closed, never merged
 TIP = "refs/agent-team/tip"  # the fetched integration tip; any other fetch overwrites FETCH_HEAD
 
 
@@ -144,13 +147,17 @@ def main(argv=None):
         stop(3, "hold: " + "; ".join(s["holds"]))
     if s["base"] != keys["integration_branch"]:
         stop(3, f"hold: based on {s['base']}, not {keys['integration_branch']}: land the PR below first")
+    pr = json.loads(pr_state.gh(
+        ["pr", "view", str(a.pr), "-R", keys["repo"], "--json", "title,labels"]))
+    labels = {l["name"] for l in pr.get("labels", [])}
+    if SPIKE in labels:
+        pr_state.gh(["pr", "close", str(a.pr), "-R", keys["repo"]])
+        stop(0, json.dumps({"status": "closed", "head": s["head"]}, indent=1))
     why = tree_check(tip(), s["head"], expect=a.expect_tree)
     if why:
         stop(4, why)
-    pr = json.loads(pr_state.gh(
-        ["pr", "view", str(a.pr), "-R", keys["repo"], "--json", "title,labels"]))
     title = pr["title"]
-    method = "merge" if AS_MERGE & {l["name"] for l in pr.get("labels", [])} else "squash"
+    method = "merge" if AS_MERGE & labels else "squash"
     if not title.endswith(f" (#{a.pr})"):
         title += f" (#{a.pr})"  # GitHub does not add it on this endpoint
     res = merge(keys["repo"], a.pr, s["head"], title, a.message_file, method)
