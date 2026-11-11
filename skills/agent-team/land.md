@@ -1,8 +1,8 @@
 # Landing
 
 Landing is the agents' job; no owner approval is needed or sought, and it
-does not wait for `<gate_wave>`. Any PR whose `pr_state.py` turn is `land`
-lands, bottom-first through a stack.
+does not wait for `<gate_post_land>`. Any PR whose `pr_state.py` turn is
+`land` lands, bottom-first through a stack.
 
 ## Holds
 
@@ -124,7 +124,7 @@ review of the resolution.
 - An issue that depended on this one may now be claimable; the next `run`
   pass picks it up.
 - When a `run` invocation (`SKILL.md`, The quiet pass) has landed anything
-  and `<gate_wave>` is set, run it once on the new tip before each
+  and `<gate_post_land>` is set, run it once on the new tip before each
   quiet-pass report. It is judged as a delta: if it is
   red, run it on the tip from before this run's first landing, and file
   each failure that is new as a finding issue.
