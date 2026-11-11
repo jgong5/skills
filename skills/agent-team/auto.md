@@ -8,9 +8,10 @@ branch, opens the umbrella issue and its design issue, and hands over to
 owner is asked again only about what to build, about an action outside the
 repository, and at acceptance.
 
-**Nothing before the confirmation leaves scratch** (the project's
-git-ignored scratch directory, or one the overlay body names): no issue,
-comment, label, branch, push or repository, and no change to a tracked file.
+**Nothing before the confirmation leaves scratch** (`<scratch>`: the
+project's git-ignored scratch directory, or one the overlay body names) or
+the baseline's temporary directory: no issue, comment, label, branch, push
+or repository, and no change to a tracked file.
 The owner can still say no, so stopping at the confirmation must leave no
 trace.
 
@@ -42,7 +43,8 @@ never `auto-grilling`'s menu, which is why Part 2 stays unread.
   only the acceptor runs it.
 - A `low` answer becomes a question in the confirmation.
 
-Write the Summary out as `<scratch>/<topic>.requirement.md`:
+Write the Summary out as `<scratch>/<topic>.requirement.md`, `<topic>`
+being the loop's name for its `<topic>.grill.md`:
 
 ```
 # Requirement: <feature>
@@ -70,8 +72,9 @@ requirement may name others. The first case that matches applies:
 1. **New project** -- the repository does not exist on GitHub (`gh repo
    view <repo>` finds none). Draft its name and visibility. With no
    checkout, also draft its local clone path (default: beside the current
-   repository) and an overlay whose `gate_task` is trivially green; with
-   a checkout, continue as case 5 on it.
+   repository) and an overlay whose `gate_task` is trivially green and
+   whose `design_entry` is case 5's empty index; with a checkout, continue
+   as case 5 on it.
 2. **Fork** -- the requirement says so, or the current `gh` user cannot
    push to the repository (`gh repo view <repo> --json viewerPermission`
    below `WRITE`). Draft the upstream, the fork's owner and the base ref,
@@ -84,25 +87,32 @@ requirement may name others. The first case that matches applies:
    with `integration_branch` set to the new branch; other values carry
    over unless the owner changes them.
 5. **No overlay** -- draft it as `overlay.md` (Drafting) steps 1-4 say,
-   every value with the source it came from.
+   every value with the source it came from. With no `CLAUDE.md`,
+   `AGENTS.md` or README to name, `design_entry` is `docs/README.md`,
+   drafted as an empty index and committed with the overlay, so the design
+   document and the principles have a directory.
 
 **The baseline.** Whenever there is a checkout, run the gate once
-(`overlay.md` step 3), in a `git archive` snapshot of the branch tip
-under scratch, and record the command, how it ran (wrapper, container,
-interpreter), the sha, the exit status and the wall time. A red baseline
-does not stop `auto`: it takes `overlay.md` step 4's second way on and
-drafts a project-owned wrapper script that runs the gate, excludes each
-known failure by name and fails on anything else. The wrapper becomes
-`gate_task`; rerun it in the snapshot to show it green. A failure with no
-stable name, or one so broad the wrapper would exclude most of the suite,
-is not wrapped: it is a question.
+(`overlay.md` step 3) in a `git archive` snapshot of the branch tip --
+`<remote>/<branch>` as fetched, a new line's start point, or `HEAD` when
+the repository is new -- extracted into `mktemp -d`, outside the
+repository, so no test runner climbs from the snapshot into the
+checkout's own configuration. Record the command, how it ran (wrapper,
+container, interpreter), the sha, the exit status and the wall time. A
+red baseline does not stop `auto`: it takes `overlay.md` step 4's second
+way on and drafts a project-owned wrapper script that runs the gate,
+excludes each known failure by name and fails on anything else. The
+wrapper becomes `gate_task`; rerun it in the snapshot to show it green.
+A failure with no stable name, or one so broad the wrapper would exclude
+most of the suite, is not wrapped: it is a question.
 
-Draft a brief (`plan.md`, step 3) for each excluded failure, since nothing
-later in auto mode writes one and `run` never claims an issue without it:
-its file set the test, the code it fails in and the wrapper; its exit
-criteria and named result the test passing with the wrapper no longer
-excluding it; an effort estimate from reading the failure. A failure whose
-cause the reading does not find is a question, not a brief.
+Draft a brief (`plan.md`, step 3) for each excluded failure, since
+nothing later in auto mode writes one and `run` never claims an issue
+without it: its file set the test, the code it fails in and the wrapper;
+its exit criteria and named result the test passing with the wrapper no
+longer excluding it; its effort as `plan.md` step 3 states it, estimated
+from reading the failure. A failure whose cause the reading does not
+find is a question, not a brief.
 
 **The local file.** When `.claude/agent-team.local.md` is missing, draft
 one whose body says how the baseline actually ran: the wrapper or
@@ -121,6 +131,8 @@ directory, indexed by `<design_entry>`), use it. Otherwise draft one in
 `<publish_language>`, in the shape of `<skill-dir>/principles.md`: each
 principle one or two sentences, its why, and a link to its source.
 
+- A new project has no history: draft from the requirement's non-goals
+  and priorities, and skip the sources below.
 - Sources: the design documents `<design_entry>` indexes, `CLAUDE.md`,
   the overlay body, and past human Rulings. Find those with `gh search
   issues "Ruling:" --repo <repo> --include-prs --limit 1000` (without
@@ -133,8 +145,6 @@ principle one or two sentences, its why, and a link to its source.
 - Keep only what is specific to the project: a principle
   `<skill-dir>/principles.md` already states is not restated. The draft
   links that list and says that it wins a conflict with it.
-- A new project has no history: draft from the requirement's non-goals
-  and priorities.
 
 The draft lands with the design PR, so the design issue carries it.
 
@@ -187,21 +197,23 @@ In this order, linting every GitHub text with `gh-prose` first:
      integration branch. Until it lands, every script reads the overlay
      with `--ref <remote>/<PR branch>` (`overlay.md`).
 2. **Write the local file** when one was drafted, beside the checkout's
-   overlay. When step 1 made no commit (overlay present, baseline green),
-   its ignore line goes in `.git/info/exclude` instead, so the main
-   worktree keeps no uncommitted change.
+   overlay, and its ignore line in `.git/info/exclude`: a committed
+   `.gitignore` line serves other clones, but reaches the main worktree
+   only once its commit lands, and until then the file shows as untracked.
 3. **Create the labels** `agent-team/auto` and `agent-team/design` when
    missing.
 4. **Open the umbrella**: titled with the feature, labeled
-   `agent-team/auto`, its body the requirement document followed by
-   `Integration branch: <branch>` and, while the overlay is in a PR,
-   `Overlay: <remote>/<PR branch> (#P)`. The umbrella is never a task.
+   `agent-team/auto`, its body `Integration branch: <branch>`, then,
+   while the overlay is in a PR, `Overlay: <remote>/<PR branch> (#P)`,
+   then the requirement document in `<details>`, which keeps the
+   `gh-prose` word budget without cutting an acceptance item. The
+   umbrella is never a task.
 5. **Open the design issue**: `Design: <feature>`, labeled
    `agent-team/design`, its body opening `Part of #U` and holding a brief
    (`plan.md`, step 3) whose file set is the design document in
    `<design_entry>`'s directory and, when one was drafted, the principles
-   document. The body quotes the approved principles draft in full: the
-   designer commits it with the design, as approved.
+   document. The body quotes the approved principles draft in full, in
+   `<details>`: the designer commits it with the design, as approved.
 6. **File one issue per excluded failure**, each `Part of #U`, with the
    test's failing output and its approved brief, plus `Depends on #P` when
    the wrapper is in the overlay PR, since the fix edits it.
