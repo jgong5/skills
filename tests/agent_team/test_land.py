@@ -373,3 +373,28 @@ def test_ref_resolves_every_key_through_the_named_revision(repo, fake_gh, monkey
     assert fake_gh.puts() == []
     assert run(monkeypatch, "--ref", line) == 0
     assert len(fake_gh.puts()) == 1
+
+
+def test_an_approved_spike_pr_is_closed_unmerged_and_a_held_one_is_not(
+        repo, fake_gh, monkeypatch, capsys):
+    fake_gh.head = branch_with(repo, ("f", "mine"))
+    repo.land_on_tip(("f", "theirs"))  # nothing lands, so a conflict with the tip does not matter
+    calls = []
+
+    def github(args, check=True):
+        calls.append(args[:2])
+        if args[:2] == ["pr", "view"]:
+            return json.dumps({"title": "Measure it", "labels": [{"name": "agent-team/spike"}]})
+        if args[:2] == ["pr", "close"]:
+            assert args[2:] == ["7", "-R", "me/proj"]
+            return ""
+        return fake_gh(args, check)
+
+    monkeypatch.setattr(pr_state, "gh", github)
+    fake_gh.holds = ["agent-team/need-human on the PR"]
+    assert run(monkeypatch) == 3
+    assert calls == [] and capsys.readouterr().out.startswith("hold:")
+    fake_gh.holds = []
+    assert run(monkeypatch) == 0
+    assert calls == [["pr", "view"], ["pr", "close"]]
+    assert json.loads(capsys.readouterr().out) == {"status": "closed", "head": fake_gh.head}

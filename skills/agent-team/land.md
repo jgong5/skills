@@ -18,8 +18,8 @@ These are the landing preconditions, and the only holds:
 4. No `agent-team/hold-landing` on the PR or on an issue it closes. It
    holds landing and nothing else -- development and review go on -- and
    whoever applied it removes it.
-5. No entry after the last verdict whose first line opens with `Ruling:` or
-   `Ruling on #N affects this:`. The ruling may have changed the brief, so a
+5. No entry after the last verdict whose first line opens with `Ruling:`,
+   `Ruling (auto):` or `Ruling on #N affects this:`. The ruling may have changed the brief, so a
    fresh verdict under it comes first.
 
 A hold names the one that is unmet. **Any other rule violation seen in an
@@ -61,6 +61,13 @@ Use it only for a branch whose history must survive landing, such as a merge
 of an upstream repository: squashed, the upstream commit stops being an
 ancestor, so the next upstream merge conflicts on everything since and `git
 log` loses the upstream history.
+
+A PR labeled `agent-team/spike` is closed, never merged: `land.py` checks
+its holds as for any PR, then closes it, prints `"status": "closed"` with
+the head, and exits 0, with no tree check and nothing sent to merge. A
+spike's result belongs in its PR and issue, not the tree; the closed PR's
+`refs/pull/<pr>/head` keeps its script reachable. Close the spike's issue
+with a handoff that names the result, the PR and that head sha.
 
 ## Land a batch
 
