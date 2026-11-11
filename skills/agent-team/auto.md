@@ -131,8 +131,8 @@ directory, indexed by `<design_entry>`), use it. Otherwise draft one in
 `<publish_language>`, in the shape of `<skill-dir>/principles.md`: each
 principle one or two sentences, its why, and a link to its source.
 
-- A new project has no history: draft from the requirement's non-goals
-  and priorities, and skip the sources below.
+- A new project has no Rulings: skip the search below, and add the
+  requirement's non-goals and priorities to the sources it has.
 - Sources: the design documents `<design_entry>` indexes, `CLAUDE.md`,
   the overlay body, and past human Rulings. Find those with `gh search
   issues "Ruling:" --repo <repo> --include-prs --limit 1000` (without
@@ -211,7 +211,8 @@ In this order, linting every GitHub text with `gh-prose` first:
 5. **Open the design issue**: `Design: <feature>`, labeled
    `agent-team/design`, its body opening `Part of #U` and holding a brief
    (`plan.md`, step 3) whose file set is the design document in
-   `<design_entry>`'s directory and, when one was drafted, the principles
+   `<design_entry>`'s directory, `<design_entry>` itself when it lists
+   the design documents, and, when one was drafted, the principles
    document. The body quotes the approved principles draft in full, in
    `<details>`: the designer commits it with the design, as approved.
 6. **File one issue per excluded failure**, each `Part of #U`, with the
