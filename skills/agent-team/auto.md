@@ -10,7 +10,7 @@ repository, and at acceptance.
 
 **Nothing before the confirmation leaves scratch** (the project's
 git-ignored scratch directory, or one the overlay body names): no issue,
-comment, label, branch, push or repository, and no write to the checkout.
+comment, label, branch, push or repository, and no change to a tracked file.
 The owner can still say no, so stopping at the confirmation must leave no
 trace.
 
@@ -19,9 +19,9 @@ trace.
 Step 0 (`SKILL.md`), except that an overlay problem does not stop `auto`
 (it is one of the cases in step 3) and labels wait for step 6. A path is
 read; `#N` is read with its comments, after checking delivery
-(`rules.md`); anything else is the requirement itself. Read `<design_entry>` when the overlay loads, else the
-repository's `CLAUDE.md` or `AGENTS.md`, and the code the requirement
-touches.
+(`rules.md`); anything else is the requirement itself. Read
+`<design_entry>` when the overlay loads, else the repository's `CLAUDE.md`
+or `AGENTS.md`, and the code the requirement touches.
 
 ## 2. The requirement
 
