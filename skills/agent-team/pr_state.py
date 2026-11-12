@@ -24,6 +24,11 @@ verdict holds landing the same way, and while it follows the last comment
 naming the head, the turn is the developer's: a changed brief is answered
 with code, or with a round comment naming the unchanged head, before it is
 reviewed.
+A PR closed unmerged after this PR's first commit holds every turn when the
+head descends from, or is, one of its commits: a stacked child whose parent
+closed still carries the parent's unapproved commits, and once its base
+reaches the integration branch the tree check would land them. A Ruling in
+this thread after that close lifts the hold.
 A caller may pass `equivalent(sha, head)` to let an APPROVE at another sha
 cover the head; land.py does under --expect-tree.
 """
@@ -76,6 +81,14 @@ def thread(pr):
     return sorted(entries)
 
 
+def contains_commits_of(number, head, repo=None):
+    """Whether `head` descends from, or is, a commit of PR `number`."""
+    api = f"repos/{repo or '{owner}/{repo}'}"
+    commits = gh(["api", "--paginate", f"{api}/pulls/{number}/commits", "--jq", ".[].sha"]).split()
+    return any(gh(["api", f"{api}/compare/{c}...{head}", "--jq", ".status"]).strip() in ("ahead", "identical")
+               for c in commits)
+
+
 def state(number, repo=None, equivalent=None):
     r = ["-R", repo] if repo else []
     pr = json.loads(gh(["pr", "view", str(number), "--json", FIELDS, *r]))
@@ -92,6 +105,14 @@ def state(number, repo=None, equivalent=None):
     for n in sorted(issues):
         labels = {l["name"] for l in json.loads(gh(["issue", "view", str(n), "--json", "labels", *r]))["labels"]}
         holds += [f"{name} on issue #{n}, which this PR delivers" for name in LABEL + HOLD if name in labels]
+    first = min((c["committedDate"] for c in pr["commits"]), default=None)
+    closed = json.loads(gh(["pr", "list", "--state", "closed", "--search", f"is:unmerged closed:>{first}",
+                            "--json", "number,closedAt", "--limit", "1000", *r])) if first else []
+    lifted = entries[ruled][0] if ruled >= 0 else ""
+    orphaned = [f"contains commits of #{a['number']}, closed unmerged" for a in closed
+                if a["number"] != pr["number"] and a["closedAt"] > lifted
+                and contains_commits_of(a["number"], head, repo)]
+    holds += orphaned
     verdict = None
     if verdicts:
         at, _, author, line, _ = verdicts[-1]
@@ -121,7 +142,7 @@ def state(number, repo=None, equivalent=None):
         holds.append("a brief update follows the last verdict")
     if not covers and not named:
         holds.append(f"head {head[:12]} has no round comment")
-    if pr["state"] != "OPEN" or any(h.startswith(LABEL) for h in holds):
+    if pr["state"] != "OPEN" or orphaned or any(h.startswith(LABEL) for h in holds):
         turn = "held"
     elif briefed and briefed[-1] > max(named, default=-1):
         turn = "developer"
