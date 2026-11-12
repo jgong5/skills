@@ -24,13 +24,12 @@ verdict holds landing the same way, and while it follows the last comment
 naming the head, the turn is the developer's: a changed brief is answered
 with code, or with a round comment naming the unchanged head, before it is
 reviewed.
-A PR closed unmerged after this PR's first commit, from another head branch,
-holds every turn when one of its commits is among this PR's own commits (head
-minus base): a stacked child whose parent closed still carries the parent's
-unapproved commits, and once its base reaches the integration branch they
-enter its commits and the tree check would land them. A commit the base
-already has is not this PR's, so a closed sync PR whose commits a later merge
-landed holds nothing. A Ruling in this thread after that close lifts the hold.
+A PR from another branch, closed unmerged after this PR's first commit, holds
+every turn when one of its commits is among this PR's own (head minus base):
+a stacked child whose parent
+closed still carries the parent's unapproved commits, and once its base
+reaches the integration branch the tree check would land them. A Ruling in
+this thread after that close lifts the hold.
 A caller may pass `equivalent(sha, head)` to let an APPROVE at another sha
 cover the head; land.py does under --expect-tree.
 """
