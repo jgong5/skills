@@ -8,7 +8,7 @@ section for what it does and how to install it.
 | [`pr-review-kit`](#pr-review-kit) | `pr-explain`, `pr-review-draft`, `pr-review-dossier` | Context-first pull-request review |
 | [`amd-gpu`](#amd-gpu) | `kernel-perf`, `asm-tutorial` | Find a CDNA kernel's bottleneck by ablation; turn its assembly into a verified PDF tutorial |
 | [`code-study`](#code-study) | `implementation-study`, `architecture-study`, `tutorial-deck` | Turn code you did not write into a diagram-first, evidence-grounded, verified PDF study -- one algorithm, or a whole system's architecture -- or a verified PPTX tutorial on one topic |
-| [`agent-team`](#agent-team) | `agent-team`, `gh-prose` | Run developer and reviewer agents over a GitHub issue pool, from brief to squash landing, with each item's ruler ruling only on its escalations |
+| [`agent-team`](#agent-team) | `agent-team`, `gh-prose` | Run developer and reviewer agents over a GitHub issue pool, from brief to squash landing, with each item's ruler ruling only on its escalations; or, in auto mode, take a requirement to an accepted feature |
 | [`auto-grilling`](#auto-grilling) | `auto-grilling` | Grill a plan to completion without stopping: each question answered with its recommended answer and logged, then one final action menu |
 
 ## pr-review-kit
@@ -394,14 +394,15 @@ repository. You write (or approve) the briefs; developer agents build each
 task in its own worktree and PR; reviewer agents review every head until
 APPROVE; the orchestrating agent lands approved PRs squashed onto your
 integration branch. A person is asked only when an agent escalates,
-through a `need human` label that stops all automation on that item until
-the item's ruler removes it, by hand or by ruling with `/agent-team
-verdict`; `/agent-team advise` analyses a held item first and drafts that
-ruling.
+through an `agent-team/need-human` label that stops all automation on that
+item until the item's ruler removes it, by hand or by ruling with
+`/agent-team verdict`; `/agent-team advise` analyses a held item first and
+drafts that ruling. In auto mode (`/agent-team auto`, below) agents also
+design, plan, rule on how to build and check acceptance.
 
 | Skill | Invocation | What it does |
 | --- | --- | --- |
-| `agent-team` | `/agent-team plan`, `/agent-team run [scope]`, `/agent-team status [scope]`, `/agent-team verdict [text]`, `/agent-team advise <url\|#N> [concern]` | `plan` turns a design document, a goal, or existing issues into briefed issues linked by `Depends on #N`, and publishes them after you approve. `run` drives the pool: claim, develop, review, land; while an issue in its scope is open, it checks again every 15 minutes instead of ending. `status` reports PR turns, holds, and each held item's ruler. `verdict` posts your ruling on the held items you rule, refuses the others naming their ruler, or hands one to another ruler; it makes the issue changes it calls for, and removes `need human`; running sessions see it at their next check. `advise` is read-only: for one item, it answers your concern and leads with an overview you can rule from alone, then gives the evidence: it checks the request's claims against the code and the thread, searches past rulings, draws the stuck mechanism as a sequence diagram when it is one, sets the options -- in numbers, tagged measured or inferred -- against the project's principles, and drafts a `Ruling:` for `verdict` with the follow-up issues it calls for. A scope names issues, labels or PRs, so sessions can split the pool, and concurrent sessions' scopes must not overlap; with none, the whole pool is in scope. |
+| `agent-team` | `/agent-team auto <prompt\|#N\|path>`, `/agent-team plan`, `/agent-team run [scope]`, `/agent-team status [scope]`, `/agent-team verdict [text]`, `/agent-team advise <url\|#N> [concern]` | `auto` takes a requirement to an accepted feature (Auto mode, below). `plan` turns a design document, a goal, or existing issues into briefed issues linked by `Depends on #N`, and publishes them after you approve. `run` drives the pool: claim, develop, review, land; while an issue in its scope is open, it checks again every 15 minutes instead of ending. `status` reports PR turns, holds, and each held item's ruler. `verdict` posts your ruling on the held items you rule, refuses the others naming their ruler, or hands one to another ruler; it makes the issue changes it calls for, and removes `agent-team/need-human`; running sessions see it at their next check. `advise` is read-only: for one item, it answers your concern and leads with an overview you can rule from alone, then gives the evidence: it checks the request's claims against the code and the thread, searches past rulings, draws the stuck mechanism as a sequence diagram when it is one, sets the options -- in numbers, tagged measured or inferred -- against the project's principles, and drafts a `Ruling:` for `verdict` with the follow-up issues it calls for. A scope names issues, labels or PRs, so sessions can split the pool, and concurrent sessions' scopes must not overlap; with none, the whole pool is in scope. |
 | `gh-prose` | automatic when writing GitHub text, or ask for it | Style rules and a lint for issues, PR bodies, comments and review records: state and ask first, each fact once, evidence folded. |
 
 Why this shape: every rule in it came from a run that went wrong. The task
@@ -415,6 +416,38 @@ counted by `line_count.py`, with moved and deleted lines at a quarter
 weight, only to check its estimate, never to shape its code
 ([`rules.md`](skills/agent-team/rules.md), Escalations).
 
+### Auto mode
+
+`/agent-team auto` takes a requirement -- a prompt, an issue (`#N`) or a
+document path -- and asks you only about what to build, never how:
+
+1. **Once, before any work**: the requirement confirmation. `auto` reads
+   the requirement and the code, fills each requirement-level gap with a
+   recommended answer, and shows one message: the requirement document,
+   with a command for every acceptance item; the environment (integration
+   branch, and a new repository or fork when the requirement needs one);
+   what it verified, each with its source -- the overlay draft, a baseline
+   run of the gate, the local file, a principles draft; and what it could
+   not find or verify, as questions. Nothing is published until you
+   approve; then it opens an umbrella issue labeled `agent-team/auto` and
+   a `Design:` issue under it, and starts `run` on the umbrella.
+2. **When a question is about what to build**, a target is not met, or an
+   action is needed outside the repository (machine access, credentials):
+   the item gets `agent-team/need-human`, and you answer with `advise` and
+   `verdict` as in the manual flow. Questions about how to build go to a
+   ruling agent instead (`agent-team/ruling`), which posts a `Ruling
+   (auto):`, or passes the item to you when the question is yours after
+   all or it is unsure.
+3. **At acceptance**: once every issue under the umbrella is closed, an
+   acceptor that built none of it runs each acceptance command and posts
+   `Needs owner ruling: accept <feature>?` on the umbrella. Accepting
+   closes it; anything else files follow-ups under it.
+
+Until then you may veto any AI ruling on the umbrella with `Ruling:
+overturn #N: ...`; the run files the follow-ups. Removing `agent-team/auto`
+from the umbrella returns its issues to the manual flow. A run with no
+scope leaves auto umbrellas' issues to their own run.
+
 ### The project overlay
 
 Everything project-specific lives in one file in your repository,
@@ -426,7 +459,10 @@ you: it infers values from your remotes, docs and CI, runs the proposed gate
 once on the integration branch to show it is green, and writes the file only
 after you approve. An optional `.claude/agent-team.local.md` beside it
 overrides its keys and extends its body for one checkout; add that file to
-your `.gitignore`. The `conversation_language` key sets the language agents
+your `.gitignore`. `overlay.py --ref <rev>` reads the overlay as committed
+at a branch or sha instead of from the checkout, so one checkout can run
+two integration branches, or a run can use an overlay still in an unlanded
+PR. The `conversation_language` key sets the language agents
 use when they talk to you. The full key table is in
 [`skills/agent-team/overlay.md`](skills/agent-team/overlay.md).
 
@@ -436,16 +472,26 @@ use when they talk to you. The full key table is in
   worktrees, issues, PRs, comments and labels in the overlay's `repo`, and
   land approved PRs onto its integration branch **without asking you**.
   Point `repo` at a fork or a repository where that is acceptable.
-- **`need human` is the brake.** An agent applies it the moment it
-  escalates, and it stops all agent action on that issue or PR; only the
-  item's ruler removes it, by hand or with `/agent-team verdict`. A repository named in
-  `never_touch` is never written to.
+- **`agent-team/need-human` is the brake.** An agent applies it the moment
+  it escalates, and it stops all agent action on that issue or PR; only the
+  item's ruler removes it, by hand or with `/agent-team verdict`. In auto
+  mode `agent-team/ruling` stops an item the same way, and a ruling agent
+  removes it. A repository named in `never_touch` is never written to.
 - **Nothing is rewritten.** PR branches only gain commits -- no force-push,
   rebase or amend, unless a ruling allows one force-push -- and nothing is pushed to the integration branch except
   by landing an approved head: squashed, or as a merge commit when the PR
-  is labeled `land as merge`.
+  is labeled `agent-team/land-as-merge`.
 - **`plan` publishes nothing until you approve** the task graph and its
-  briefs.
+  briefs, and `auto` nothing until you confirm the requirement.
+
+### Upgrading from 0.13
+
+The labels gained an `agent-team/` prefix: `need human` is now
+`agent-team/need-human`, `hold landing` `agent-team/hold-landing`, and
+`land as merge` `agent-team/land-as-merge`. The next `plan` or `run` in a
+repository renames each old label it finds with `gh label edit`, which
+keeps it on every item, and says so in its first report. Until then, and
+for this version only, the scripts read both names.
 
 ### Install
 
@@ -569,8 +615,11 @@ skills/
                          # bank_model.py, probe_roofline.py
   agent-team/            # SKILL.md + rules.md, overlay.md, plan.md,
                          # develop.md, review.md, land.md, verdict.md,
-                         # advise.md, overlay.py, pr_state.py, land.py,
-                         # batch.py, ruler.py, line_count.py
+                         # advise.md, auto.md, design.md,
+                         # design-review.md, spike.md, ruling.md,
+                         # accept.md, principles.md, overlay.py,
+                         # pr_state.py, land.py, batch.py, ruler.py,
+                         # line_count.py
   gh-prose/              # SKILL.md + lint_gh_prose.py
   auto-grilling/         # SKILL.md
 tests/
