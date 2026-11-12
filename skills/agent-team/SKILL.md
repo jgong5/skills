@@ -36,12 +36,13 @@ APPROVE mean something.
 ## Step 0 -- Load (every mode)
 
 1. From the repository, run `python3 <skill-dir>/overlay.py`. When a
-   `run`'s argument names an auto umbrella (Scope), fetch the remote of
-   `<repo>` first and pass `--ref`: the ref its body's `Overlay: <ref>
-   (#P)` line names while #P is open, else `<remote>/<branch>` for its
-   `Integration branch: <branch>`. Pass the same `--ref` to every `land.py`
-   and `batch.py` call (`land.md`), and reread both lines every pass, so
-   the run switches when #P lands. Exit 0 prints
+   `run`'s argument names an auto umbrella (Scope), read the umbrella,
+   fetch `<remote>` and run it again with `--ref`: the ref its body's
+   `Overlay: <ref> (#P)` line names while #P is open, else
+   `<remote>/<branch>` for its `Integration branch: <branch>`. Pass the
+   same `--ref` to every `land.py` and `batch.py` call (`land.md`), and
+   reread both lines every pass, so the run switches when #P lands. Exit 0
+   prints
    the resolved keys as JSON, and any warning, such as a deprecated key, on
    stderr: pass each warning to the owner in your first report. Exit 1
    prints every problem: in `plan` and `run`, read `overlay.md` and draft
@@ -58,7 +59,7 @@ APPROVE mean something.
    (`agent-team/land-as-merge`) -- is renamed with `gh label edit <old>
    --name <new>`, which keeps it on every item that carries it; say so in
    your first report. Then create `agent-team/need-human` if it is still
-   missing, and, when the scope holds an auto item, `agent-team/ruling`,
+   missing, and, when the argument names an auto umbrella, `agent-team/ruling`,
    `agent-team/spike`, `agent-team/backlog` and `agent-team/land-as-merge`.
    The scripts read the old names too, for one version.
 4. Note whether the `ponytail` and `ponytail-review` skills are installed. If
@@ -272,9 +273,9 @@ agent no prose of your own about how to work; hand it:
   every running agent at once;
 - its role doc, which points it at `rules.md`. Developer and reviewer
   docs go by the issue's label, a PR taking the issue's it delivers:
-  `agent-team/design` gets `design.md` and `design-review.md`,
-  `agent-team/spike` gets `spike.md` and `review.md`, any other issue
-  `develop.md` and `review.md`. A planner gets `plan.md`, a ruling agent
+  `agent-team/design` gets `design.md` to develop and `design-review.md`
+  to review, `agent-team/spike` gets `spike.md` and `review.md`, any other
+  issue `develop.md` and `review.md`. A planner gets `plan.md`, a ruling agent
   `ruling.md`, an acceptor `accept.md`, all under `<skill-dir>`;
 - the issue number (developer), PR number (reviewer), umbrella (planner,
   acceptor) or held item (ruling agent), and its mode, `manual` or `auto
