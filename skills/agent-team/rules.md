@@ -202,9 +202,10 @@ merge commits never reach `<integration_branch>` -- unless it is labeled
 A Ruling may allow one force-push; the next review then covers the whole
 head (`review.md`, Delta review).
 
-Update a branch only when it conflicts, needs code landed since, or is an
-unlinked stacked child whose parent landed (`land.md`) -- a moved tip alone
-needs no update, the tree check covers it -- and then by merging a freshly
+Update a branch only when it conflicts, needs code landed since -- or, for
+a stacked child, pushed to its parent since -- or is an unlinked stacked
+child whose parent landed (`land.md`). A moved tip or parent head alone
+needs no update, the tree check covers it. Update by merging a freshly
 fetched `<remote>/<integration_branch>`, or the parent's head, into it.
 Whoever pushes the update then comments `Round <k> pushed <sha>.` on the PR,
 listing each file the merge resolved: until a comment names the new head,

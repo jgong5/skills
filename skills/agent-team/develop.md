@@ -12,7 +12,8 @@ branch), and continue from step 3.
 ## 1. Read and claim
 
 Read `<design_entry>` first, then `rules.md`, the issue's body and comments,
-and the handoff comments of the issues it depends on. Check delivery
+and the handoff of each issue it depends on: its closing comment, or,
+while it is open, its PR's body and thread. Check delivery
 (`rules.md`). Unless the orchestrator says it already claimed the issue,
 claim it: assign it (`gh issue edit <n> --add-assignee @me`) and comment
 `Claimed: branch task-<n>.` It names the branch only: when the orchestrator
@@ -23,9 +24,10 @@ claims, no worktree exists yet, so a path would be false.
 Fetch `<remote>`. When `<worktree_root>/<n>` exists on `task-<n>`, an
 earlier session on this claim left it: continue there and keep its commits.
 Otherwise run `git worktree add <worktree_root>/<n> -b task-<n>
-<remote>/<integration_branch>` -- or, to stack on an unlanded parent's PR,
-from the parent's head (`land.md`, Stacking). Run `<import_check>` there when
-it is set. Apply whatever the overlay and local bodies say a fresh tree needs.
+<remote>/<integration_branch>` -- or, while a dependency is open, from the
+head of the topmost dependency PR (`land.md`, Stacking). Run
+`<import_check>` there when it is set. Apply whatever the overlay and local
+bodies say a fresh tree needs.
 
 ## 3. Build
 
