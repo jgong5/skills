@@ -126,9 +126,10 @@ sends the question to a ruling agent (`ruling.md`), or
 `agent-team/need-human` when the question is what to build or needs an
 action outside the repository: you propose the class, and the ruling agent
 re-checks it. Post the ruling request (`gh-prose`'s shape) on the issue or
-PR; on an item with no assignee, assign yourself first, so the item has a ruler. When the ruling
-lives on another issue, label each PR it holds and name that issue. A PR whose body
-declares an escalation without the label gets the label.
+PR; on an item with no assignee, assign yourself first, so the item has a
+ruler. When the ruling lives on another issue, label each PR it holds and
+name that issue. A PR whose body declares an escalation without the label
+gets the label.
 
 Either label stops all agent action on that issue or PR but its ruling
 agent's: no commit, review, amend or merge, even after a passed review.

@@ -201,8 +201,8 @@ only until its final report.
 
 **An escalation holds its item, never the run.** Post the ruling request
 with the item's label (`rules.md`, Escalations), name it in your
-next report, and continue the pass. Never block a run on an interactive question: a
-`run` never waits on the owner while unheld work remains.
+next report, and continue the pass. Never block a run on an interactive
+question: a `run` never waits on the owner while unheld work remains.
 
 Every pass ends by stopping its timer if it still runs (`TaskStop`). If
 agents of yours are still running, whatever the pass landed or dispatched,

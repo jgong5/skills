@@ -31,7 +31,8 @@ import overlay
 import pr_state
 
 TIMEOUT = 900  # seconds GitHub gets to report the merge
-# keeps the branch's history, such as an upstream merge; the old name is still read for one version
+# keeps the branch's history, such as an upstream merge; the old name is
+# still read for one version
 AS_MERGE = {"agent-team/land-as-merge", "land as merge"}
 SPIKE = "agent-team/spike"  # closed, never merged
 TIP = "refs/agent-team/tip"  # the fetched integration tip; any other fetch overwrites FETCH_HEAD
