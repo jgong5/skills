@@ -37,7 +37,7 @@ python3 <skill-dir>/land.py <pr> --message-file <file> [--ref <ref>]
 ```
 
 Pass `--ref` whenever the run has one (`SKILL.md`, Step 0), here and on
-both `batch.py` calls, so the overlay is read as committed at that ref.
+every `batch.py` call, so the overlay is read as committed at that ref.
 
 It refuses on an overlay problem (exit 2), a hold (exit 3), or a tree that
 would land other than the approved one (exit 4). Otherwise it squashes the
@@ -82,7 +82,8 @@ the PRs in landing order (bottom-first through each stack):
 1. `python3 <skill-dir>/batch.py merge <pr>... --record <file>
    [--ref <ref>]` merges each approved head onto the tip as local commits,
    never pushed, and writes to the record each PR's approved sha, merge
-   base and tree. It prints the batch commit. It leaves out a PR labeled `agent-team/spike`,
+   base and tree. It prints the batch commit.
+   It leaves out a PR labeled `agent-team/spike`,
    which is closed alone with `land.py` (Land one PR). It refuses on a hold,
    on a PR whose base is neither `<integration_branch>` nor an earlier PR's
    branch, when only spikes were given (all exit 3), and on a conflict
