@@ -37,6 +37,8 @@ never `auto-grilling`'s menu, which is why Part 2 stays unread.
   question about how to build -- a module, an algorithm, an interface's
   shape -- belongs to the designer and is skipped, not answered: an answer
   here would bind the design before anyone has read the code for it.
+- **Leave the Summary's `Changes` line out**, and drop "the change per
+  module or file" from the loop's Done when: that is how to build.
 - **Every acceptance item is measurable and names its command**, run from
   the repository root, with the output that counts as met. An acceptance
   command is not `gate_task`: it may be expensive (a GPU accuracy run), so
@@ -92,6 +94,9 @@ requirement may name others. The first case that matches applies:
    drafted as an empty index and committed with the overlay, so the design
    document and the principles have a directory.
 
+In cases 1 and 2 step 6 creates `repo`, so no remote points at it yet:
+their overlay draft sets `remote` to `origin`, the name step 6 gives it.
+
 **The baseline.** Whenever there is a checkout, run the gate once
 (`overlay.md` step 3) in a `git archive` snapshot of the branch tip --
 `<remote>/<branch>` as fetched, a new line's start point, or `HEAD` when
@@ -120,9 +125,23 @@ container command, the interpreter, any path mapping. Read
 `CLAUDE.local.md` and each parent directory's `CLAUDE.md` for them, since
 a shared machine records its conventions above the repository.
 
+**Load the drafts** when an overlay or a local file was drafted: `run`
+stops at Step 0 on any problem `overlay.py` reports, a local file with no
+`---` block included. Put the overlay as it will be committed (the draft
+or the present one) in `<scratch>/<topic>.overlay/agent-team.md` and,
+beside it as `agent-team.local.md`, the local file draft or else the
+present `.claude/agent-team.local.md`, which `run` reads too. The command
+line reads only the work tree's overlay or a committed one, so from the
+checkout (the current one when a new project has none yet) load them by
+path, and rerun whenever a draft changes:
+
+```
+python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); import overlay; p = overlay.load(sys.argv[2])[2]; print(*p, sep="\n"); sys.exit(bool(p))' <skill-dir> <scratch>/<topic>.overlay/agent-team.md
+```
+
 **Done when** the case is chosen, every overlay value has a source, the
-baseline has a result and each excluded failure a brief, or what stopped
-it is a question.
+baseline has a result and each excluded failure a brief, the drafts load,
+or what stopped it is a question.
 
 ## 4. Principles
 
@@ -161,7 +180,8 @@ the owner), quoting each draft rather than pointing at scratch:
 3. **What was verified**, each with its source, for approval with the
    rest and no question asked: the overlay draft value by value, the
    baseline result, the wrapper, the failures it excludes and their
-   briefs, the local file draft, the principles draft.
+   briefs, the local file draft, the drafts' load command and its exit
+   status, the principles draft.
 4. **What is asked**: everything not found or not verified -- no gate
    candidate, no working environment, several ways to run that differ, an
    action outside the repository, a red baseline too broad to wrap --
@@ -181,13 +201,15 @@ In this order, linting every GitHub text with `gh-prose` first:
 1. **Set up the environment** for the case. A commit below that carries
    the overlay also carries the local file's `.gitignore` line
    (`overlay.md`) when a local file was drafted:
-   - new project: `gh repo create`. With a checkout, push its branch as it
-     is, then as no overlay. Without one, clone to the approved path and
+   - new project: `gh repo create`. With a checkout, add it as `origin`
+     (`--source . --remote origin`), push its branch as it is, then as no
+     overlay. Without one, clone to the approved path and
      push an initial commit with a minimal skeleton, the overlay and its
      trivially green gate; the design states the test strategy, and the
      first scaffold task replaces `gate_task` through its PR;
-   - fork: `gh repo fork`, `gh repo set-default <fork>` in the clone, then
-     as no overlay;
+   - fork: `gh repo fork --remote` in the upstream's checkout, which names
+     the fork `origin` and the upstream `upstream`, `gh repo set-default
+     <fork>` there, then as no overlay;
    - new line: create the branch at its start point and push one
      bootstrap commit straight to it, the overlay (and any wrapper) as
      approved: until the line's overlay names it, a run there would load
