@@ -159,15 +159,25 @@ only until its final report.
    - **backlog** -- `agent-team/backlog` on it: never claimed, until the
      owner removes the label;
    - **in progress** -- an open PR that delivers it, or a `Claimed`
-     comment and every dependency closed: a dependency added after the
-     claim, such as a designer's spike, blocks it;
+     comment and every open dependency stackable (below), held ones
+     included: a dependency added after the claim, such as a designer's
+     spike, blocks it;
    - **needs a brief** -- the brief lacks a file set, exit criteria, a
      named result or an effort estimate, or estimates above `<split_loc>`
      lines without being decomposed (`plan.md`). Never write the brief here:
      that is `plan`'s job, and it ends in owner review;
-   - **blocked** -- a dependency is still open; a dependency on a missing
-     issue, or a cycle, is a finding to report;
-   - **claimable** -- none of the above.
+   - **blocked** -- a dependency is still open, unless the open ones are
+     stackable and none is held, by a label on its issue or its PR; a
+     dependency on a missing issue, or a cycle, is a finding to report;
+   - **claimable** -- none of the above. With a dependency open, its
+     developer stacks on the topmost dependency PR (`land.md`, Stacking).
+
+   An issue's open dependencies are **stackable** when it and each of
+   them is a plain task, `agent-team/land-as-merge` included, each has an
+   open delivering PR, and those PRs form one chain: walking PR bases down
+   from the topmost reaches every other, at any depth. So a spike or design
+   issue (`agent-team/spike`, `agent-team/design`) waits for every
+   dependency to close, and its dependents wait for it to close.
 2. **Land.** For every open PR in scope, run `python3 <skill-dir>/pr_state.py
    <pr> --repo <repo>`. Land each PR whose turn is `land` and whose base is
    `<integration_branch>`, per `land.md`; a stacked child waits for the PR
@@ -186,7 +196,8 @@ only until its final report.
 
    A task is **in flight** when its issue is in scope, in progress, and
    is not held. A PR under `agent-team/hold-landing` and a stacked child
-   waiting for its parent count; a held task does not.
+   waiting for its parent count; a held task does not, and a task stacked
+   on a held dependency counts only while an agent of yours works on it.
 
 5. **Auto.** Dispatch, each when no agent of yours runs on its item:
    - a ruling agent for each item `agent-team/ruling` holds;

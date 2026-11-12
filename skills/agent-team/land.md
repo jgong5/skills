@@ -147,9 +147,10 @@ review of the resolution.
 
 ## Stacking
 
-Recommended, not required: stack a dependent task's PR on its unlanded
-parent with `gh stack` (the `github/gh-stack` extension); independent tasks
-do not stack.
+A task claimed while its dependencies are open branches from the topmost
+dependency PR's head and targets that PR's branch (`SKILL.md`, run step 1);
+independent tasks do not stack. Linking the chain with `gh stack` (the
+`github/gh-stack` extension) is recommended, not required.
 
 - Link a chain whole or not at all, and only when you mean it (`gh stack
   unstack` can refuse):
