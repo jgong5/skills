@@ -165,7 +165,7 @@ independent tasks do not stack. Linking the chain with `gh stack` (the
   linked members are retargeted when a parent lands. A fork (two or more open
   PRs based on one open PR's branch) links at most one arm. Drift check:
   every open PR based on another open PR's branch sits in one stack, fork
-  arms excepted (`gh api "repos/<repo>/stacks?pull_request=<n>"`).
+  arms and chains holding another session's PR excepted (`gh api "repos/<repo>/stacks?pull_request=<n>"`).
 - Land a stack one PR at a time with `land.py`, never with `gh stack merge`:
   it takes no message and force-pushes the child after landing. Never run
   `gh stack rebase`, `sync`, `push` or `submit` either; each rebases or
