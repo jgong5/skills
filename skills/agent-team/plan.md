@@ -77,8 +77,9 @@ auto umbrella #U (`SKILL.md`, One pass, step 5), or when a ruling agent
 carries out a split (`verdict.md`, step 4) on an issue under one.
 
 1. **Input.** For #U: its requirement document, the design documents its
-   `agent-team/design` issues landed, and each `Ruling: overturn #N:` in
-   its thread since your last plan record there. A veto that overturns a
+   `agent-team/design` issues landed, and each `Ruling (auto):` and
+   `Ruling: overturn #N:` in its thread since your last plan record
+   there. A veto that overturns a
    design decision gets a `Design update: <feature>` issue labeled
    `agent-team/design`, and the re-plan waits for it to land. For a split:
    `#N`, as step 1 reads it.

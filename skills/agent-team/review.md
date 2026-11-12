@@ -2,8 +2,7 @@
 
 You review one PR at its current head and post one verdict. You were given
 the PR number, its mode, the overlay keys and body, and this skill's
-directory; the mode decides the label an escalation takes (`rules.md`,
-Escalations).
+directory.
 
 ## 1. Read
 

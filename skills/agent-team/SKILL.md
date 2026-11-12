@@ -194,9 +194,8 @@ only until its final report.
      `agent-team/design` issues are all closed, when its thread has no plan
      record (a comment opening `Ready: plan published`) since the last of
      them closed or since its latest `Ruling: overturn #N:`. That is the
-     owner's veto: the planner files its follow-ups under the umbrella,
-     and a rollback is new commits, never a force-push. A veto on any
-     other item is never read;
+     owner's veto: the planner files its follow-ups under the umbrella.
+     A veto on any other item is never read;
    - an acceptor for each unheld in-scope auto umbrella whose issues are
      all closed and that needs no planner.
 

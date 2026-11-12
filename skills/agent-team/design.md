@@ -74,7 +74,8 @@ From the written Summary, take the first case that holds:
 
 In cases 2 and 3, open one sync issue per upstream-only dependency, labeled
 `agent-team/land-as-merge`, with `Part of #U` and a brief that targets the
-upstream tip. The tasks that need it depend on it; the design does not.
+upstream tip; its PR carries the label too (`rules.md`, Stop and diagnose).
+The tasks that need it depend on it; the design does not.
 
 ## 4. Write the document
 

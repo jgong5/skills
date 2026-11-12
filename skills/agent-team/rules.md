@@ -91,8 +91,9 @@ upstream has already adapted to. Open a sync issue labeled
 `agent-team/land-as-merge`, its brief targeting the upstream tip, and make
 the blocked task depend on it; its developer may take the commit that
 carries the change instead, when the tip brings conflicts well beyond it,
-and says why in the PR. An upstream defect the upstream has not fixed is
-filed with `agent-team/backlog`, for the owner to raise there.
+and says why in the PR. That PR carries the label too: `land.py` reads
+the PR's labels, not the issue's. An upstream defect the upstream has not
+fixed is filed with `agent-team/backlog`, for the owner to raise there.
 
 ## Escalations and `agent-team/need-human`
 
