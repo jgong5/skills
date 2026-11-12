@@ -66,17 +66,23 @@ or says why not.
    The first line opens with plain `Ruling:`, never bold: `pr_state.py`
    restarts its `verdicts` count only at that form. Each other open member
    PR gets `Ruling: <link to it>.`, so its thread carries the ruling and its
-   count restarts too; when item 2 edits the issue body it gets
+   count restarts too; when item 2 edits the issue body each gets
    `Ruling: <link to it>. Brief updated: <parts>.`, so `pr_state.py`
    gives its developer the turn. The Ruling's `Also:` line comes from item 3.
 2. **Edit the issue body** when the ruling changes the brief, and add
    `Brief updated: <parts>.` to the Ruling. A split is `plan`'s: run it now
-   with `#N` as input, and leave the label on until it publishes the
-   sub-tasks.
+   with `#N` as input, in `plan.md`'s Auto mode when a ruling agent carries
+   out this step, and leave the label on until it publishes the sub-tasks.
 3. **Close, reopen or open issues** the ruling calls for, yourself: a
    close carries its handoff comment, an opened issue a brief (`plan.md`,
-   step 3) that links the Ruling. Each issue or PR outside the item that
-   the ruling affects gets a comment linking it, linted as `--kind comment`:
+   step 3) that links the Ruling. On an auto item (`SKILL.md`, Scope), an
+   issue an owner's Ruling calls for goes under the umbrella with `Part of
+   #U`, since the owner asked for it, unless the Ruling says
+   `agent-team/backlog`. A principle an owner's Ruling states, meant to
+   decide later cases, that the project's principles document lacks gets
+   an issue to add it: an ordinary doc PR. Each issue or PR outside the
+   item that the ruling affects gets a comment linking it, linted as
+   `--kind comment`:
 
    ```
    Ruling on #38 affects this: it now waits for #45.

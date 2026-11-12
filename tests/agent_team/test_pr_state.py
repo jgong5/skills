@@ -106,6 +106,17 @@ def test_either_name_of_the_need_human_label_holds_every_turn_and_is_named(fake_
     assert s["turn"] == "held" and f"{label} on issue #4, which this PR delivers" in s["holds"]
 
 
+def test_the_ruling_label_holds_every_turn_even_after_an_approve(fake_gh):
+    approved = [comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")]
+    for thread in (approved, [ROUND]):
+        fake_gh.pr, fake_gh.issues = make_pr(thread, labels=["agent-team/ruling"]), {}
+        s = pr_state.state(7)
+        assert s["turn"] == "held" and "agent-team/ruling on the PR" in s["holds"]
+        fake_gh.pr, fake_gh.issues = make_pr(thread, closes=[4]), {4: ["agent-team/ruling"]}
+        s = pr_state.state(7)
+        assert s["turn"] == "held" and "agent-team/ruling on issue #4, which this PR delivers" in s["holds"]
+
+
 @pytest.mark.parametrize("label", ["agent-team/hold-landing", "hold landing"])
 def test_either_name_of_the_hold_landing_label_holds_only_the_land_turn(fake_gh, label):
     approved = [comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")]

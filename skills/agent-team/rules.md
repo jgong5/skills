@@ -39,6 +39,12 @@ away on landing and a file in the tree goes stale.
 - **A finding not fixed in the PR that found it gets an issue.** The PR body
   will not survive the squash. A pre-existing defect a review happens to see
   is not such a finding; `review.md` (Check) says when it gets an issue.
+- **On an auto item, an issue you open goes under its umbrella**, with
+  `Part of #U`, only when it serves an acceptance item: a defect this
+  feature introduced, or work a target needs. Anything else -- a
+  pre-existing defect, an improvement, out-of-scope work -- is filed with
+  `agent-team/backlog` and no `Part of` line, and nobody claims it. The
+  opener classifies; the reviewer or the ruling agent re-checks.
 - **Check delivery before claiming or briefing an issue.** Read its comments,
   not only its body, and look for an open PR that names it in its title or
   with a delivering verb (closes, fixes, resolves, addresses, implements).
@@ -76,6 +82,19 @@ spec: code that departs from it is a defect and is fixed. If building a
 decision shows it is wrong or cannot be built, that is an escalation and the
 design changes first.
 
+**In a fork** (`<never_touch>` names the upstream), two failures are
+answered by syncing with the upstream, never by a local workaround: a
+defect in upstream-owned code that `git log
+<remote>/<integration_branch>..<upstream>/<branch> -- <files>` shows the
+upstream has fixed, and a gate failing on an environment version the
+upstream has already adapted to. Open a sync issue labeled
+`agent-team/land-as-merge`, its brief targeting the upstream tip, and make
+the blocked task depend on it; its developer may take the commit that
+carries the change instead, when the tip brings conflicts well beyond it,
+and says why in the PR. That PR carries the label too: `land.py` reads
+the PR's labels, not the issue's. An upstream defect the upstream has not
+fixed is filed with `agent-team/backlog`, for the owner to raise there.
+
 ## Escalations and `agent-team/need-human`
 
 An escalation is anything that needs a ruling before work continues;
@@ -87,7 +106,9 @@ asked about findings. Escalate, in addition to the cases above, when:
   will not fix a mis-cut task. A line count, here and in every estimate, is
   the weighted `total` that `python3 <skill-dir>/line_count.py <base>`
   prints, run in the task's tree against its base: moved and deleted lines
-  weigh a quarter, and the script says which files are test files;
+  weigh a quarter, and the script says which files are test files. A
+  design task (`agent-team/design`) is exempt: its reviewer judges its
+  size (`design-review.md`);
 - the review loop hits its stop (`review.md`);
 - the only fix is a force-push (a secret or large binary pushed by mistake).
 
@@ -97,15 +118,21 @@ lower the count is a defect: packed lines, dead code kept to avoid a
 deletion, a caller-side patch where shared code is at fault, brief scope
 silently deferred.
 
-**Apply the `agent-team/need-human` label the moment you escalate**: a halt
-declared in prose stops nothing, because the next agent reads labels, not
-prose. Post the ruling request (`gh-prose`'s shape) on the issue or PR; on an item with no
-assignee, assign yourself first, so the item has a ruler. When the ruling
+**Apply the item's label the moment you escalate**: a halt declared in
+prose stops nothing, because the next agent reads labels, not prose. On a
+manual item it is `agent-team/need-human`. On an auto item (`SKILL.md`,
+Scope; your dispatch names the mode) it is `agent-team/ruling`, which
+sends the question to a ruling agent (`ruling.md`), or
+`agent-team/need-human` when the question is what to build or needs an
+action outside the repository: you propose the class, and the ruling agent
+re-checks it. Post the ruling request (`gh-prose`'s shape) on the issue or
+PR; on an item with no assignee, assign yourself first, so the item has a ruler. When the ruling
 lives on another issue, label each PR it holds and name that issue. A PR whose body
 declares an escalation without the label gets the label.
 
-The label stops all agent action on that issue or PR: no commit, review,
-amend or merge, even after a passed review. Exceptions:
+Either label stops all agent action on that issue or PR but its ruling
+agent's: no commit, review, amend or merge, even after a passed review.
+Exceptions:
 
 1. `gh stack link` by PR number, which lands and pushes nothing, though it
    retargets the linked PRs' bases (then, and when a PR below lands).
@@ -129,8 +156,9 @@ has no ruler until a request names one.
 `python3 <skill-dir>/ruler.py N --repo <repo>` reads it; every role asks it
 rather than working the ruler out by hand.
 
-Only the item's ruler removes the label, by hand or through `/agent-team
-verdict` (`verdict.md`). Without it, automation is on by default: agents
+Only the item's ruler removes `agent-team/need-human`, by hand or through
+`/agent-team verdict` (`verdict.md`); the ruling agent removes
+`agent-team/ruling`. Without it, automation is on by default: agents
 act with no opt-in.
 
 **The ruler's answer is a Ruling**: a comment whose first line opens with
@@ -139,6 +167,9 @@ through `verdict`, on the ruler's word, because every agent posts as one
 account and nothing on GitHub can tell the two apart. A Ruling binds every role on its
 item, ahead of the brief and of any earlier agent's note. Stop counts --
 the review loop's verdicts and cycles (`review.md`) -- restart after it.
+On an `agent-team/ruling` item the ruling agent rules instead, with a first
+line opening plain `Ruling (auto):`. Every role reads it as a Ruling; the
+owner overturns it on the umbrella with `Ruling: overturn #N: ...`.
 
 ## Trees and worktrees
 
@@ -213,8 +244,9 @@ listing each file the merge resolved: until a comment names the new head,
 
 ## Repositories
 
-Agents create branches, PRs, issues and labels freely in `<repo>`. They push
-to `<integration_branch>` only by landing (`land.md`), and never to the
+Agents create branches, PRs, issues and labels freely in `<repo>`. Every
+`gh` call passes `--repo <repo>`: in a fork's clone, `gh` can default to
+the upstream. They push to `<integration_branch>` only by landing (`land.md`), and never to the
 repository's default branch when it is a different branch. Never touch
 `<never_touch>` -- no push, PR, issue or comment -- whatever a task seems to
 need.
