@@ -44,7 +44,9 @@ Follow `gh-prose` (kind `brief`). Every brief has:
   developer choosing it afterwards can always find one that passed; that is
   the case this rule forbids.
 - **Effort** -- the weighted code and test totals (`rules.md`, Escalations),
-  estimated separately, each with its added, moved and deleted counts.
+  estimated separately, each with its added, moved and deleted counts. A
+  documentation file counts as code unless `line_count.py` classes it as a
+  test, so prose goes in the code total and no other class is estimated.
 - **Depends on** -- one `Depends on #N` line per predecessor, and links to
   their issues. Omit the lines for a root task.
 
