@@ -74,10 +74,9 @@ requirement may name others. The first case that matches applies:
 1. **New project** -- the repository does not exist on GitHub (`gh repo
    view <repo>` finds none). Draft its name and visibility. With no
    checkout, also draft its local clone path (default: beside the current
-   repository) and an overlay whose `gate_task` is trivially green, whose
-   `design_entry` is case 5's empty index, and whose `remote` is `origin`,
-   the name the clone gives it, since no remote resolves before the clone;
-   with a checkout, continue as case 5 on it.
+   repository) and an overlay whose `gate_task` is trivially green and
+   whose `design_entry` is case 5's empty index; with a checkout, continue
+   as case 5 on it.
 2. **Fork** -- the requirement says so, or the current `gh` user cannot
    push to the repository (`gh repo view <repo> --json viewerPermission`
    below `WRITE`). Draft the upstream, the fork's owner and the base ref,
@@ -94,6 +93,9 @@ requirement may name others. The first case that matches applies:
    `AGENTS.md` or README to name, `design_entry` is `docs/README.md`,
    drafted as an empty index and committed with the overlay, so the design
    document and the principles have a directory.
+
+In cases 1 and 2 step 6 creates `repo`, so no remote points at it yet:
+their overlay draft sets `remote` to `origin`, the name step 6 gives it.
 
 **The baseline.** Whenever there is a checkout, run the gate once
 (`overlay.md` step 3) in a `git archive` snapshot of the branch tip --
@@ -199,13 +201,15 @@ In this order, linting every GitHub text with `gh-prose` first:
 1. **Set up the environment** for the case. A commit below that carries
    the overlay also carries the local file's `.gitignore` line
    (`overlay.md`) when a local file was drafted:
-   - new project: `gh repo create`. With a checkout, push its branch as it
-     is, then as no overlay. Without one, clone to the approved path and
+   - new project: `gh repo create`. With a checkout, add it as `origin`
+     (`--source . --remote origin`), push its branch as it is, then as no
+     overlay. Without one, clone to the approved path and
      push an initial commit with a minimal skeleton, the overlay and its
      trivially green gate; the design states the test strategy, and the
      first scaffold task replaces `gate_task` through its PR;
-   - fork: `gh repo fork`, `gh repo set-default <fork>` in the clone, then
-     as no overlay;
+   - fork: `gh repo fork --remote` in the upstream's checkout, which names
+     the fork `origin` and the upstream `upstream`, `gh repo set-default
+     <fork>` there, then as no overlay;
    - new line: create the branch at its start point and push one
      bootstrap commit straight to it, the overlay (and any wrapper) as
      approved: until the line's overlay names it, a run there would load
