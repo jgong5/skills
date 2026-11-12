@@ -17,8 +17,8 @@ dependencies' handoffs. Besides:
   and its thread, where the owner overturns an earlier ruling with
   `Ruling: overturn #N: ...`. An overturned Ruling is no precedent;
 - the design document the umbrella's design issue landed;
-- the principles: the project's own document, indexed by `<design_entry>`,
-  then `<skill-dir>/principles.md`. A project principle wins a conflict.
+- the principles: `<skill-dir>/principles.md` and the project's own
+  document, indexed by `<design_entry>`, layered as `principles.md` says.
 
 ## 2. Analyse
 
