@@ -1,14 +1,17 @@
 # Default principles
 
-A designer, a design reviewer, and an agent ruling on an escalation weigh a
-decision against these when nothing the project states settles it. They
-choose how to build, never what: goals and acceptance targets belong to the
-requirement. `rules.md` binds every role as well; nothing here repeats or
-relaxes it.
+A designer, a design reviewer, an `advise` analysis and an agent ruling on
+an escalation weigh a decision against these when nothing the project states
+settles it. They choose how to build, never what: goals and acceptance
+targets belong to the requirement. `rules.md` binds every role as well;
+nothing here repeats or relaxes it.
 
-A project's own principles document sits in `<design_entry>`'s directory,
-indexed by `<design_entry>`. It holds only principles specific to that
-project, links this list for the rest, and wins a conflict with it.
+The principles in force are this list plus the project's own principles
+document, a layer on top of it in `<design_entry>`'s directory, indexed by
+`<design_entry>`. The project's layer adds principles specific to the
+project and may override one here; where the two conflict, the project's
+wins. It need not link or restate this list: every reader reads both layers,
+so a project document that never mentions this list leaves it in force.
 
 Each principle links one Ruling from jgong5/ATOM that decided the same way.
 

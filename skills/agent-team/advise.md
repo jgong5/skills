@@ -36,10 +36,12 @@ unverified wherever the report uses it.
   that code, only when the decision hinges on their result.
 - No experiment, edit, commit or comment, and no dispatched agent. A
   measurement the decision needs becomes an option: measure, then rule.
-- Principles come only from `<design_entry>`, the documents it indexes,
-  `rules.md`, and the overlay body. A principle found nowhere there is not
-  one. The local body is environment fact, never a principle, so one item
-  gets the same recommendation on every checkout.
+- Principles come only from `<skill-dir>/principles.md`, `<design_entry>`,
+  the documents it indexes, `rules.md`, and the overlay body; the project's
+  principles document layers on the default list as `principles.md` says.
+  A principle found nowhere there is not one. The local body is
+  environment fact, never a principle, so one item gets the same
+  recommendation on every checkout.
 - Precedents: search `<repo>`'s issues and PRs, comments included, for
   `Ruling:` with the files, symbols and terms the item touches
   (`gh search issues --include-prs`). An owner who remembers ruling on

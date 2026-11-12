@@ -22,8 +22,8 @@ Besides what `develop.md` step 1 reads:
 - the design documents `<design_entry>` indexes, and the past Rulings in
   `<repo>` on the files and terms the requirement touches, searched as
   `advise.md` (Check the evidence) says;
-- the principles: the project's own document, indexed by `<design_entry>`,
-  then `<skill-dir>/principles.md`;
+- the principles: `<skill-dir>/principles.md` and the project's own
+  document, indexed by `<design_entry>`, layered as `principles.md` says;
 - the handoffs of the spike and sync issues this issue depends on.
 
 If a dependency is still open, stop and report the issue blocked on it: the

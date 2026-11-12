@@ -145,10 +145,14 @@ or what stopped it is a question.
 
 ## 4. Principles
 
-When the project has a principles document (in `<design_entry>`'s
-directory, indexed by `<design_entry>`), use it. Otherwise draft one in
-`<publish_language>`, in the shape of `<skill-dir>/principles.md`: each
-principle one or two sentences, its why, and a link to its source.
+The principles in force are `<skill-dir>/principles.md` with the
+project's layer on top, as that file says. Only the project's layer is
+yours: when the project has a principles document (in `<design_entry>`'s
+directory, indexed by `<design_entry>`), it is that layer as it stands;
+otherwise draft one in `<publish_language>`, in the shape of
+`<skill-dir>/principles.md`: each principle one or two sentences, its why,
+and a link to its source. Either way, list each default the layer
+overrides: a project principle that conflicts with one of the default list.
 
 - A new project has no Rulings: skip the search below, and add the
   requirement's non-goals and priorities to the sources it has.
@@ -162,8 +166,7 @@ principle one or two sentences, its why, and a link to its source.
   principle, linking two or three of its Rulings; one Ruling alone is a
   precedent, not a principle.
 - Keep only what is specific to the project: a principle
-  `<skill-dir>/principles.md` already states is not restated. The draft
-  links that list and says that it wins a conflict with it.
+  `<skill-dir>/principles.md` already states is not restated.
 
 The draft lands with the design PR, so the design issue carries it.
 
@@ -181,7 +184,9 @@ the owner), quoting each draft rather than pointing at scratch:
    rest and no question asked: the overlay draft value by value, the
    baseline result, the wrapper, the failures it excludes and their
    briefs, the local file draft, the drafts' load command and its exit
-   status, the principles draft.
+   status, and the principles in force: the default list, linked, then
+   the project's layer, quoted and marked existing or drafted, then each
+   default it overrides.
 4. **What is asked**: everything not found or not verified -- no gate
    candidate, no working environment, several ways to run that differ, an
    action outside the repository, a red baseline too broad to wrap --
