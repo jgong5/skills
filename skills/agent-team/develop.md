@@ -1,8 +1,9 @@
 # Developer
 
 You own one task: its change, its PR, and every PR update until the verdict
-is APPROVE. You were given an issue number, the overlay keys and body, and
-this skill's directory.
+is APPROVE. You were given an issue number, its mode, the overlay keys and
+body, and this skill's directory; the mode decides the label an escalation
+takes (`rules.md`, Escalations).
 
 When the task already has a PR, you are answering its last verdict and any
 Ruling since (`rules.md`, Escalations): read as in step 1 plus the PR's

@@ -1,6 +1,6 @@
 ---
 name: agent-team
-description: Runs a team of developer and reviewer agents over a GitHub issue pool -- plan briefs, develop, review to APPROVE, land squashed -- under standing rules and a per-project overlay. User-invoked: /agent-team plan|run|status|verdict|advise, run and status taking an optional scope, verdict the ruling of a held item's ruler, advise a read-only analysis of one held item and the ruling to make.
+description: Runs a team of developer and reviewer agents over a GitHub issue pool -- plan briefs, develop, review to APPROVE, land squashed -- under standing rules and a per-project overlay, or in auto mode takes a requirement to an accepted feature. User-invoked: /agent-team auto|plan|run|status|verdict|advise, auto taking a requirement (a prompt, #issue or document path), run and status taking an optional scope, verdict the ruling of a held item's ruler, advise a read-only analysis of one held item and the ruling to make.
 disable-model-invocation: true
 ---
 
@@ -13,6 +13,11 @@ handoffs in closing comments -- so any session can pick up where another
 stopped. An item's ruler (`rules.md`, Escalations) rules on its
 escalations, through the `agent-team/need-human` label and `verdict`, and
 on nothing else; `advise` analyses one before the ruler rules.
+
+In auto mode the owner states a requirement and confirms it once (`auto`);
+agents then also design, plan, check acceptance and rule on how to build,
+through `agent-team/ruling` and a ruling agent. The owner is asked only
+about what to build, an action outside the repository, and acceptance.
 
 You never write or review the change yourself: a task's author, its reviewer
 and its orchestrator are different agents, which is what makes an
@@ -30,7 +35,13 @@ APPROVE mean something.
 
 ## Step 0 -- Load (every mode)
 
-1. From the repository, run `python3 <skill-dir>/overlay.py`. Exit 0 prints
+1. From the repository, run `python3 <skill-dir>/overlay.py`. When a
+   `run`'s argument names an auto umbrella (Scope), fetch the remote of
+   `<repo>` first and pass `--ref`: the ref its body's `Overlay: <ref>
+   (#P)` line names while #P is open, else `<remote>/<branch>` for its
+   `Integration branch: <branch>`. Pass the same `--ref` to every `land.py`
+   and `batch.py` call (`land.md`), and reread both lines every pass, so
+   the run switches when #P lands. Exit 0 prints
    the resolved keys as JSON, and any warning, such as a deprecated key, on
    stderr: pass each warning to the owner in your first report. Exit 1
    prints every problem: in `plan` and `run`, read `overlay.md` and draft
@@ -47,7 +58,9 @@ APPROVE mean something.
    (`agent-team/land-as-merge`) -- is renamed with `gh label edit <old>
    --name <new>`, which keeps it on every item that carries it; say so in
    your first report. Then create `agent-team/need-human` if it is still
-   missing. The scripts read the old names too, for one version.
+   missing, and, when the scope holds an auto item, `agent-team/ruling`,
+   `agent-team/spike`, `agent-team/backlog` and `agent-team/land-as-merge`.
+   The scripts read the old names too, for one version.
 4. Note whether the `ponytail` and `ponytail-review` skills are installed. If
    not, say so once in your first report; developers and reviewers then skip
    them.
@@ -59,7 +72,23 @@ labels and PRs. It has no fixed syntax: read it as the owner wrote it.
 Resolve it again every pass, so an issue that gains a named label joins.
 
 - **No argument** means the whole pool: every open issue in `<repo>`,
-  restricted to `<task_label>` when set.
+  restricted to `<task_label>` when set, except auto umbrellas and their
+  issues, which belong to the umbrella's own run.
+- **Membership and mode.** An issue is under umbrella #U when its body has
+  a `Part of #U` line, read like `Depends on #N`, and is an **auto item**
+  when #U carries `agent-team/auto`; every other item is manual. Read both
+  from GitHub every pass: removing the label returns the umbrella's issues
+  to the manual flow. Manual and auto items mix in one scope; the rules
+  apply per item.
+- **An argument naming an auto umbrella** brings in every issue under it
+  and the open PR its `Overlay:` line names. Naming an auto item from any
+  other run is the owner's call, under the rule against overlapping scopes.
+- **The umbrella is never a task**: it is never classified, claimed or
+  briefed. The run reads it for membership, its integration branch,
+  acceptance and vetoes (One pass, step 5).
+- **One run serves one integration branch**, the one Step 0 loaded. An
+  auto item whose umbrella names another is a finding: report it and skip
+  it.
 - **An in-scope issue belongs to this session** only when it has no
   assignee or its assignees include the current `gh` user (`gh api user`).
   One assigned to someone else leaves the scope unless the argument says to
@@ -82,12 +111,18 @@ Read-only; changes nothing on GitHub or disk. Report, within the scope:
 
 - every open PR: its `pr_state.py` turn and holds;
 - every open issue, classified as in `run`, step 1, with what blocks it;
+- every auto umbrella, with what `run`, step 5, would dispatch for it;
 - every `agent-team/need-human` item, the ruling it waits on, and its ruler
   (`python3 <skill-dir>/ruler.py N --repo <repo>`), or `no ruler: hand off
-  first` when it has none.
+  first` when it has none; every `agent-team/ruling` item waits on a
+  ruling agent.
 
 **Done when** every open in-scope PR and issue appears exactly once, and
 the first line says whether anything blocks.
+
+## auto
+
+Read `auto.md` and follow it.
 
 ## plan
 
@@ -119,8 +154,12 @@ only until its final report.
 1. **Read the pool**: the open issues in scope (Scope). For each, read its
    comments and its `Depends on #N` lines and check delivery (`rules.md`).
    Classify it:
-   - **held** -- `agent-team/need-human` on it;
-   - **in progress** -- a `Claimed` comment, or an open PR that delivers it;
+   - **held** -- `agent-team/need-human` or `agent-team/ruling` on it;
+   - **backlog** -- `agent-team/backlog` on it: never claimed, until the
+     owner removes the label;
+   - **in progress** -- an open PR that delivers it, or a `Claimed`
+     comment and every dependency closed: a dependency added after the
+     claim, such as a designer's spike, blocks it;
    - **needs a brief** -- the brief lacks a file set, exit criteria, a
      named result or an effort estimate, or estimates above `<split_loc>`
      lines without being decomposed (`plan.md`). Never write the brief here:
@@ -145,11 +184,23 @@ only until its final report.
    so a concurrent session cannot take the same issue.
 
    A task is **in flight** when its issue is in scope, in progress, and
-   has no `agent-team/need-human`. A PR under `agent-team/hold-landing`
-   and a stacked child waiting for its parent count; a held task does not.
+   is not held. A PR under `agent-team/hold-landing` and a stacked child
+   waiting for its parent count; a held task does not.
+
+5. **Auto.** Dispatch, each when no agent of yours runs on its item:
+   - a ruling agent for each item `agent-team/ruling` holds;
+   - a planner for each unheld in-scope auto umbrella whose
+     `agent-team/design` issues are all closed, when its thread has no plan
+     record (a comment opening `Ready: plan published`) since the last of
+     them closed or since its latest `Ruling: overturn #N:`. That is the
+     owner's veto: the planner files its follow-ups under the umbrella,
+     and a rollback is new commits, never a force-push. A veto on any
+     other item is never read;
+   - an acceptor for each unheld in-scope auto umbrella whose issues are
+     all closed and that needs no planner.
 
 **An escalation holds its item, never the run.** Post the ruling request
-with `agent-team/need-human` (`rules.md`, Escalations), name it in your
+with the item's label (`rules.md`, Escalations), name it in your
 next report, and continue the pass. Never block a run on an interactive question: a
 `run` never waits on the owner while unheld work remains.
 
@@ -210,17 +261,24 @@ session fires it between turns, so a busy turn delays it.
 
 ### Dispatching
 
-One background agent per role per task, so at most `2 x <max_tasks>` agents
-run. Review throughput, not the DAG, is what caps concurrency. Give each
+One background agent per role per item, so at most `2 x <max_tasks>`
+developers and reviewers run, beside planners, acceptors and ruling agents.
+Review throughput, not the DAG, is what caps concurrency. Give each
 agent no prose of your own about how to work; hand it:
 
 - as the prompt's first line, the run-location constraints the project's
   local instructions state (`CLAUDE.local.md`, say), quoted verbatim: an
   agent runs commands before it reads its docs. Send any change to them to
   every running agent at once;
-- its role doc: `<skill-dir>/develop.md` or `<skill-dir>/review.md`, which
-  points it at `rules.md`;
-- the issue number (developer) or PR number (reviewer);
+- its role doc, which points it at `rules.md`. Developer and reviewer
+  docs go by the issue's label, a PR taking the issue's it delivers:
+  `agent-team/design` gets `design.md` and `design-review.md`,
+  `agent-team/spike` gets `spike.md` and `review.md`, any other issue
+  `develop.md` and `review.md`. A planner gets `plan.md`, a ruling agent
+  `ruling.md`, an acceptor `accept.md`, all under `<skill-dir>`;
+- the issue number (developer), PR number (reviewer), umbrella (planner,
+  acceptor) or held item (ruling agent), and its mode, `manual` or `auto
+  under #U`, which decides the label an escalation takes;
 - the overlay keys as JSON, without `conversation_language`: it governs
   only what you say to the owner, and an agent's report goes to you;
 - the overlay body, then the local body when there is one, last, and

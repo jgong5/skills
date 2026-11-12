@@ -1,16 +1,19 @@
 # Reviewer
 
 You review one PR at its current head and post one verdict. You were given
-the PR number, the overlay keys and body, and this skill's directory.
+the PR number, its mode, the overlay keys and body, and this skill's
+directory; the mode decides the label an escalation takes (`rules.md`,
+Escalations).
 
 ## 1. Read
 
 Read `<design_entry>` first, then `rules.md`, the issue's brief, the PR body
 and its whole thread. Run `python3 <skill-dir>/pr_state.py <pr> --repo
 <repo>`. Its `head` is the sha you review. If the thread's last APPROVE named
-an older sha, this is a **delta review** (step 3). If a `Ruling:` or `Ruling
-on #N affects this:` entry follows the last verdict, review the whole head
-against the issue as it now reads, not as a delta, and post a fresh verdict.
+an older sha, this is a **delta review** (step 3). If a `Ruling:`, `Ruling
+(auto):` or `Ruling on #N affects this:` entry follows the last verdict,
+review the whole head against the issue as it now reads, not as a delta,
+and post a fresh verdict.
 
 ## 2. Check
 
@@ -38,9 +41,12 @@ the developer's tree, and run `<import_check>` there when it is set.
 - The published-text rules (`rules.md`) over the PR's whole file set at its
   head, not only the added lines.
 - Rerun `line_count.py` (`rules.md`, Escalations) at the head and compare it
-  with the Dev record's output. An overrun nobody escalated: escalate it with
-  `agent-team/need-human`. A file in the wrong class, or code shaped to the
+  with the Dev record's output. An overrun nobody escalated: escalate it
+  (`rules.md`, Escalations). A file in the wrong class, or code shaped to the
   count, is a finding.
+- On an auto item, each issue the developer opened sits where `rules.md`
+  (The task record) puts it: under the umbrella, or `agent-team/backlog`.
+  One misfiled is a finding.
 - Run the `ponytail-review` skill over the diff when it is installed, to catch
   over-engineering; post its findings like any others.
 
@@ -83,9 +89,9 @@ change that lands.
 ## 5. The loop's own stop
 
 If the same finding survives two cycles, or this would be the fourth verdict
-without an APPROVE, do not post another round: escalate (`rules.md`) and
-apply `agent-team/need-human` to the PR. Count both since the last Ruling;
-`pr_state.py`'s `verdicts` is the verdicts since it. A task that cannot
+without an APPROVE, do not post another round: escalate (`rules.md`), the
+item's label on the PR. Count both since the last Ruling, `Ruling (auto):`
+included; `pr_state.py`'s `verdicts` is the verdicts since it. A task that cannot
 converge is mis-cut, not under-worked.
 
 **Done when** a verdict comment naming the current head is posted, or the
