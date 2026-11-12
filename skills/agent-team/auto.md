@@ -74,9 +74,10 @@ requirement may name others. The first case that matches applies:
 1. **New project** -- the repository does not exist on GitHub (`gh repo
    view <repo>` finds none). Draft its name and visibility. With no
    checkout, also draft its local clone path (default: beside the current
-   repository) and an overlay whose `gate_task` is trivially green and
-   whose `design_entry` is case 5's empty index; with a checkout, continue
-   as case 5 on it.
+   repository) and an overlay whose `gate_task` is trivially green, whose
+   `design_entry` is case 5's empty index, and whose `remote` is `origin`,
+   the name the clone gives it, since no remote resolves before the clone;
+   with a checkout, continue as case 5 on it.
 2. **Fork** -- the requirement says so, or the current `gh` user cannot
    push to the repository (`gh repo view <repo> --json viewerPermission`
    below `WRITE`). Draft the upstream, the fork's owner and the base ref,
@@ -125,17 +126,16 @@ a shared machine records its conventions above the repository.
 **Load the drafts** when an overlay or a local file was drafted: `run`
 stops at Step 0 on any problem `overlay.py` reports, a local file with no
 `---` block included. Put the overlay as it will be committed (the draft
-or the present one) in `<scratch>/<topic>.overlay/agent-team.md` and any
-local file draft beside it as `agent-team.local.md`. The command line reads
-only the work tree's overlay or a committed one, so from the checkout load
-them by path, and rerun whenever a draft changes:
+or the present one) in `<scratch>/<topic>.overlay/agent-team.md` and,
+beside it as `agent-team.local.md`, the local file draft or else the
+present `.claude/agent-team.local.md`, which `run` reads too. The command
+line reads only the work tree's overlay or a committed one, so from the
+checkout (the current one when a new project has none yet) load them by
+path, and rerun whenever a draft changes:
 
 ```
 python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); import overlay; p = overlay.load(sys.argv[2])[2]; print(*p, sep="\n"); sys.exit(bool(p))' <skill-dir> <scratch>/<topic>.overlay/agent-team.md
 ```
-
-It exits 0, or, for a new project with no checkout yet, reports only that
-no remote points at the repository.
 
 **Done when** the case is chosen, every overlay value has a source, the
 baseline has a result and each excluded failure a brief, the drafts load,
