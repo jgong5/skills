@@ -33,8 +33,11 @@ Write the squash commit message to a scratch file: what the task does, from
 the PR body, in `<publish_language>`. Then, from the main worktree:
 
 ```
-python3 <skill-dir>/land.py <pr> --message-file <file>
+python3 <skill-dir>/land.py <pr> --message-file <file> [--ref <ref>]
 ```
+
+Pass `--ref` whenever the run has one (`SKILL.md`, Step 0), here and on
+both `batch.py` calls, so the overlay is read as committed at that ref.
 
 It refuses on an overlay problem (exit 2), a hold (exit 3), or a tree that
 would land other than the approved one (exit 4). Otherwise it squashes the
@@ -76,10 +79,10 @@ when nothing conflicts. Two green PRs can still merge red, so the combined
 tree must be gated, but once, not once per PR. From the main worktree, with
 the PRs in landing order (bottom-first through each stack):
 
-1. `python3 <skill-dir>/batch.py merge <pr>... --record <file>` merges
-   each approved head onto the tip as local commits, never pushed, and
-   writes to the record each PR's approved sha, merge base and tree. It
-   prints the batch commit. It leaves out a PR labeled `agent-team/spike`,
+1. `python3 <skill-dir>/batch.py merge <pr>... --record <file>
+   [--ref <ref>]` merges each approved head onto the tip as local commits,
+   never pushed, and writes to the record each PR's approved sha, merge
+   base and tree. It prints the batch commit. It leaves out a PR labeled `agent-team/spike`,
    which is closed alone with `land.py` (Land one PR). It refuses on a hold,
    on a PR whose base is neither `<integration_branch>` nor an earlier PR's
    branch, when only spikes were given (all exit 3), and on a conflict
@@ -87,7 +90,8 @@ the PRs in landing order (bottom-first through each stack):
 2. Run `<gate_task>` on the batch commit, in a detached scratch worktree
    (`git worktree add --detach <path> <commit>`). Red is a finding: land
    nothing from the batch, and bisect it by gating smaller prefixes.
-3. `python3 <skill-dir>/batch.py land --record <file> --message-dir <dir>`,
+3. `python3 <skill-dir>/batch.py land --record <file> --message-dir <dir>
+   [--ref <ref>]`,
    with one `<pr>.txt` per PR written as for Land one PR, lands each PR in
    order through `land.py` with `--expect-tree <its recorded tree>`.
 
@@ -129,7 +133,9 @@ review of the resolution.
 - Close the delivered issue with a handoff comment, drawn from the Dev
   record's "left undone" and the review record's "watch next". A PR into a
   non-default branch does not close its issue on GitHub's own.
-- Close any umbrella issue whose sub-tasks have all landed, with a handoff.
+- Close any umbrella issue whose sub-tasks have all landed, with a handoff,
+  unless it is labeled `agent-team/auto`: that one stays open until the
+  owner accepts it (`accept.md`).
 - An issue that depended on this one may now be claimable; the next `run`
   pass picks it up.
 - When a `run` invocation (`SKILL.md`, The quiet pass) has landed anything
