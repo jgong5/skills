@@ -37,6 +37,8 @@ never `auto-grilling`'s menu, which is why Part 2 stays unread.
   question about how to build -- a module, an algorithm, an interface's
   shape -- belongs to the designer and is skipped, not answered: an answer
   here would bind the design before anyone has read the code for it.
+- **Leave the Summary's `Changes` line out**, and drop "the change per
+  module or file" from the loop's Done when: that is how to build.
 - **Every acceptance item is measurable and names its command**, run from
   the repository root, with the output that counts as met. An acceptance
   command is not `gate_task`: it may be expensive (a GPU accuracy run), so
@@ -120,9 +122,24 @@ container command, the interpreter, any path mapping. Read
 `CLAUDE.local.md` and each parent directory's `CLAUDE.md` for them, since
 a shared machine records its conventions above the repository.
 
+**Load the drafts** when an overlay or a local file was drafted: `run`
+stops at Step 0 on any problem `overlay.py` reports, a local file with no
+`---` block included. Put the overlay as it will be committed (the draft
+or the present one) in `<scratch>/<topic>.overlay/agent-team.md` and any
+local file draft beside it as `agent-team.local.md`. The command line reads
+only the work tree's overlay or a committed one, so from the checkout load
+them by path, and rerun whenever a draft changes:
+
+```
+python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); import overlay; p = overlay.load(sys.argv[2])[2]; print(*p, sep="\n"); sys.exit(bool(p))' <skill-dir> <scratch>/<topic>.overlay/agent-team.md
+```
+
+It exits 0, or, for a new project with no checkout yet, reports only that
+no remote points at the repository.
+
 **Done when** the case is chosen, every overlay value has a source, the
-baseline has a result and each excluded failure a brief, or what stopped
-it is a question.
+baseline has a result and each excluded failure a brief, the drafts load,
+or what stopped it is a question.
 
 ## 4. Principles
 
@@ -161,7 +178,8 @@ the owner), quoting each draft rather than pointing at scratch:
 3. **What was verified**, each with its source, for approval with the
    rest and no question asked: the overlay draft value by value, the
    baseline result, the wrapper, the failures it excludes and their
-   briefs, the local file draft, the principles draft.
+   briefs, the local file draft, the drafts' load command and its exit
+   status, the principles draft.
 4. **What is asked**: everything not found or not verified -- no gate
    candidate, no working environment, several ways to run that differ, an
    action outside the repository, a red baseline too broad to wrap --
