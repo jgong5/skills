@@ -314,7 +314,9 @@ stops; the credit and license link sit at the top of `SKILL.md`. Its
 takes (`skills/agent-team/plan.md`), so a change to what `plan` needs from
 its input belongs in that summary too. Its Part 1 is also agent-team's
 requirement and design loop (agent-team, above), so keep the loop and the
-ending on their side of `# Part 2`.
+ending on their side of `# Part 2`. `auto.md` also drops the Summary's
+`Changes` line and the loop's Done when phrase "the change per module or
+file" by name, so reword either here and `auto.md` with it.
 
 ## Conventions
 

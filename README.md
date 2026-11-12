@@ -478,9 +478,12 @@ use when they talk to you. The full key table is in
   mode `agent-team/ruling` stops an item the same way, and a ruling agent
   removes it. A repository named in `never_touch` is never written to.
 - **Nothing is rewritten.** PR branches only gain commits -- no force-push,
-  rebase or amend, unless a ruling allows one force-push -- and nothing is pushed to the integration branch except
-  by landing an approved head: squashed, or as a merge commit when the PR
-  is labeled `agent-team/land-as-merge`.
+  rebase or amend, unless a ruling allows one force-push -- and nothing is
+  pushed to the integration branch except by landing an approved head:
+  squashed, or as a merge commit when the PR is labeled
+  `agent-team/land-as-merge`. The exception is `auto`'s setup commit for a
+  new line or a new repository (the bootstrap commit, or the initial
+  commit), which the requirement confirmation lists before it is pushed.
 - **`plan` publishes nothing until you approve** the task graph and its
   briefs, and `auto` nothing until you confirm the requirement.
 
