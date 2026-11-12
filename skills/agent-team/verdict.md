@@ -111,6 +111,6 @@ or says why not.
 
 **Done when** every item in scope that the current user rules carries its
 Ruling and has no `agent-team/need-human` left (a split's after `plan`
-publishes), or carries its hand-off, and every item it affects has its comment; report
-each Ruling's link and what changed, there and outside it, and each refused
-item with its ruler.
+publishes), or carries its hand-off, and every item it affects has its
+comment; report each Ruling's link and what changed, there and outside it,
+and each refused item with its ruler.
