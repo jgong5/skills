@@ -104,7 +104,8 @@ Resolve it again every pass, so an issue that gains a named label joins.
   are not assignee-checked. This holds with no argument too: a PR that
   delivers no pool issue is not acted on.
 - **A dependency outside the scope is another session's work**: never
-  claimed or advanced, only waited for.
+  claimed or advanced, but a task may stack on its PR (`land.md`,
+  Stacking).
 
 ## status
 
@@ -181,7 +182,10 @@ only until its final report.
 2. **Land.** For every open PR in scope, run `python3 <skill-dir>/pr_state.py
    <pr> --repo <repo>`. Land each PR whose turn is `land` and whose base is
    `<integration_branch>`, per `land.md`; a stacked child waits for the PR
-   below it.
+   below it. A PR whose holds name `contains commits of #A, closed
+   unmerged` carries commits nobody approved: apply the item's escalation
+   label and post the ruling request (`rules.md`, Escalations). Only a
+   Ruling on the PR after #A closed lifts that hold.
 3. **Review.** Dispatch a reviewer (below) for each PR whose turn is
    `reviewer` and that has no agent of yours running on it.
 4. **Develop.** Dispatch the PR's developer for each PR whose turn is

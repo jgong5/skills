@@ -26,15 +26,20 @@ ROUND = comment("2026-01-05T00:00:00Z", "Round 2 pushed c0ffee1.")
 
 @pytest.fixture
 def fake_gh(monkeypatch):
-    """Serve `gh pr view` from .pr and `gh issue view N` from .issues[N]."""
+    """Serve `gh pr view` from .pr, `gh issue view N` from .issues[N], `gh pr list` from
+    .closed and `gh api PATH` from .api[PATH]."""
     class Fake:
-        pr, issues = make_pr(), {}
+        pr, issues, closed, api = make_pr(), {}, [], {}
 
         def __call__(self, args, check=True):
             if args[:2] == ["pr", "view"]:
                 return json.dumps(self.pr)
             if args[:2] == ["issue", "view"]:
                 return json.dumps({"labels": [{"name": n} for n in self.issues.get(int(args[2]), ())]})
+            if args[:2] == ["pr", "list"]:
+                return json.dumps(self.closed)
+            if args[0] == "api":
+                return self.api[next(a for a in args[1:] if a.startswith("repos/"))]
             raise AssertionError(args)
 
     fake = Fake()
@@ -304,3 +309,26 @@ def test_an_ai_ruling_restarts_the_verdict_count(fake_gh):
     last = comment("2026-01-07T00:00:00Z", "REQUEST CHANGES @ c0ffee1: 1 blocking.", "rev")
     fake_gh.pr = make_pr(rc + [ruling, last])
     assert pr_state.state(7)["verdicts"] == 1
+
+
+def test_a_head_carrying_commits_of_a_pr_closed_unmerged_is_held_until_a_ruling(fake_gh):
+    # A stacked child whose parent #5 closed unmerged; its base later reached main.
+    approve = comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")
+    fake_gh.pr = make_pr([approve])
+    fake_gh.closed = [{"number": 5, "closedAt": "2026-01-03T00:00:00Z"}]
+    compare = "repos/me/proj/compare/{}..." + HEAD
+    fake_gh.api = {"repos/me/proj/pulls/5/commits": "a5a5a51\nb5b5b51\n",
+                   compare.format("a5a5a51"): "ahead\n", compare.format("b5b5b51"): "diverged\n"}
+    s = pr_state.state(7, "me/proj")
+    assert s["turn"] == "held" and s["holds"] == ["contains commits of #5, closed unmerged"]
+    # A Ruling before the close does not lift it; one after does.
+    fake_gh.pr = make_pr([comment("2026-01-01T12:00:00Z", "Ruling: (a) keep it.", "owner"), approve])
+    assert pr_state.state(7, "me/proj")["turn"] == "held"
+    fake_gh.pr = make_pr([approve, comment("2026-01-04T00:00:00Z", "Ruling: (a) land #5's commits.", "owner")])
+    s = pr_state.state(7, "me/proj")
+    assert "contains commits of #5, closed unmerged" not in s["holds"] and s["turn"] == "reviewer"
+    # A closed PR none of whose commits the head carries holds nothing.
+    fake_gh.pr = make_pr([approve])
+    fake_gh.api[compare.format("a5a5a51")] = "behind\n"
+    s = pr_state.state(7, "me/proj")
+    assert s["turn"] == "land" and s["holds"] == []

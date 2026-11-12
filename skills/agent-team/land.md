@@ -21,6 +21,10 @@ These are the landing preconditions, and the only holds:
 5. No entry after the last verdict whose first line opens with `Ruling:`,
    `Ruling (auto):` or `Ruling on #N affects this:`. The ruling may have changed the brief, so a
    fresh verdict under it comes first.
+6. No commit of a PR that closed unmerged after this PR's first commit, unless
+   a Ruling on this PR follows that close (`pr_state.py`). A stacked child
+   keeps its parent's commits when the parent closes, and the tree check
+   would land them once its base reaches `<integration_branch>`.
 
 A hold names the one that is unmet. **Any other rule violation seen in an
 approved PR is landed and filed as an issue, not held**: the review loop is
@@ -155,11 +159,14 @@ independent tasks do not stack. Linking the chain with `gh stack` (the
 - Link a chain whole or not at all, and only when you mean it (`gh stack
   unstack` can refuse):
   `gh stack link --base <integration_branch> <bottom-pr> ... <top-pr>`, re-run
-  whenever a PR joins, held members included (linking lands nothing). Only
+  whenever a PR joins, held members included (linking lands nothing). A
+  chain holding another session's PR (`SKILL.md`, Scope) stays unlinked:
+  linking retargets that session's PRs. Only
   linked members are retargeted when a parent lands. A fork (two or more open
   PRs based on one open PR's branch) links at most one arm. Drift check:
   every open PR based on another open PR's branch sits in one stack, fork
-  arms excepted (`gh api "repos/<repo>/stacks?pull_request=<n>"`).
+  arms and chains holding another session's PR excepted
+  (`gh api "repos/<repo>/stacks?pull_request=<n>"`).
 - Land a stack one PR at a time with `land.py`, never with `gh stack merge`:
   it takes no message and force-pushes the child after landing. Never run
   `gh stack rebase`, `sync`, `push` or `submit` either; each rebases or
@@ -170,4 +177,6 @@ independent tasks do not stack. Linking the chain with `gh stack` (the
   its base patched
   (`gh api -X PATCH repos/<repo>/pulls/<child> -f base=<integration_branch>`)
   and the new tip merged into it, so its diff shows only its own changes,
-  then gets the round comment that `rules.md` (Branches) requires.
+  then gets the round comment that `rules.md` (Branches) requires. A child
+  whose parent closed unmerged never gets its base patched: it still
+  carries the parent's commits, and `pr_state.py` holds it (Holds).

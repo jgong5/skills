@@ -78,6 +78,8 @@ def fake_gh(monkeypatch):
             self.calls.append(args)
             if args[:2] == ["pr", "view"]:
                 return json.dumps({"title": "Add the thing"})
+            if args[:2] == ["pr", "list"]:  # no PR closed unmerged
+                return "[]"
             if args == ["api", "repos/me/proj/pulls/7"]:
                 return json.dumps(self.pulls.pop(0) if len(self.pulls) > 1 else self.pulls[0])
             if args[:3] == ["api", "-X", "PUT"]:

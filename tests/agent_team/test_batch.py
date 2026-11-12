@@ -65,6 +65,8 @@ class GitHub:
                 "headRefOid": head, "headRefName": p["branch"], "baseRefName": p["base"],
                 "reviews": [], "closingIssuesReferences": [], "comments": p["comments"],
                 "commits": [{"committedDate": "2026-01-03T00:00:00Z", "oid": head}]})
+        if args[:2] == ["pr", "list"]:  # no PR closed unmerged
+            return "[]"
         if args[0] == "api" and "/stacks?pull_request=" in args[1]:
             n = int(args[1].rsplit("=", 1)[1])
             return json.dumps([{"pull_requests": [{"number": m} for m in sorted(self.linked)]}]
