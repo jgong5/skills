@@ -33,9 +33,11 @@ import json
 import re
 import subprocess
 
-# Each label's name, then its old name, still read for one version. HOLD
-# holds landing only; development and review go on.
-LABEL = ("agent-team/need-human", "need human")
+# Each label's name, then its old name, still read for one version. LABEL
+# holds every turn: agent-team/ruling holds for a ruling agent as
+# need-human does for the owner. HOLD holds landing only; development and
+# review go on.
+LABEL = ("agent-team/need-human", "need human", "agent-team/ruling")
 HOLD = ("agent-team/hold-landing", "hold landing")
 # GitHub links closing keywords only on PRs into the default branch, so the
 # body is read too, with every verb rules.md counts as delivering.
