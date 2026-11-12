@@ -254,11 +254,17 @@ that is a property of that one skill, not a rule for the repo.
 `agent-team` was extracted from one project's standing rules for autonomous
 agents (ATOM Compass's `AI_DEV_RULES.md`); every project-specific value moved
 into a per-project overlay, `<repo>/.claude/agent-team.md`, parsed by
-`overlay.py`. `SKILL.md` is the orchestrator's spine (`plan`, `run`,
-`status`, `verdict`, `advise`); `rules.md` binds every role; `plan.md`,
-`develop.md`, `review.md` and `land.md` are per-role docs handed to
-dispatched agents, and `verdict.md` is the ruler's mode for answering
-escalations, prepared by `advise.md`'s read-only analysis of one held item.
+`overlay.py`. `SKILL.md` is the orchestrator's spine (`auto`, `plan`,
+`run`, `status`, `verdict`, `advise`); `rules.md` binds every role; the
+role docs handed to dispatched agents are `plan.md`, `develop.md`,
+`review.md` and `land.md`, plus, for auto items, `design.md` and
+`design-review.md` (an `agent-team/design` issue), `spike.md` (an
+`agent-team/spike` issue, reviewed by `review.md`), `ruling.md` (an
+`agent-team/ruling` hold) and `accept.md` (a finished umbrella).
+`verdict.md` is the ruler's mode for answering escalations, prepared by
+`advise.md`'s read-only analysis of one held item. `auto.md` turns a
+requirement into an umbrella issue and hands it to `run`; `principles.md`
+is the default list designers and ruling agents weigh decisions against.
 It ships no prompt templates on purpose: a dispatched agent gets its role
 doc, the issue and the overlay, so nothing stored can drift from the brief.
 
@@ -269,14 +275,28 @@ PR's turn from its thread. Contracts that span files:
   `pr_state.py`'s `VERDICT`/`SHA`, `review.md`'s Post step, and `gh-prose`'s
   rule 1 must agree; `lint_gh_prose.py`'s `STATE` must accept each state line
   the docs prescribe, including the `Claimed:` comment.
-- A Ruling's first line opens with plain `Ruling:`, and the note `verdict.md`
-  posts on each item it affects opens with `Ruling on #N affects this:`.
-  `pr_state.py`'s `RULING` matches both: either one after the last verdict
-  holds landing and sends a covered head back to the reviewer. Only `Ruling:`
-  restarts `verdicts`. `lint_gh_prose.py`'s `STATE` accepts both, and its
-  `lint` rejects a first line that bolds `Ruling` (`**Ruling**:`), which
+- A Ruling's first line opens with plain `Ruling:`, or `Ruling (auto):` from
+  a ruling agent, and the note `verdict.md` posts on each item it affects
+  opens with `Ruling on #N affects this:`. `pr_state.py`'s `RULING` matches
+  all three: any one after the last verdict holds landing and sends a
+  covered head back to the reviewer. Only a Ruling (`RULED`) restarts
+  `verdicts`. `lint_gh_prose.py`'s `STATE` accepts each, and its `lint`
+  rejects a first line that bolds `Ruling` (`**Ruling**:`), which
   `pr_state.py` ignores.
 - `land.py`'s exit codes are what `land.md` branches on.
+- The labels were renamed under an `agent-team/` prefix. `pr_state.py`'s
+  `LABEL`/`HOLD` and `land.py`'s `AS_MERGE` still read the old names
+  (`need human`, `hold landing`, `land as merge`) for one version, while
+  `SKILL.md` Step 0 renames them in a repository; retire the old names from
+  the scripts and Step 0 in one change.
+- `auto.md` and `design.md` run `auto-grilling`'s decision loop by reading
+  `<skill-dir>/../auto-grilling/SKILL.md` up to its `# Part 2` heading,
+  because a dispatched agent cannot invoke a user-invoked skill. That
+  relative path resolves only because every bundle's `source` is `./`,
+  which puts `skills/auto-grilling/` on disk in an agent-team install.
+  The split is silent when it breaks: a renamed `# Part 2` heading hands
+  the reader the final menu, and a waiting step moved above it stops an
+  auto run.
 
 Both skills test **behaviour only** -- no test reads their prose -- because
 `rules.md` tells target projects that prose is not a test subject, and this
@@ -292,7 +312,11 @@ because that skill's "wait for my answer" lines contradict a run that never
 stops; the credit and license link sit at the top of `SKILL.md`. Its
 `.grill.md` summary is shaped to be the design document `/agent-team plan`
 takes (`skills/agent-team/plan.md`), so a change to what `plan` needs from
-its input belongs in that summary too.
+its input belongs in that summary too. Its Part 1 is also agent-team's
+requirement and design loop (agent-team, above), so keep the loop and the
+ending on their side of `# Part 2`. `auto.md` also drops the Summary's
+`Changes` line and the loop's Done when phrase "the change per module or
+file" by name, so reword either here and `auto.md` with it.
 
 ## Conventions
 
