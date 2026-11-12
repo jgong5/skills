@@ -13,7 +13,8 @@ def comment(at, body, who="dev"):
 
 def make_pr(comments=(), reviews=(), labels=(), closes=(), state="OPEN", head=HEAD, body=""):
     return {
-        "number": 7, "state": state, "body": body, "headRefOid": head, "baseRefName": "dev",
+        "number": 7, "state": state, "body": body, "headRefOid": head, "headRefName": "task-7",
+        "baseRefName": "dev",
         "labels": [{"name": n} for n in labels],
         "comments": list(comments), "reviews": list(reviews),
         "commits": [{"committedDate": "2026-01-01T00:00:00Z", "oid": head}],
@@ -314,21 +315,38 @@ def test_an_ai_ruling_restarts_the_verdict_count(fake_gh):
 def test_a_head_carrying_commits_of_a_pr_closed_unmerged_is_held_until_a_ruling(fake_gh):
     # A stacked child whose parent #5 closed unmerged; its base later reached main.
     approve = comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")
-    fake_gh.pr = make_pr([approve])
-    fake_gh.closed = [{"number": 5, "closedAt": "2026-01-03T00:00:00Z"}]
-    compare = "repos/me/proj/compare/{}..." + HEAD
-    fake_gh.api = {"repos/me/proj/pulls/5/commits": "a5a5a51\nb5b5b51\n",
-                   compare.format("a5a5a51"): "ahead\n", compare.format("b5b5b51"): "diverged\n"}
+    pr = make_pr([approve])
+    pr["commits"].insert(0, {"committedDate": "2025-12-31T00:00:00Z", "oid": "a5a5a51"})
+    fake_gh.pr = pr
+    fake_gh.closed = [{"number": 5, "closedAt": "2026-01-03T00:00:00Z", "headRefName": "task-5"}]
+    fake_gh.api = {"repos/me/proj/pulls/5/commits": "a5a5a51\nb5b5b51\n"}
     s = pr_state.state(7, "me/proj")
     assert s["turn"] == "held" and s["holds"] == ["contains commits of #5, closed unmerged"]
     # A Ruling before the close does not lift it; one after does.
-    fake_gh.pr = make_pr([comment("2026-01-01T12:00:00Z", "Ruling: (a) keep it.", "owner"), approve])
+    fake_gh.pr = dict(pr, comments=[comment("2026-01-01T12:00:00Z", "Ruling: (a) keep it.", "owner"), approve])
     assert pr_state.state(7, "me/proj")["turn"] == "held"
-    fake_gh.pr = make_pr([approve, comment("2026-01-04T00:00:00Z", "Ruling: (a) land #5's commits.", "owner")])
+    fake_gh.pr = dict(pr, comments=[approve, comment("2026-01-04T00:00:00Z", "Ruling: (a) land #5's commits.", "owner")])
     s = pr_state.state(7, "me/proj")
     assert "contains commits of #5, closed unmerged" not in s["holds"] and s["turn"] == "reviewer"
-    # A closed PR none of whose commits the head carries holds nothing.
+    # A closed PR none of whose commits this PR carries holds nothing.
     fake_gh.pr = make_pr([approve])
-    fake_gh.api[compare.format("a5a5a51")] = "behind\n"
+    s = pr_state.state(7, "me/proj")
+    assert s["turn"] == "land" and s["holds"] == []
+
+
+def test_closed_commits_the_base_has_or_a_closed_pr_on_the_same_branch_hold_nothing(fake_gh):
+    approve = comment("2026-01-02T00:00:00Z", "APPROVE @ c0ffee1.", "rev")
+    fake_gh.pr = make_pr([approve])
+    # Sync PR #5 closed unmerged; a later merge landed its commit a5a5a51, so the head
+    # descends from it, but it is in the base and not among this PR's commits.
+    fake_gh.closed = [{"number": 5, "closedAt": "2026-01-03T00:00:00Z", "headRefName": "sync"}]
+    fake_gh.api = {"repos/me/proj/pulls/5/commits": "a5a5a51\n",
+                   "repos/me/proj/compare/a5a5a51..." + HEAD: "ahead\n"}
+    s = pr_state.state(7, "me/proj")
+    assert s["turn"] == "land" and s["holds"] == []
+    # This PR reopened from closed #6's branch carries #6's commit.
+    fake_gh.closed = [{"number": 6, "closedAt": "2026-01-03T00:00:00Z", "headRefName": "task-7"}]
+    fake_gh.api = {"repos/me/proj/pulls/6/commits": HEAD + "\n",
+                   "repos/me/proj/compare/{0}...{0}".format(HEAD): "identical\n"}
     s = pr_state.state(7, "me/proj")
     assert s["turn"] == "land" and s["holds"] == []

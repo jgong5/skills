@@ -21,7 +21,8 @@ These are the landing preconditions, and the only holds:
 5. No entry after the last verdict whose first line opens with `Ruling:`,
    `Ruling (auto):` or `Ruling on #N affects this:`. The ruling may have changed the brief, so a
    fresh verdict under it comes first.
-6. No commit of a PR that closed unmerged after this PR's first commit, unless
+6. No commit among this PR's own (head minus base) of a PR from another
+   branch that closed unmerged after this PR's first commit, unless
    a Ruling on this PR follows that close (`pr_state.py`). A stacked child
    keeps its parent's commits when the parent closes, and the tree check
    would land them once its base reaches `<integration_branch>`.
@@ -179,4 +180,5 @@ independent tasks do not stack. Linking the chain with `gh stack` (the
   and the new tip merged into it, so its diff shows only its own changes,
   then gets the round comment that `rules.md` (Branches) requires. A child
   whose parent closed unmerged never gets its base patched: it still
-  carries the parent's commits, and `pr_state.py` holds it (Holds).
+  carries the parent's commits, and `pr_state.py` holds it once its base
+  reaches `<integration_branch>` (Holds).
