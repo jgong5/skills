@@ -13,7 +13,7 @@ def comment(at, body, n, k):
 
 def issue(n, assignees=(), comments=()):
     return {"number": n, "title": "Brief", "body": "", "url": f"{URL}/issues/{n}",
-            "assignees": [{"login": a} for a in assignees], "comments": list(comments)}
+            "createdAt": "2026-01-01T00:00:00Z", "assignees": [{"login": a} for a in assignees], "comments": list(comments)}
 
 
 def pr(n, title="Work", body="", assignees=(), comments=()):
@@ -67,6 +67,26 @@ def test_the_latest_request_wins_and_an_owner_request_falls_back_to_the_assignee
         later, comment("2026-01-02T00:00:00Z", "Needs ruling from @carol: which API?", 5, 2)])}
     r = ruler.ruler(5)
     assert (r["ruler"], r["source"], r["request"]) == ("alice", "assignee", later["url"])
+
+
+def test_a_request_after_a_state_sentence_counts_and_one_in_a_code_span_does_not(fake_gh):
+    ask = comment("2026-01-02T00:00:00Z", "Part of #3256. Needs ruling from @carol: which form?", 5, 2)
+    fake_gh.items = {5: issue(5, ["alice"], [ask])}
+    r = ruler.ruler(5)
+    assert (r["ruler"], r["source"], r["request"]) == ("carol", "request", ask["url"])
+    fake_gh.items[5]["comments"].append(
+        comment("2026-01-03T00:00:00Z", "Quoting `Part of #1. Needs ruling from @dave:` as the form.", 5, 3))
+    assert ruler.ruler(5)["ruler"] == "carol"
+
+
+def test_a_body_request_counts_until_a_later_comment_request_and_one_in_details_does_not(fake_gh):
+    fake_gh.items = {5: dict(issue(5, ["alice"]), body="Needs ruling from @carol: which form?\n\nWhy.")}
+    assert (ruler.ruler(5)["ruler"], ruler.ruler(5)["request"]) == ("carol", f"{URL}/issues/5")
+    fake_gh.items[5]["comments"] = [comment("2026-01-02T00:00:00Z", "Needs ruling from @dave: still?", 5, 2)]
+    assert ruler.ruler(5)["ruler"] == "dave"
+    fake_gh.items = {5: dict(issue(5, ["alice"]), body=(
+        "Fixed by #7.\n\n<details><summary>History</summary>\n\nNeeds ruling from @carol: which?\n</details>"))}
+    assert (ruler.ruler(5)["ruler"], ruler.ruler(5)["request"]) == ("alice", None)
 
 
 def test_a_request_in_a_delivering_prs_thread_counts_and_a_notice_does_not(fake_gh):

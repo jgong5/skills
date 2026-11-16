@@ -8,9 +8,12 @@ An item is an issue plus every open PR that delivers it: the PR's title names
 a PR: the issue it delivers is the item, a PR delivering none is an item
 alone, and a PR delivering several exits 2 naming them.
 
-A request line is a comment or review whose first line opens with
-`Needs owner ruling:` or `Needs ruling from @<login>:`, in any member's
-thread. When the latest one names a login, that login rules (source
+A request line is the first line of a member's body, comment or review
+holding `Needs owner ruling:` or `Needs ruling from @<login>:` as a sentence:
+at the line's start or after `.`, `!` or `?` and whitespace, outside a code
+span. A body counts at its creation time, so any later comment request wins,
+and only its first line is read: a request further down, as in `<details>`,
+is history. When the latest one names a login, that login rules (source
 `request`); otherwise the issue's, or the lone PR's, single assignee does
 (`assignee`), and with none or several the ruler is null (`unassigned`,
 `multiple-assignees`). `Ruling on #N affects this:` is a notice, not a request.
@@ -24,11 +27,11 @@ import json
 import re
 import sys
 
-from pr_state import DELIVERS, first_line, gh
+from pr_state import CODE, DELIVERS, first_line, gh
 
-REQUEST = re.compile(r"Needs (?:owner ruling|ruling from @([\w-]+)):")
+REQUEST = re.compile(r"(?:^|[.!?]\s+)Needs (?:owner ruling|ruling from @([\w-]+)):")
 TITLE_REF = re.compile(r"#(\d+)\b")
-ITEM = "number,title,body,url,assignees,comments"
+ITEM = "number,title,body,url,createdAt,assignees,comments"
 
 
 def delivered(pr):
@@ -36,8 +39,8 @@ def delivered(pr):
 
 
 def entries(threads, prs, repo):
-    """(time, url, first line) for every comment in `threads` and submitted review on `prs`."""
-    out = [(c["createdAt"], c["url"], first_line(c["body"])) for t in threads for c in t["comments"]]
+    """(time, url, first line) for every body and comment in `threads` and submitted review on `prs`."""
+    out = [(c["createdAt"], c["url"], first_line(c["body"])) for t in threads for c in [t, *t["comments"]]]
     for pr in prs:
         # Reads the first 100 reviews per PR; a longer review list needs --paginate.
         reviews = json.loads(gh(["api", f"repos/{repo or '{owner}/{repo}'}/pulls/{pr['number']}/reviews?per_page=100"]))
@@ -59,10 +62,10 @@ def ruler(n, repo=None):
         threads = prs = [item]
     else:
         open_prs = json.loads(gh(["pr", "list", "--state", "open", "--limit", "1000",
-                                  "--json", "number,title,body,comments", *r]))
+                                  "--json", "number,title,body,url,createdAt,comments", *r]))
         prs = [p for p in open_prs if item["number"] in delivered(p)]
         threads = [item, *prs]
-    requests = [(url, m) for _, url, line in entries(threads, prs, repo) if (m := REQUEST.match(line))]
+    requests = [(url, m) for _, url, line in entries(threads, prs, repo) if (m := REQUEST.search(CODE.sub("code", line)))]
     assignees = [a["login"] for a in item["assignees"]]
     request = requests[-1][0] if requests else None
     if requests and requests[-1][1].group(1):
