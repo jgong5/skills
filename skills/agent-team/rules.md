@@ -147,10 +147,13 @@ Exceptions:
 3. Reading, for `status`.
 
 **An item's ruler is the one person who rules on it.** An item is an issue
-plus every open PR that delivers it (Check delivery). A request line is a
-comment or review whose first line opens with `Needs owner ruling:` or
-`Needs ruling from @<login>:`, in any member's thread; `Ruling on #N affects
-this:` is a notice, not a request line. When the latest request line names a
+plus every open PR that delivers it (Check delivery). A request line is the
+first line of a member's body, or of a comment or review in its thread, that
+holds `Needs owner ruling:` or `Needs ruling from @<login>:` as a sentence --
+at its start or after a state sentence such as `Part of #U.` -- outside a code
+span. A body counts as of its creation, so a later comment request wins, and
+a request below its first line is history. `Ruling on #N affects this:` is a
+notice, not a request line. When the latest request line names a
 login, that login is the ruler; otherwise the single assignee of the issue
 (or of a PR that delivers none) is, and with no assignee or several the item
 has no ruler until a request names one.
