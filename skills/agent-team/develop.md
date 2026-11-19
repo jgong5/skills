@@ -61,7 +61,8 @@ fix.
 
 The PR targets `<integration_branch>` (or the parent's branch when stacked),
 its title says what the task does, and its body follows `gh-prose`'s PR body
-shape and names the issue (`Closes #<n>`). Rewrite the body in place each
+shape and names the issue (`Closes #<n>`); its `## Testing` shows the named
+result and the `<gate_task>` line. Rewrite the body in place each
 round so it describes the current state. After every push, comment
 `Round <k> pushed <sha>.` with what changed since the last round, one line
 per answered finding: fixed in which commit, or why not, with evidence.

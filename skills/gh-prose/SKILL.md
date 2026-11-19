@@ -24,7 +24,9 @@ guessing.
    `Ruling: (b). <why>.` / `Brief updated: <parts>. <link to the issue>` /
    `APPROVE @ <sha>.` / `REQUEST CHANGES @ <sha>: <n> blocking.` /
    `Round N pushed <sha>.`
-2. **Each fact once.** Do not restate the title, the diff, the issue or another comment; link it.
+2. **Each fact once** in the visible body. Do not restate the title, the diff,
+   the issue or another comment; link it. A `<details>` record is complete and
+   may expand what the body states.
 3. **Results, not process.** Commit and result, not how the tree was staged or verified.
 4. **Current state, not history.** Rewrite the PR body in place each round;
    the round comment carries what changed.
@@ -53,17 +55,33 @@ branch and PR state.
 **Ruling**: the decision; one sentence why; `Brief updated: <parts>.` when
 the ruling changed the issue body.
 
-**PR body**
+**PR body**: written for a reviewer who has not read the issue; the agent's
+record is folded.
 ```
-Closes #N. <state line>
-<Why, 1-3 sentences.>
-## Dev record
-Found / Decided / Surprised / Left undone: one-line bullets or `none`.
-Decided = what the reviewer should check first.
-## Named result
-## Gates
-<details><summary>Evidence</summary>revert-red, probes, cost vs estimate</details>
+Closes #N. Ready for review. No blocking issues.
+## Why
+## What changed
+## Review focus
+## Testing
+## Follow-ups
+<details><summary>Dev record</summary>...</details>
+<details><summary>Evidence</summary>...</details>
 ```
+- **Why**: the behaviour before the change, through one concrete case, in
+  1-3 sentences and no code span.
+- **What changed**: an optional diagram first, unfolded and at most 30 lines:
+  `stateDiagram-v2` for states or transitions, `sequenceDiagram` for calls
+  across components, `flowchart` for branching. Draw the after-state with the
+  changes marked; draw none for a change inside one function. Then up to 5
+  lines, behaviour first, then where, with one or two identifiers each.
+- **Review focus**: 1-3 Dev record items to check first, or `none`.
+- **Testing**: what the named result proves, in words, then one gate line.
+- **Follow-ups**: what is left, each linked to its issue, or `none`.
+- **Dev record**: Found, Decided, Surprised, Left undone, each present and
+  `none` when empty; the reason for any edited test; under agent-team, `line_count.py` output.
+- **Evidence**: revert-red, probes, test ids, commands.
+
+One claim a sentence, at most 35 words, throughout.
 
 **Review record**: verdict line, `Checked:`, `Accepted with reservation:`,
 `Watch next:`, one line each; inline findings read `<problem>. <fix>.` and

@@ -25,7 +25,7 @@ the developer's tree, and run `<import_check>` there when it is set.
   did not add; confirm the brief's named result, the one it stated, is shown.
 - **A spike** (`spike.md`) lands nothing, so `<gate_task>` and the new-test
   gate do not apply. Gate 3 is a reproduction, in every review, a delta
-  review included: run the command the PR body's `## Named result` states,
+  review included: run the command the PR body's `## Testing` states,
   at the head and in the environment it names, in your own tree, and record
   your output beside its own. A named sha other than the head, a result
   outside the stated range, or one you cannot run is unreproduced, and an

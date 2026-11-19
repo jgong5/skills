@@ -104,8 +104,8 @@ document, in `<design_entry>`'s directory and linked from `<design_entry>`.
 ## 5. Gate and PR
 
 `<gate_task>` passes at your head. Then `develop.md` step 5: the Dev record
-holds what the loop found that the document does not record, and the Named
-result links the document. A finding on a decision revises it and, through
+holds what the loop found that the document does not record, and `## Testing`
+links the document. A finding on a decision revises it and, through
 the log's `Depends on`, every decision resting on it, in new commits. A
 finding that a `low` entry is a spike is answered as step 3 case 2.
 
