@@ -26,6 +26,9 @@ PATTERNS = {
     "em dash": "\u2014",
     "emoji": r"[\U0001F300-\U0001FAFF\u2600-\u27BF]",
 }
+PR_HEADINGS = ["Why", "What changed", "Review focus", "Testing", "Follow-ups"]
+MAX_SENTENCE = 35  # words in one visible sentence
+MAX_MERMAID = 30  # lines in one mermaid fence
 
 
 def visible(text, keep_lines=False):
@@ -78,6 +81,31 @@ def lint(text, kind):
         run = sum(not re.match(r"\s*\|[-| :]+\|\s*$", l) for l in block.splitlines())
         if run > 6:  # ponytail: 5 items + a table header, lists get the same slack
             hits.append(f"list/table of {run} lines, max 5 items")
+    if kind == "pr":
+        hits += pr_shape(text, out)
+    return hits
+
+
+def pr_shape(text, out):
+    """The PR body's headings, its Why section, sentence length and diagram size."""
+    hits = []
+    heads = re.findall(r"(?m)^##[ \t]+(.+?)[ \t]*$", out)
+    missing = [h for h in PR_HEADINGS if h not in heads]
+    if missing:
+        hits.append(f"missing heading: {', '.join('## ' + h for h in missing)}")
+    elif heads != PR_HEADINGS:
+        hits.append(f"headings {heads}, want exactly {PR_HEADINGS} in that order")
+    why = re.search(r"(?ms)^##[ \t]+Why[ \t]*$(.*?)(?=^#|\Z)", out)
+    if why and re.search(r"`[^`\n]+`", why.group(1)):
+        hits.append("code span under ## Why: say the behaviour in words")
+    prose = re.sub(r"(?m)^#+[ \t].*$", "", out)  # a heading is no sentence
+    for s in re.split(r"(?<=[.!?])\s+|\n\s*\n|\n(?=[ \t]*(?:[-*] |\d+\. |\|))", prose):
+        if len(s.split()) > MAX_SENTENCE:
+            hits.append(f"sentence of {len(s.split())} words, max {MAX_SENTENCE}: {s.strip()[:60]!r}")
+    for body in re.findall(r"(?ms)^```[ \t]*mermaid[ \t]*\n(.*?)^```", text):
+        n = body.count("\n")
+        if n > MAX_MERMAID:
+            hits.append(f"mermaid diagram of {n} lines, max {MAX_MERMAID}")
     return hits
 
 
