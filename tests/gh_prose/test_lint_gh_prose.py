@@ -111,6 +111,12 @@ def test_a_code_span_is_flagged_under_why_only():
     assert lint_gh_prose.lint(PR.replace("It works.", "`f` works."), "pr") == []
 
 
+def test_an_issue_reference_opening_a_why_line_does_not_end_why():
+    assert lint_gh_prose.lint(PR.replace("It broke.", "#12 broke it.\n`f` too."), "pr") == [
+        "code span under ## Why: say the behaviour in words"
+    ]
+
+
 def test_a_visible_sentence_over_35_words_is_flagged():
     long = "a " * 35 + "\nb."  # wrapped over two lines, still one sentence
     assert lint_gh_prose.lint(PR.replace("It works.", long), "pr") == [

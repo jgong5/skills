@@ -95,7 +95,7 @@ def pr_shape(text, out):
         hits.append(f"missing heading: {', '.join('## ' + h for h in missing)}")
     elif heads != PR_HEADINGS:
         hits.append(f"headings {heads}, want exactly {PR_HEADINGS} in that order")
-    why = re.search(r"(?ms)^##[ \t]+Why[ \t]*$(.*?)(?=^#|\Z)", out)
+    why = re.search(r"(?ms)^##[ \t]+Why[ \t]*$(.*?)(?=^#+[ \t]|\Z)", out)
     if why and re.search(r"`[^`\n]+`", why.group(1)):
         hits.append("code span under ## Why: say the behaviour in words")
     prose = re.sub(r"(?m)^#+[ \t].*$", "", out)  # a heading is no sentence
