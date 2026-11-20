@@ -96,10 +96,14 @@ the PRs in landing order (bottom-first through each stack):
 2. Run `<gate_task>` on the batch commit, in a detached scratch worktree
    (`git worktree add --detach <path> <commit>`). Red is a finding: land
    nothing from the batch, and gate each PR alone: `batch.py merge` of it
-   and the PRs below it in its stack, each with its own record, whose `tip`
-   must be the batch record's (else the tip moved: merge again). Gate each
-   commit it prints in its own detached scratch worktree, at most
-   `<gate_jobs>` at once. A PR red alone while every PR below it is
+   and the PRs below it in its stack, each with its own record. Run these
+   merges one after another: each fetches the tip into the same ref
+   (`land.TIP`), so two at once can fail on git's ref lock. Each record's
+   `tip` must be the batch record's; a moved tip leaves the batch record
+   stale too, so merge the whole batch again. Only the gates run in
+   parallel: gate each commit they print in its own detached scratch
+   worktree, at most `<gate_jobs>` at once.
+   A PR red alone while every PR below it is
    green alone leaves the batch, with the PRs above it in its stack: post
    `REQUEST CHANGES @ <head>: 1 blocking.` on it with the failing test ids,
    which hands it to its developer, and merge and gate the rest again as a
