@@ -52,9 +52,9 @@ order:
    size is yours to judge: requirement or code restated outside the
    Summary, a decision with no rival, or a section `plan` would not use is
    a finding.
-10. **The rest of the PR.** `<gate_task>` passes at the head; the
-    published-text rules (`rules.md`) hold over its whole file set; when
-    the issue carries a principles draft, the PR commits it as confirmed.
+10. **The rest of the PR.** The task gate, `<gate_targeted>` (`<gate_task>`
+    when unset), passes at the head; the published-text rules (`rules.md`)
+    hold over its whole file set; when the issue carries a principles draft, the PR commits it as confirmed.
 
 ## Verdict
 

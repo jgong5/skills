@@ -28,9 +28,10 @@ still in an unlanded PR (`--ref <remote>/<PR branch>`).
 |---|---|---|---|
 | `repo` | yes | -- | `OWNER/NAME` agents write to. No default: `origin` is often an upstream agents must not touch. |
 | `integration_branch` | yes | -- | Where PRs land, squashed. |
-| `gate_task` | yes | -- | The per-task gate. Runs from a worktree's root; exit 0 is a pass. Join commands with `&&`. |
+| `gate_task` | yes | -- | The full gate: the batch gate before every landing (`land.md`, Land a batch), and the task gate developers and reviewers run when `gate_targeted` is unset. Runs from a worktree's root; exit 0 is a pass. Join commands with `&&`. |
 | `design_entry` | yes | -- | The document developers and reviewers read first (design principles, or the README that indexes them). |
 | `remote` | no | the one remote whose URL points at `repo` | Name of that remote; set it only when zero or several match. |
+| `gate_targeted` | no | -- | The task gate: developers run it at every round's head and reviewers at the head they review, instead of `gate_task`. It selects the tests the change itself reaches. Runs from a worktree's root; exit 0 is a pass. A regression it misses still meets the batch gate before landing. |
 | `never_touch` | no | -- | Repositories agents never write to (comma-separated), typically the upstream. |
 | `gate_post_land` | no | -- | A gate run once on `integration_branch` after a `run` lands work, judged as a delta (`land.md`, After landing). It never holds a landing, so a change only it covers can land broken; slow tests and tests needing a scarce resource usually go here. `gate_wave` is its deprecated alias: it still loads, with a warning, and setting both in one file is a problem. |
 | `new_tests_dir` | no | -- | Where a task's new tests go. |

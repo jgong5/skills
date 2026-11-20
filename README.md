@@ -452,7 +452,7 @@ scope leaves auto umbrellas' issues to their own run.
 
 Everything project-specific lives in one file in your repository,
 `.claude/agent-team.md`: the repository agents write to, the integration
-branch, the per-task gate command, the design document agents read first,
+branch, the full gate command, the design document agents read first,
 and optional keys such as a repository agents must never touch. Its body
 holds free-text project rules. The first `plan` or `run` drafts it with
 you: it infers values from your remotes, docs and CI, runs the proposed gate
@@ -463,7 +463,10 @@ your `.gitignore`. `overlay.py --ref <rev>` reads the overlay as committed
 at a branch or sha instead of from the checkout, so one checkout can run
 two integration branches, or a run can use an overlay still in an unlanded
 PR. The `conversation_language` key sets the language agents
-use when they talk to you. The full key table is in
+use when they talk to you. The optional `gate_targeted` key names a faster
+gate that selects the tests a change reaches; developers and reviewers run
+it instead of the full gate, which still runs on every batch before
+landing. The full key table is in
 [`skills/agent-team/overlay.md`](skills/agent-team/overlay.md).
 
 ### Safety model

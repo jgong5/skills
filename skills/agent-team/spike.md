@@ -19,8 +19,8 @@ collector, say) picks it up. The branch holds nothing else, so its head
 measures the project as of its base, and since it never lands, the script
 never reaches `<integration_branch>` (`rules.md`, The task record). Run it
 at that head, repeating the measurement until you see its spread. Track
-lines as `develop.md` step 3; `<gate_task>` and the new-test gate do not
-apply, so `## Testing`'s gate line says only that.
+lines as `develop.md` step 3; the task gate, `<gate_targeted>`
+(`<gate_task>` when unset), and the new-test gate do not apply, so `## Testing`'s gate line says only that.
 
 ## 3. Open the PR
 

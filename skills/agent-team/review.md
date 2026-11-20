@@ -20,10 +20,11 @@ Check in your own worktree or `git archive` snapshot of the head, never in
 the developer's tree, and run `<import_check>` there when it is set.
 
 - **Gates 1-3** (`develop.md`, Pass the gates), as they apply to this task:
-  run `<gate_task>` yourself; confirm no existing test was edited without a
-  justification in the Dev record; confirm the new tests reach code the PR
-  did not add; confirm the brief's named result, the one it stated, is shown.
-- **A spike** (`spike.md`) lands nothing, so `<gate_task>` and the new-test
+  run the task gate, `<gate_targeted>` (`<gate_task>` when unset),
+  yourself; confirm no existing test was edited without a justification in
+  the Dev record; confirm the new tests reach code the PR did not add;
+  confirm the brief's named result, the one it stated, is shown.
+- **A spike** (`spike.md`) lands nothing, so the task gate and the new-test
   gate do not apply. Gate 3 is a reproduction, in every review, a delta
   review included: run the command the PR body's `## Testing` states,
   at the head and in the environment it names, in your own tree, and record
