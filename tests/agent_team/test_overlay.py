@@ -259,3 +259,13 @@ def test_gate_targeted_loads_when_set_and_is_absent_when_not(tmp_path, monkeypat
     (main / ".claude" / "agent-team.md").write_text(GOOD)
     keys, _, problems = overlay.load()
     assert problems == [] and "gate_targeted" not in keys
+
+
+def test_gate_jobs_defaults_to_max_tasks_and_must_be_positive(tmp_path, monkeypatch):
+    main = repo_with(tmp_path, monkeypatch, GOOD)
+    keys, _, problems = overlay.load()
+    assert problems == [] and keys["gate_jobs"] == "3"
+    (main / ".claude" / "agent-team.md").write_text(GOOD.replace("max_tasks: 3", "gate_jobs: 0"))
+    keys, _, problems = overlay.load()
+    assert problems == ["gate_jobs must be a positive integer, got '0'"]
+    assert keys["max_tasks"] == "5"

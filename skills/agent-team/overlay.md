@@ -33,13 +33,14 @@ still in an unlanded PR (`--ref <remote>/<PR branch>`).
 | `remote` | no | the one remote whose URL points at `repo` | Name of that remote; set it only when zero or several match. |
 | `gate_targeted` | no | -- | The task gate: developers run it at every round's head and reviewers at the head they review, instead of `gate_task`. It selects the tests the change itself reaches. Runs from a worktree's root; exit 0 is a pass. A regression it misses still meets the batch gate before landing. |
 | `never_touch` | no | -- | Repositories agents never write to (comma-separated), typically the upstream. |
-| `gate_post_land` | no | -- | A gate run once on `integration_branch` after a `run` lands work, judged as a delta (`land.md`, After landing). It never holds a landing, so a change only it covers can land broken; slow tests and tests needing a scarce resource usually go here. `gate_wave` is its deprecated alias: it still loads, with a warning, and setting both in one file is a problem. |
+| `gate_post_land` | no | -- | A gate run once on `integration_branch` after a `run` lands work, judged as a delta (`land.md`, After landing). It never holds a landing, so a change only it covers can land broken; slow tests and tests needing a scarce resource usually go here. A project that runs that gate on its own schedule (daily, say) leaves it unset. `gate_wave` is its deprecated alias: it still loads, with a warning, and setting both in one file is a problem. |
 | `new_tests_dir` | no | -- | Where a task's new tests go. |
 | `import_check` | no | -- | Command printing where the project's package resolves from, run in each tree. |
 | `worktree_root` | no | `<main worktree>-worktrees`, beside it | Parent of the per-task worktrees. |
 | `publish_language` | no | `English` | Language of everything published to GitHub. |
 | `conversation_language` | no | the owner's own language | Language agents use with the owner, never between agents. |
 | `max_tasks` | no | `5` | Tasks in flight, as `SKILL.md` (run, One pass, step 4) defines it; agents in flight are at most twice this. |
+| `gate_jobs` | no | `max_tasks`'s value | Gates run at once when a red batch gates each PR alone (`land.md`, Land a batch). |
 | `split_loc` | no | `1000` | A task estimated above this many lines, tests included, is decomposed. |
 | `task_label` | no | -- | When set, only open issues with this label are in the pool; when absent, every open issue in `repo` is. |
 | `prose_tests` | no | -- | Test files that pin prose by design (comma-separated globs, relative to the repository root); "Prose is not a test subject" (`rules.md`) does not apply to them. |

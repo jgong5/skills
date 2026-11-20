@@ -95,7 +95,16 @@ the PRs in landing order (bottom-first through each stack):
    (exit 4).
 2. Run `<gate_task>` on the batch commit, in a detached scratch worktree
    (`git worktree add --detach <path> <commit>`). Red is a finding: land
-   nothing from the batch, and bisect it by gating smaller prefixes.
+   nothing from the batch, and gate each PR alone: `batch.py merge` of it
+   and the PRs below it in its stack, each with its own record, whose `tip`
+   must be the batch record's (else the tip moved: merge again). Gate each
+   commit it prints in its own detached scratch worktree, at most
+   `<gate_jobs>` at once. A PR red alone while every PR below it is
+   green alone leaves the batch, with the PRs above it in its stack: post
+   `REQUEST CHANGES @ <head>: 1 blocking.` on it with the failing test ids,
+   which hands it to its developer, and merge and gate the rest again as a
+   batch. Only when every PR passes alone, bisect by gating smaller
+   prefixes; the PR whose prefix first goes red goes back the same way.
 3. `python3 <skill-dir>/batch.py land --record <file> --message-dir <dir>
    [--ref <ref>]`,
    with one `<pr>.txt` per PR written as for Land one PR, lands each PR in
@@ -148,7 +157,9 @@ review of the resolution.
   and `<gate_post_land>` is set, run it once on the new tip before each
   quiet-pass report. It is judged as a delta: if it is
   red, run it on the tip from before this run's first landing, and file
-  each failure that is new as a finding issue.
+  each failure that is new as a finding issue. A project that runs its
+  post-land gate on its own schedule (daily, say) leaves `gate_post_land`
+  unset.
 
 ## Stacking
 

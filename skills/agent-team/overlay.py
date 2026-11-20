@@ -22,8 +22,8 @@ REQUIRED = ("repo", "integration_branch", "gate_task", "design_entry")
 DEFAULTS = {"publish_language": "English", "max_tasks": "5", "split_loc": "1000"}
 OPTIONAL = ("remote", "never_touch", "gate_targeted", "gate_post_land", "new_tests_dir",
             "import_check", "worktree_root", "task_label", "prose_tests",
-            "conversation_language", "test_files")
-INTEGER = ("max_tasks", "split_loc")
+            "conversation_language", "test_files", "gate_jobs")
+INTEGER = ("max_tasks", "split_loc", "gate_jobs")
 KEYS = REQUIRED + OPTIONAL + tuple(DEFAULTS) + ("gate_wave",)  # gate_wave: deprecated alias
 
 
@@ -102,6 +102,7 @@ def load(path=DEFAULT_PATH, ref=None):
     problems += [f"missing required key {k!r}" for k in REQUIRED if k not in keys]
     for k, v in DEFAULTS.items():
         keys.setdefault(k, v)
+    keys.setdefault("gate_jobs", keys["max_tasks"])
     for k in INTEGER:
         if not keys[k].isdigit() or int(keys[k]) < 1:
             problems.append(f"{k} must be a positive integer, got {keys[k]!r}")
