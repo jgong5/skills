@@ -466,7 +466,8 @@ PR. The `conversation_language` key sets the language agents
 use when they talk to you. The optional `gate_targeted` key names a faster
 gate that selects the tests a change reaches; developers and reviewers run
 it instead of the full gate, which still runs on every batch before
-landing. The full key table is in
+landing. When a batch goes red, each PR is gated alone, `gate_jobs` at a
+time (default: `max_tasks`). The full key table is in
 [`skills/agent-team/overlay.md`](skills/agent-team/overlay.md).
 
 ### Safety model
