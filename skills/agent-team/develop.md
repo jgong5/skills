@@ -40,10 +40,10 @@ stop: at the overrun `rules.md` sets, stop and escalate.
 
 ## 4. Pass the gates
 
-1. **`<gate_task>` passes at your head, with the project's existing tests
-   unmodified.** Needing to edit an existing test means the change altered
-   existing behaviour; justify that on its own terms in the Dev record, never
-   by quietly adjusting the test.
+1. **The task gate, `<gate_targeted>` (`<gate_task>` when unset), passes at
+   your head, with the project's existing tests unmodified.** Needing to edit
+   an existing test means the change altered existing behaviour; justify that
+   on its own terms in the Dev record, never by quietly adjusting the test.
 2. **New tests for what the task added**, in `<new_tests_dir>` when set, in
    the project's style. **They must exercise something the PR did not itself
    add**: a new module plus tests for that module, imported by nothing else,
@@ -62,7 +62,7 @@ fix.
 The PR targets `<integration_branch>` (or the parent's branch when stacked),
 its title says what the task does, and its body follows `gh-prose`'s PR body
 shape and names the issue (`Closes #<n>`); its `## Testing` shows the named
-result and the `<gate_task>` line. Rewrite the body in place each
+result and the task gate's line. Rewrite the body in place each
 round so it describes the current state. After every push, comment
 `Round <k> pushed <sha>.` with what changed since the last round, one line
 per answered finding: fixed in which commit, or why not, with evidence.
@@ -74,6 +74,6 @@ yours.
 Answer findings with new commits only (`rules.md`, Branches). Run every
 GitHub text through `gh-prose`'s lint before posting.
 
-**Done when** the PR is open, `<gate_task>` is green at its head, the body is
+**Done when** the PR is open, the task gate is green at its head, the body is
 current, and the latest round comment names that head. Then stop: the
 orchestrator sends a reviewer.

@@ -250,3 +250,12 @@ def test_no_overlay_at_the_ref_is_a_problem_naming_it(tmp_path, monkeypatch):
         assert rc == 1 and out.startswith(f"no overlay at {rev}: ")
     rc, _ = overlay_script("--ref")
     assert rc == 1
+
+
+def test_gate_targeted_loads_when_set_and_is_absent_when_not(tmp_path, monkeypatch):
+    main = repo_with(tmp_path, monkeypatch, GOOD.replace("max_tasks: 3", "gate_targeted: pytest -q -k x"))
+    keys, _, problems = overlay.load()
+    assert problems == [] and keys["gate_targeted"] == "pytest -q -k x"
+    (main / ".claude" / "agent-team.md").write_text(GOOD)
+    keys, _, problems = overlay.load()
+    assert problems == [] and "gate_targeted" not in keys
