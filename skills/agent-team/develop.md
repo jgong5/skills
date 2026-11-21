@@ -66,12 +66,12 @@ result and the task gate's line. Rewrite the body in place each
 round so it describes the current state. After every push, comment
 `Round <k> pushed <sha>.` with what changed since the last round, one line
 per answered finding: fixed in which commit, or why not, with evidence.
-A `Brief updated:` that needs no new commit still gets
-`Round <k> pushed <sha>.` naming the unchanged head, with why nothing
-changed: until a later comment names the head, `pr_state.py` keeps the turn
-yours.
+A `Brief updated:` or a verdict that needs no new commit -- a finding
+answered by rewriting the PR body -- still gets `Round <k> pushed <sha>.`
+naming the unchanged head, with what changed or why nothing did: until a
+later comment names the head, `pr_state.py` keeps the turn yours.
 
-Answer findings with new commits only (`rules.md`, Branches). Run every
+Answer a finding in code with new commits only (`rules.md`, Branches). Run every
 GitHub text through `gh-prose`'s lint before posting.
 
 **Done when** the PR is open, the task gate is green at its head, the body is

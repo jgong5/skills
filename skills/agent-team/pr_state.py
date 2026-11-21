@@ -13,7 +13,9 @@ round comment `Round <k> pushed <sha>.` does; until then it is the developer's.
 `verdicts` counts only the verdicts after the last Ruling -- an entry whose
 first line opens with `Ruling:` or, for an AI ruling, `Ruling (auto):` -- so a
 ruling restarts the count; the last verdict and holds still read the whole
-thread. A REQUEST CHANGES that covers the head is the developer's turn. Any
+thread. A REQUEST CHANGES that covers the head is the developer's turn until a
+later comment names that head: a round that answers it without a new commit,
+as a PR body rewrite can, is the reviewer's turn. Any
 entry after the last verdict whose first line opens a Ruling, or with
 `Ruling on #N affects this:`, holds landing and makes a covered
 head the reviewer's turn, even under an APPROVE: the ruling may have changed the
@@ -149,7 +151,7 @@ def state(number, repo=None, equivalent=None):
     elif covers and verdict["verdict"] == "APPROVE" and not (ruled_since or briefed):
         turn = "held" if any(h.startswith(HOLD) for h in holds) else "land"
     elif covers:
-        turn = "reviewer" if ruled_since or briefed else "developer"
+        turn = "reviewer" if ruled_since or briefed or named else "developer"
     else:
         turn = "reviewer" if named else "developer"
     last = entries[-1] if entries else None
