@@ -108,7 +108,8 @@ asked about findings. Escalate, in addition to the cases above, when:
   prints, run in the task's tree against its base: moved and deleted lines
   weigh a quarter, and the script says which files are test files. A
   design task (`agent-team/design`) is exempt: its reviewer judges its
-  size (`design-review.md`);
+  size (`design-review.md`). So is a spike (`agent-team/spike`), whose
+  script never lands: its reviewer judges its size (`review.md`);
 - the review loop hits its stop (`review.md`);
 - the only fix is a force-push (a secret or large binary pushed by mistake).
 
