@@ -33,17 +33,20 @@ the developer's tree, and run `<import_check>` there when it is set.
   unreproduced result blocks APPROVE: a design must not rest on it.
   `agent-team/spike` on only one of the issue and the PR blocks too: on the
   issue alone, `land.py` would merge the script into the tree; on the PR
-  alone, it would close a task's PR unmerged.
+  alone, it would close a task's PR unmerged. A spike is exempt from the
+  line-overrun escalation (`rules.md`, Escalations), so its size is yours
+  to judge: script beyond what the spike's question needs is a finding,
+  never an escalation.
 - **Credit a test with holding a defect only after you have seen it red**:
   reinstate the pre-fix code (`git show`, line count preserved, nothing else
   changed), run it, and record both counts and the failing test id and
   assertion. **An inert pin on a required finding blocks APPROVE.**
 - The published-text rules (`rules.md`) over the PR's whole file set at its
   head, not only the added lines.
-- Rerun `line_count.py` (`rules.md`, Escalations) at the head and compare it
-  with the Dev record's output. An overrun nobody escalated: escalate it
-  (`rules.md`, Escalations). A file in the wrong class, or code shaped to the
-  count, is a finding.
+- Except on a spike, rerun `line_count.py` (`rules.md`, Escalations) at
+  the head and compare it with the Dev record's output. An overrun nobody
+  escalated: escalate it (`rules.md`, Escalations). A file in the wrong
+  class, or code shaped to the count, is a finding.
 - On an auto item, each issue the developer opened sits where `rules.md`
   (The task record) puts it: under the umbrella, or `agent-team/backlog`.
   One misfiled is a finding.
