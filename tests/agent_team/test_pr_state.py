@@ -78,8 +78,24 @@ def test_the_last_verdict_wins_and_a_later_round_is_the_last_entry(fake_gh):
     ])
     s = pr_state.state(7)
     assert s["verdict"]["verdict"] == "REQUEST CHANGES" and s["verdicts"] == 2
-    assert s["turn"] == "developer"
+    assert s["turn"] == "reviewer"
     assert s["last_entry"]["line"] == "Round 2 pushed c0ffee1."
+
+
+def test_a_round_naming_a_request_changes_head_is_the_reviewers_turn_until_the_next_verdict(fake_gh):
+    # jgong5/ATOM#3850: a spike answered the verdict by rewriting its PR body, not its head.
+    rc = comment("2026-01-02T00:00:00Z", "REQUEST CHANGES @ c0ffee1: 1 blocking.", "rev")
+    fake_gh.pr = make_pr([rc])
+    assert pr_state.state(7)["turn"] == "developer"
+    # A comment naming another sha does not answer it.
+    fake_gh.pr = make_pr([rc, comment("2026-01-03T00:00:00Z", "Round 2 pushed 1111111.")])
+    assert pr_state.state(7)["turn"] == "developer"
+    fake_gh.pr = make_pr([rc, ROUND])
+    s = pr_state.state(7)
+    assert s["turn"] == "reviewer"
+    assert s["holds"] == ["the last verdict is REQUEST CHANGES @ c0ffee1"]
+    fake_gh.pr["comments"].append(comment("2026-01-06T00:00:00Z", "REQUEST CHANGES @ c0ffee1.", "rev"))
+    assert pr_state.state(7)["turn"] == "developer"
 
 
 def test_a_review_body_counts_and_approved_is_not_approve(fake_gh):
