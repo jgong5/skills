@@ -40,11 +40,14 @@ away on landing and a file in the tree goes stale.
   will not survive the squash. A pre-existing defect a review happens to see
   is not such a finding; `review.md` (Check) says when it gets an issue.
 - **On an auto item, an issue you open goes under its umbrella**, with
-  `Part of #U`, only when it serves an acceptance item: a defect this
-  feature introduced, or work a target needs. Anything else -- a
-  pre-existing defect, an improvement, out-of-scope work -- is filed with
-  `agent-team/backlog` and no `Part of` line, and nobody claims it. The
-  opener classifies; the reviewer or the ruling agent re-checks.
+  `Part of #U`, only when it serves an acceptance item -- a defect this
+  feature introduced, or work a target needs -- and carries a complete
+  brief: every part `plan.md` step 3 lists. Without one it waits for an
+  item planner (`SKILL.md`, One pass step 5) before anyone can claim it.
+  Anything else -- a pre-existing defect, an improvement, out-of-scope
+  work, work you cannot brief -- is filed with `agent-team/backlog` and no
+  `Part of` line, and nobody claims it. The opener classifies and briefs;
+  the reviewer or the ruling agent re-checks both.
 - **Check delivery before claiming or briefing an issue.** Read its comments,
   not only its body, and look for an open PR that names it in its title or
   with a delivering verb (closes, fixes, resolves, addresses, implements).
