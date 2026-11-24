@@ -48,8 +48,9 @@ the developer's tree, and run `<import_check>` there when it is set.
   escalated: escalate it (`rules.md`, Escalations). A file in the wrong
   class, or code shaped to the count, is a finding.
 - On an auto item, each issue the developer opened sits where `rules.md`
-  (The task record) puts it: under the umbrella, or `agent-team/backlog`.
-  One misfiled is a finding.
+  (The task record) puts it: under the umbrella with every brief part
+  `plan.md` step 3 lists, or `agent-team/backlog`. One misfiled, or under
+  the umbrella missing a part, is a finding.
 - Run the `ponytail-review` skill over the diff when it is installed, to catch
   over-engineering; post its findings like any others.
 
