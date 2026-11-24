@@ -75,32 +75,51 @@ owner which tasks are claimable now.
 
 Nobody waits for the owner here, so a plan review takes the place of step
 4's owner review. You are in auto mode when `run` dispatched you for an
-auto umbrella #U (`SKILL.md`, One pass, step 5), or when a ruling agent
-carries out a split (`verdict.md`, step 4) on an issue under one.
+auto umbrella #U or for an auto item `#N` under it that needs a brief
+(`SKILL.md`, One pass, step 5), or when a ruling agent carries out a split
+(`verdict.md`, step 4) on an issue under one.
 
 1. **Input.** For #U: its requirement document, the design documents its
    `agent-team/design` issues landed, and each `Ruling (auto):` and
    `Ruling: overturn #N:` in its thread since your last plan record
    there. A veto that overturns a
    design decision gets a `Design update: <feature>` issue labeled
-   `agent-team/design`, and the re-plan waits for it to land. For a split:
-   `#N`, as step 1 reads it.
+   `agent-team/design`, and the re-plan waits for it to land. For an item
+   that needs a brief, or a split: `#N`, as step 1 reads it, with #U's
+   requirement document and the design documents its `agent-team/design`
+   issues landed, since its tasks must serve #U's acceptance items.
 2. **Draft.** Steps 1-3 as written, every brief opening with `Part of
-   #U`, written to `<scratch>/plan-<U>.md`. Publish nothing: a session
-   that dies now loses only the draft, and the next pass plans again.
+   #U`, written to `<scratch>/plan-<N>.md` for `#N` input and
+   `<scratch>/plan-<U>.md` for #U, so planners under one umbrella never
+   share a draft. Publish nothing: a session that dies now loses only the
+   draft, and the next pass plans again. For `#N` the draft is #N's
+   brief; a split, #N as one task's brief and the rest new issues; or a
+   carrier draft, naming the published task #T that already carries #N's
+   work. When #N cannot be briefed -- its work is unclear, or serves no
+   acceptance item of #U -- post a ruling request on #N, apply
+   `agent-team/ruling`, and stop.
 3. **Plan review.** Dispatch a fresh reviewer agent with this doc, the
    input and the draft's path, and none of your reasoning. It checks the
-   draft against steps 2 and 3, and that every acceptance item is covered
-   by some task's exit criteria or named result, and writes to scratch its
-   findings, `<problem>. <fix>.`, each marked blocking or not. Revise and
-   have it review again, two reviews at most. A blocking finding left
-   after the second: post a ruling request (`gh-prose`) on the item you
-   plan for, #U or the issue split, apply `agent-team/ruling`, and stop.
+   draft against steps 2 and 3, and writes to scratch its findings,
+   `<problem>. <fix>.`, each marked blocking or not. For #U it also checks
+   that every acceptance item is covered by some task's exit criteria or
+   named result. For `#N` it checks that each task serves an acceptance
+   item of #U, and, for a carrier draft, that #T's file set and exit
+   criteria cover #N's work: a carrier draft has no new task, so nothing
+   else confirms #T before #N closes. Revise and have it review again, two
+   reviews at most. A blocking finding left after the second: post a
+   ruling request (`gh-prose`) on the item you plan for, #U or `#N`, apply
+   `agent-team/ruling`, and stop.
 4. **Publish** as step 4 does once approved. Then post the review record
    on the item you plan for, linted as `--kind comment`, its first line
    `Ready: plan published: #a, #b.`, its `Checked:` line the acceptance
    coverage, and both reviews in `<details>`. On #U, `run` reads that line
-   as the plan done.
+   as the plan done. A split edits #N into one task's brief and creates the
+   rest under #U. A carrier draft's record names #T (`Ready: plan
+   published: #T.`); then edit each open issue's `Depends on #N` line to
+   `Depends on #T`, and close #N with that record as its handoff, since
+   `run` would otherwise plan the open, unbriefed #N every pass.
 
 **Done when** every task of the passing draft is an issue as step 4 says
-and the record is posted, or the ruling request is.
+and the record is posted, with #N closed for a carrier draft, or the
+ruling request is.
