@@ -332,3 +332,10 @@ file" by name, so reword either here and `auto.md` with it.
   rather than `--print-to-pdf` will simplify it back into a bug.
 - Development runs through the superpowers SDD workflow; `.superpowers/sdd/`
   holds per-task briefs, reports, and review diffs and is entirely git-ignored.
+
+## Design documents
+
+- `PRINCIPLES.md`: this repository's principles, a layer on top of
+  agent-team's default list (`skills/agent-team/principles.md`).
+- `auto-item-brief.md`: how an auto item without a complete brief gets one
+  without the owner ([#278](https://github.com/jgong5/skills/issues/278)).
