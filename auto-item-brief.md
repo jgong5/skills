@@ -20,9 +20,9 @@ plan is published. #N ends briefed and claimable.
 flowchart TD
   A["run pass, step 1: #N classified needs a brief"] --> B{"auto item?"}
   B -- "no, manual" --> M["unchanged: waits for the owner's plan"]
-  B -- "yes" --> C{"#U needs the umbrella planner?"}
-  C -- "yes" --> W["wait: S3"]
-  C -- "no" --> D["step 5: dispatch a planner with #N, plan.md Auto mode"]
+  B -- "yes" --> C{"#U's design issues all closed and #U needs no planner?"}
+  C -- "no" --> W["wait: S3"]
+  C -- "yes" --> D["step 5: dispatch a planner with #N, plan.md Auto mode"]
   D --> E["draft brief for #N in scratch"]
   E --> F["plan review: each task serves an acceptance item of #U"]
   F -- "passes" --> G["publish: #N body edited to a full brief"]
@@ -33,30 +33,38 @@ flowchart TD
 ### S2. Recover: #N splits, or its work is already a task
 
 The planner cuts #N into several tasks, or finds a published task that
-already carries its work. The tasks end claimable and #N does not stay open
+already carries its work. Either draft passes the plan review before
+anything is published. The tasks end claimable and #N does not stay open
 unbriefed.
 
 ```mermaid
 flowchart TD
   A["planner reads #N and the open issues"] --> B{"outcome of the cut"}
-  B -- "several tasks" --> C["#N edited into one task's brief, the rest created with Part of #U"]
-  B -- "already a task #T" --> D["#N closed, handoff names #T"]
-  C --> E["plan review, publish, Ready record on #N"]
-  D --> F["no planner on #N again: it is closed"]
-  E --> G["next pass: #N and the new issues claimable"]
+  B -- "several tasks" --> C["draft: #N as one task's brief, the rest new with Part of #U"]
+  B -- "already a task #T" --> D["draft: #T named as the carrier of #N's work"]
+  C --> E["plan review of the draft"]
+  D --> E
+  E -- "fails twice" --> S["S4"]
+  E -- "passes" --> P{"publish the draft"}
+  P -- "split" --> G["#N edited, new issues created, Ready record on #N"]
+  P -- "carrier" --> H["Ready record on #N naming #T, #N closed with that handoff"]
+  G --> I["next pass: #N and the new issues claimable"]
+  H --> J["next pass: #T carries the work, no planner on the closed #N"]
 ```
 
 ### S3. Recover waits for the umbrella planner
 
-#U's design issues just closed and its thread has no plan record since, so
-step 5 dispatches the umbrella planner. #N is unbriefed in the same pool.
+#U's design issues are still open, or just closed with no plan record in
+#U's thread since, so step 5 dispatches the umbrella planner once they
+close. #N is unbriefed in the same pool.
 
 ```mermaid
 sequenceDiagram
   participant R as run
   participant P as umbrella planner
   participant Q as item planner
-  R->>P: dispatch for #U
+  Note over R: #U's design issues open: no planner for #U or #N
+  R->>P: design issues closed: dispatch for #U
   Note over R: #U needs a planner, so no item planner for #N
   P->>R: Ready: plan published on #U
   R->>Q: next pass, #U needs no planner: dispatch for #N
@@ -123,17 +131,24 @@ docs edited -> marketplace.json agent-team 0.21.0
    step 5 ("each when no agent of yours runs on its item");
    `skills/agent-team/plan.md`: Auto mode already plans one `#N` for a
    split; principle: Reuse existing code and dependencies first. Rejected:
-   one planner per umbrella covering all such items, which needs a new
-   kind of item for the running-agent check and leaves a failed review no
-   single issue to hold.
-2. **The item planner waits while its umbrella needs a planner** (S3),
-   reusing the acceptor bullet's "needs no planner". Basis: code:
-   `skills/agent-team/plan.md`: step 1 has a planner read the open pool
-   to extend the DAG, so the umbrella planner can cut #N's work into a new
-   task while the item planner briefs #N; `skills/agent-team/SKILL.md`:
-   One pass step 5, acceptor bullet; principle: Follow the project's
-   existing conventions. Rejected: dispatching regardless, which risks two
-   issues for one change.
+   one planner per umbrella covering all such items, keyed on #U: one
+   item's failed plan review holds #U, and with it #U's planner and its
+   acceptor.
+2. **The item planner waits until its umbrella's `agent-team/design`
+   issues are all closed and the umbrella needs no planner** (S3), reusing
+   the umbrella planner bullet's design condition and the acceptor
+   bullet's "needs no planner". The design condition is needed on its own:
+   while a design issue is open the umbrella needs no planner, so "needs
+   no planner" alone would brief #N before the design lands. Basis: code:
+   `skills/agent-team/plan.md`: Auto mode step 1 takes the design
+   documents #U's design issues landed as a planner's input, so a brief
+   drafted earlier has no design to cut from; `plan.md` step 1 has a
+   planner read the open pool to extend the DAG, so the umbrella planner
+   can cut #N's work into a new task while the item planner briefs #N;
+   `skills/agent-team/SKILL.md`: One pass step 5, umbrella planner and
+   acceptor bullets; principle: Follow the project's existing conventions.
+   Rejected: "needs no planner" alone, which briefs #N against no design
+   and can file one change twice.
 3. **For `#N` input the plan review checks that each task serves an
    acceptance item of #U**; the every-item coverage check stays for #U
    input. Basis: code: `skills/agent-team/plan.md`: Auto mode step 3,
@@ -143,13 +158,22 @@ docs edited -> marketplace.json agent-team 0.21.0
    one check for both inputs, which would send every item to
    `agent-team/ruling`. It changes the split path too, which takes the
    same input.
-4. **#N ends briefed or closed** (S2): edited into one task's brief, or
-   closed with a handoff naming the issues that carry its work. Basis:
-   code: `skills/agent-team/SKILL.md`: One pass step 1, which classifies
-   an open issue without a file set as needs a brief again;
+4. **#N ends briefed or closed, and both go through the plan review**
+   (S2). A split drafts #N as one task's brief and the rest as new
+   issues; a carrier draft names the published task #T that already
+   carries #N's work. Either draft passes the plan review, which stands in
+   for the owner, before it is published; publishing a carrier draft posts
+   the Ready record on #N naming #T and closes #N with that handoff. The
+   close meets goal 1's "split into briefed issues": #N's work ends in
+   #T, already briefed, the zero-new-issue case of a split. Basis: code:
+   `skills/agent-team/plan.md`: Auto mode step 3, the review every draft
+   passes, and step 4, publishing only the reviewed draft;
+   `skills/agent-team/SKILL.md`: One pass step 1, which classifies an
+   open issue without a file set as needs a brief again;
    `skills/agent-team/rules.md`: The task record, on closing with a
    handoff. Rejected: #N kept as a grouping issue (`plan.md` step 2), on
-   which decision 1 would dispatch a planner every pass.
+   which decision 1 would dispatch a planner every pass; and closing #N
+   without the review, which skips the owner's stand-in.
 5. **An issue the planner cannot brief gets a ruling request** with
    `agent-team/ruling` (S4). Basis: requirement goal 1 names two ends,
    claimable or held under `agent-team/ruling`; code:
@@ -183,9 +207,12 @@ docs edited -> marketplace.json agent-team 0.21.0
     which this change makes true. Rejected: a sentence restating
     `SKILL.md`.
 11. **Version 0.21.0.** Basis: code: `.claude-plugin/marketplace.json`
-    history, where 43bd182 took a minor bump for a new duty. Rejected:
-    0.20.1, since 01aa84a and 51a327a took patch bumps for behaviour
-    changes. Confidence low (below).
+    history, where 01aa84a and 43bd182 took minor bumps for a step or
+    exemption a role did not have, and 51a327a and cfe63e8 took patch
+    bumps for corrections to how an existing step behaves. A new dispatch
+    and a new opener duty are the former. Rejected: 0.20.1, which holds
+    only if the change counts as a correction of step 5. Confidence low
+    (below).
 
 ## Simpler alternative
 
@@ -194,12 +221,14 @@ input line alone. It passes A1 and A2's checks, but fails goal 1, whose ends
 those checks stand for. Without decision 4 a split leaves #N open without
 a file set and run dispatches a planner on it every pass; without decision
 3 every review of a one-issue plan blocks on uncovered acceptance items;
-without decision 2 two planners can file one change twice.
+without decision 2 #N is briefed before the design lands, and two
+planners can file one change twice.
 
 ## Low confidence
 
-- Decision 11, the version number: the bump history supports either
-  0.21.0 or 0.20.1, both meet A5, and no measurement chooses between them.
+- Decision 11, the version number: the bump history separates new
+  duties from corrections, but which side this change falls on is a
+  judgment; both numbers meet A5, and no measurement chooses between them.
 
 ## Dependencies
 
@@ -214,12 +243,14 @@ repository is not a fork.
 - **Scope / non-goals**: as #278. Manual items, a migration of stuck
   issues, and when the umbrella-wide planner runs are untouched.
 - **Changes**:
-  - `skills/agent-team/SKILL.md`: One pass step 5 gains the planner
-    bullet of decisions 1 and 2, naming needs a brief; step 1's
+  - `skills/agent-team/SKILL.md`: One pass step 5 gains the item planner
+    bullet of decisions 1 and 2, naming needs a brief and waiting for the
+    umbrella's design issues and plan; step 1's
     needs-a-brief sentence and Dispatching follow (decision 8). Goal 1.
   - `skills/agent-team/plan.md`, Auto mode: its opening paragraph and
     step 1 accept a needs-a-brief item as `#N` (decision 1); step 3's
-    coverage check by input (decision 3); #N's end (decision 4); the
+    coverage check by input (decision 3); #N's end, a split or a carrier
+    draft, each through the plan review (decision 4); the
     ruling request when it cannot be briefed (decision 5). Goal 1.
   - `skills/agent-team/rules.md`, The task record: the auto-item bullet
     requires a brief per `plan.md` step 3, or backlog, and its re-check
