@@ -113,7 +113,8 @@ Read-only; changes nothing on GitHub or disk. Report, within the scope:
 
 - every open PR: its `pr_state.py` turn and holds;
 - every open issue, classified as in `run`, step 1, with what blocks it;
-- every auto umbrella, with what `run`, step 5, would dispatch for it;
+- every auto umbrella, with what `run`, step 5, would dispatch for it and
+  its items, item planners included;
 - every `agent-team/need-human` item, the ruling it waits on, and its ruler
   (`python3 <skill-dir>/ruler.py N --repo <repo>`), or `no ruler: hand off
   first` when it has none; every `agent-team/ruling` item waits on a
@@ -166,7 +167,8 @@ only until its final report.
    - **needs a brief** -- the brief lacks a file set, exit criteria, a
      named result or an effort estimate, or estimates above `<split_loc>`
      lines without being decomposed (`plan.md`). Never write the brief here:
-     that is `plan`'s job, and it ends in owner review;
+     that is `plan`'s job, ending in owner review for a manual item and in
+     a plan review for an auto item (step 5);
    - **blocked** -- a dependency is still open, unless the open ones are
      stackable and none is held, by a label on its issue or its PR; a
      dependency on a missing issue, or a cycle, is a finding to report;
@@ -211,6 +213,11 @@ only until its final report.
      them closed or since its latest `Ruling: overturn #N:`. That is the
      owner's veto: the planner files its follow-ups under the umbrella.
      A veto on any other item is never read;
+   - a planner for each unheld in-scope auto item that needs a brief, once
+     its umbrella's `agent-team/design` issues are all closed and the
+     umbrella needs no planner: a brief cut before the design lands has
+     nothing to cut from, and the umbrella's planner may still carry the
+     item's work in a task of its own;
    - an acceptor for each unheld in-scope auto umbrella whose issues are
      all closed and that needs no planner.
 
@@ -291,9 +298,10 @@ agent no prose of your own about how to work; hand it:
   to review, `agent-team/spike` gets `spike.md` and `review.md`, any other
   issue `develop.md` and `review.md`. A planner gets `plan.md`, a ruling agent
   `ruling.md`, an acceptor `accept.md`, all under `<skill-dir>`;
-- the issue number (developer), PR number (reviewer), umbrella (planner,
-  acceptor) or held item (ruling agent), and its mode, `manual` or `auto
-  under #U`, which decides the label an escalation takes;
+- the issue number (developer), PR number (reviewer), umbrella or the
+  issue that needs a brief (planner), umbrella (acceptor) or held item
+  (ruling agent), and its mode, `manual` or `auto under #U`, which decides
+  the label an escalation takes;
 - the overlay keys as JSON, without `conversation_language`: it governs
   only what you say to the owner, and an agent's report goes to you;
 - the overlay body, then the local body when there is one, last, and
