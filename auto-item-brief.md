@@ -3,11 +3,9 @@
 Requirement: [#278](https://github.com/jgong5/skills/issues/278), from
 [#277](https://github.com/jgong5/skills/issues/277).
 
-Today an issue opened under an auto umbrella without a complete brief is
-classified as needs a brief by `run` (`skills/agent-team/SKILL.md`: One
-pass, step 1) and nothing dispatches a planner for it: step 5 plans only
-the whole umbrella. This design adds a per-item planner (recover) and a
-brief duty on whoever opens such an issue (prevent).
+This design adds a per-item planner for an auto item that needs a brief
+(recover) and a brief duty on whoever opens an issue under an auto
+umbrella (prevent).
 
 ## Scenarios
 
@@ -42,10 +40,12 @@ flowchart TD
   A["planner reads #N and the open issues"] --> B{"outcome of the cut"}
   B -- "several tasks" --> C["draft: #N as one task's brief, the rest new with Part of #U"]
   B -- "already a task #T" --> D["draft: #T named as the carrier of #N's work"]
-  C --> E["plan review of the draft"]
-  D --> E
+  C --> E["plan review: each task serves an acceptance item of #U"]
+  D --> E2["plan review: #T's file set and exit criteria cover #N's work"]
   E -- "fails twice" --> S["S4"]
   E -- "passes" --> P{"publish the draft"}
+  E2 -- "fails twice" --> S
+  E2 -- "passes" --> P
   P -- "split" --> G["#N edited, new issues created, Ready record on #N"]
   P -- "carrier" --> H["Ready record on #N naming #T, #N closed with that handoff"]
   G --> I["next pass: #N and the new issues claimable"]
@@ -126,14 +126,18 @@ docs edited -> marketplace.json agent-team 0.21.0
 1. **One planner per item, through the split's input.** `run` step 5
    dispatches a planner for each in-scope auto item classified needs a
    brief, with that issue as `#N` input to `plan.md` Auto mode: draft,
-   plan review, publish. Basis: code: `skills/agent-team/SKILL.md`:
-   Dispatching ("One background agent per role per item") and One pass
-   step 5 ("each when no agent of yours runs on its item");
+   plan review, publish. The draft is keyed on the item planned for,
+   `<scratch>/plan-<N>.md` for `#N` input and `plan-<U>.md` for #U, so
+   parallel planners under one umbrella never share a draft. Basis:
+   code: `skills/agent-team/SKILL.md`: Dispatching ("One background
+   agent per role per item") and One pass step 5 ("each when no agent of
+   yours runs on its item");
    `skills/agent-team/plan.md`: Auto mode already plans one `#N` for a
-   split; principle: Reuse existing code and dependencies first. Rejected:
-   one planner per umbrella covering all such items, keyed on #U: one
-   item's failed plan review holds #U, and with it #U's planner and its
-   acceptor.
+   split, and its step 2 writes every draft to `<scratch>/plan-<U>.md`,
+   which two item planners would overwrite; principle: Reuse existing
+   code and dependencies first. Rejected: one planner per umbrella
+   covering all such items, keyed on #U: one item's failed plan review
+   holds #U, and with it #U's planner and its acceptor.
 2. **The item planner waits until its umbrella's `agent-team/design`
    issues are all closed and the umbrella needs no planner** (S3), reusing
    the umbrella planner bullet's design condition and the acceptor
@@ -150,9 +154,12 @@ docs edited -> marketplace.json agent-team 0.21.0
    Rejected: "needs no planner" alone, which briefs #N against no design
    and can file one change twice.
 3. **For `#N` input the plan review checks that each task serves an
-   acceptance item of #U**; the every-item coverage check stays for #U
-   input. Basis: code: `skills/agent-team/plan.md`: Auto mode step 3,
-   whose every-item check a one-issue plan always fails;
+   acceptance item of #U, and for a carrier draft that #T's file set and
+   exit criteria cover #N's work**; the every-item coverage check stays
+   for #U input. A carrier draft has no new task, so without the second
+   check it always passes, and nothing confirms #T covers #N's work
+   before #N closes. Basis: code: `skills/agent-team/plan.md`: Auto mode
+   step 3, whose every-item check a one-issue plan always fails;
    `skills/agent-team/rules.md`: The task record, which admits an issue
    under the umbrella only when it serves an acceptance item. Rejected:
    one check for both inputs, which would send every item to
@@ -248,8 +255,10 @@ repository is not a fork.
     umbrella's design issues and plan; step 1's
     needs-a-brief sentence and Dispatching follow (decision 8). Goal 1.
   - `skills/agent-team/plan.md`, Auto mode: its opening paragraph and
-    step 1 accept a needs-a-brief item as `#N` (decision 1); step 3's
-    coverage check by input (decision 3); #N's end, a split or a carrier
+    step 1 accept a needs-a-brief item as `#N` (decision 1); step 2's
+    draft path keyed on the item planned for, `plan-<N>.md` for `#N`
+    input (decision 1); step 3's coverage check by input, and the
+    carrier check (decision 3); #N's end, a split or a carrier
     draft, each through the plan review (decision 4); the
     ruling request when it cannot be briefed (decision 5). Goal 1.
   - `skills/agent-team/rules.md`, The task record: the auto-item bullet
